@@ -44,6 +44,7 @@ module.exports = {
   env: {
     es6: true,
     jest: true,
+    webextensions: true,
   },
   rules: {
     'comma-dangle': ['error', 'always-multiline'],

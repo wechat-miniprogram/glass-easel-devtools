@@ -13,12 +13,18 @@
     "256": "icons/glass-easel-256.png",
     "512": "icons/glass-easel-512.png"
   },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["dist/index.js"],
-      "all_frames": true
-    }
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "webNavigation",
+    "userScripts"
   ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "scripts": ["dist/background.js"],
+    "service_worker": "dist/background.js"
+  },
   "devtools_page": "devtools.html"
 }
