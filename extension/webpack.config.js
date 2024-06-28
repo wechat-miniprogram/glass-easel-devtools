@@ -15,9 +15,6 @@ const config = (input, output) => {
     devtool: 'source-map',
     resolve: {
       extensions: ['.ts', '.js'],
-      alias: {
-        'glass-easel': 'glass-easel',
-      },
     },
     module: {
       rules: [
@@ -27,6 +24,11 @@ const config = (input, output) => {
           exclude: /node_modules/,
         },
       ],
+    },
+    performance: {
+      hints: false,
+      maxEntrypointSize: 4 * 1024 * 1024,
+      maxAssetSize: 4 * 1024 * 1024,
     },
   }
   mainFields.entry = input

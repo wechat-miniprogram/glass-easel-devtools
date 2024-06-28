@@ -1,4 +1,4 @@
-import { type AgentSendMessage } from '../agent/message'
+import { type protocol } from 'glass-easel-devtools-agent'
 import { type PanelSendMessage } from '../panel/message'
 import { ConnectionSource } from '../utils'
 
@@ -16,61 +16,90 @@ chrome.scripting.registerContentScripts([
 ])
 
 // inject main agent when needed
+const injectContentScript = (tabId: number) => {
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  chrome.scripting.executeScript({
+    target: {
+      tabId,
+      allFrames: true,
+    },
+    files: ['dist/content.js'],
+  })
+}
 const injectAgentScript = (tabId: number) => {
-  // eslint-disable-next-line @typescript-eslint/no-floating-promises, promise/catch-or-return
-  chrome.scripting
-    .executeScript({
-      target: {
-        tabId,
-        allFrames: true,
-      },
-      files: ['dist/content.js'],
-    })
-    .then(() =>
-      chrome.scripting.executeScript({
-        world: 'MAIN',
-        target: {
-          tabId,
-          allFrames: true,
-        },
-        files: ['dist/agent.js'],
-      }),
-    )
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  chrome.scripting.executeScript({
+    world: 'MAIN',
+    target: {
+      tabId,
+      allFrames: true,
+    },
+    files: ['dist/agent.js'],
+  })
 }
 
 // states
-const tabPortMap = Object.create(null) as Record<number, chrome.runtime.Port>
-
-// connections
+const tabMetaMap = Object.create(null) as Record<
+  number,
+  {
+    devTools: chrome.runtime.Port
+    contentScript?: chrome.runtime.Port
+  }
+>
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name === ConnectionSource.DevToolsPanel) {
-    // connections from DevTools
-    let tabId = 0
-    port.onMessage.addListener((message: PanelSendMessage) => {
-      if (message.type === 'inspect') {
-        if (tabId) delete tabPortMap[tabId]
-        tabId = message.tabId
-        tabPortMap[tabId] = port
-        injectAgentScript(tabId)
-      }
-    })
-    port.onDisconnect.addListener((_port) => {
-      if (tabId) delete tabPortMap[tabId]
-    })
+    newDevToolsConnection(port)
   } else if (port.name === ConnectionSource.ContentScript) {
-    // connections from content-script
-    port.onMessage.addListener((message: AgentSendMessage) => {
-      console.info('!!! agent send', message) // TODO
-    })
+    newContentScriptConnection(port)
   }
 })
 
-// inject agent when reloaded
-chrome.webNavigation.onCommitted.addListener((ev) => {
-  const tabId = ev.tabId
-  const port = tabPortMap[tabId]
-  if (!port) return
+// connections from DevTools
+const newDevToolsConnection = (port: chrome.runtime.Port) => {
+  let tabId = 0
+  port.onMessage.addListener((message: PanelSendMessage) => {
+    if (message.kind === '_init') {
+      if (tabId) delete tabMetaMap[tabId]
+      tabId = message.tabId
+      tabMetaMap[tabId] = { devTools: port }
+      injectContentScript(tabId)
+    } else if (message.kind !== '') {
+      const tabMeta = tabMetaMap[tabId]
+      if (!tabMeta) return
+      tabMeta.contentScript?.postMessage(message)
+    }
+  })
+  port.onDisconnect.addListener((_port) => {
+    if (tabId) delete tabMetaMap[tabId]
+  })
+}
+
+// connections from content script
+const newContentScriptConnection = (port: chrome.runtime.Port) => {
+  const tabId = port.sender?.tab?.id
+  if (tabId === undefined) return
+  const tabMeta = tabMetaMap[tabId]
+  if (!tabMeta) return
+  tabMeta.contentScript = port
+  port.onMessage.addListener((message: protocol.AgentSendMessage) => {
+    const tabMeta = tabMetaMap[tabId]
+    if (!tabMeta) return
+    tabMeta.devTools.postMessage(message)
+  })
+  port.onDisconnect.addListener((_port) => {
+    const tabMeta = tabMetaMap[tabId]
+    if (!tabMeta) return
+    tabMeta.contentScript = undefined
+  })
   injectAgentScript(tabId)
+}
+
+// inject agent when reloaded
+chrome.webNavigation.onDOMContentLoaded.addListener((ev) => {
+  const tabId = ev.tabId
+  const tabMeta = tabMetaMap[tabId]
+  if (!tabMeta) return
+  injectContentScript(tabId)
 })
 
 // eslint-disable-next-line no-console

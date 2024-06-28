@@ -1,9 +1,14 @@
 {
   "name": "glass-easel-devtools-extension",
   "version": "0.7.0",
-  "main": "src/index.ts",
+  "main": "src/utils.ts",
   "scripts": {
     "build": "webpack --config webpack.config.js",
-    "dev": "webpack --config webpack.dev.config.js --watch"
+    "dev": "webpack --config webpack.config.js --watch"
+  },
+  "dependencies": {
+    "glass-easel": "^0.7.0",
+    "glass-easel-devtools-agent": "workspace:*",
+    "glass-easel-devtools-panel": "workspace:*"
   }
 }

@@ -1,28 +1,37 @@
-import { type DevTools, type DevToolsBridge, type InspectorDevTools } from '../utils'
-import { type AgentSendMessage } from './message'
+import { CurrentWindowBackendContext, type GeneralBackendElement } from 'glass-easel'
+import { getDevTools, type protocol } from 'glass-easel-devtools-agent'
+import { type DevToolsBridge } from '../utils'
 
-// messaging
-const postMessage = (message: AgentSendMessage) => {
-  const ev = new CustomEvent('glass-easel-devtools', { detail: message })
-  window.dispatchEvent(ev)
+// receive the host element
+const hostElement = document.querySelector('glass-easel-devtools')
+if (!hostElement) throw new Error('Failed to initialize glass-easel DevTools agent')
+const hostContext = new CurrentWindowBackendContext()
+
+// messaging with content script
+const postMessage = (message: protocol.AgentSendMessage) => {
+  const ev = new CustomEvent('glass-easel-devtools-agent-send', { detail: message })
+  hostElement.dispatchEvent(ev)
 }
+hostElement.addEventListener('glass-easel-devtools-agent-recv', (ev) => {
+  const { detail } = ev as CustomEvent<protocol.AgentRecvMessage>
+  requestListener?.(detail)
+})
 
-class InspectorDevToolsImpl implements InspectorDevTools {
-  // eslint-disable-next-line class-methods-use-this
-  addMountPoint(root: unknown): void {
-    console.info('!!! add root', root) // TODO
-    postMessage({ type: '' })
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  removeMountPoint(root: unknown): void {
-    console.info('!!! remove root', root) // TODO
-  }
+// create the real agent
+let requestListener: ((data: protocol.AgentRecvMessage) => void) | null = null
+const messageChannel = {
+  send(data: protocol.AgentSendMessage) {
+    postMessage(data)
+  },
+  recv(listener: (data: protocol.AgentRecvMessage) => void) {
+    requestListener = listener
+  },
 }
-
-const devToolsImpl: DevTools = {
-  inspector: new InspectorDevToolsImpl(),
-}
+const devTools = getDevTools(
+  hostContext,
+  hostElement as unknown as GeneralBackendElement,
+  messageChannel,
+)
 
 const userGlobal = window as unknown as { __glassEaselDevTools__?: DevToolsBridge }
-userGlobal.__glassEaselDevTools__?._devToolsConnect(devToolsImpl)
+userGlobal.__glassEaselDevTools__?._devToolsConnect(devTools)
