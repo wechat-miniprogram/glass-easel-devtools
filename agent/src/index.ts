@@ -6,9 +6,9 @@ import type {
   AgentRequestKind,
   AgentRecvMessage,
   AgentSendMessage,
-} from './protocol'
+} from './protocol/index'
 
-export * as protocol from './protocol'
+export * as protocol from './protocol/index'
 
 export interface MessageChannel {
   send(data: AgentSendMessage): void
@@ -37,16 +37,6 @@ class InspectorDevToolsImpl {
         this.recvRequest(data.id, data.name, data.detail)
       }
     })
-    // FIXME test code
-    this.setRequestHandler('getBoundingClientRect', async (req) => {
-      console.info('!!! test request', req.nodeId)
-      return {
-        left: 0,
-        top: 0,
-        right: 0,
-        bottom: 0,
-      }
-    })
   }
 
   private generateNodeId() {
@@ -55,14 +45,22 @@ class InspectorDevToolsImpl {
     return ret
   }
 
-  sendEvent<T extends keyof AgentEventKind>(name: T, detail: AgentEventKind[T]) {
+  sendEvent<T extends keyof AgentEventKind>(name: T, detail: AgentEventKind[T]['detail']) {
     const data: AgentSendMessage = { kind: 'event', name, detail }
     this.messageChannel.send(data)
   }
 
   private recvRequest(id: number, name: string, detail: unknown) {
     const handler = this.requestHandlers[name]
-    if (!handler) return
+    if (!handler) {
+      const data: AgentSendMessage = {
+        kind: 'error',
+        id,
+        message: 'invalid request name',
+      }
+      this.messageChannel.send(data)
+      return
+    }
     handler
       .call(this, detail)
       .then((ret: unknown) => {

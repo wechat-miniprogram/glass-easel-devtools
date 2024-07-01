@@ -8,5 +8,8 @@
   },
   "peerDependencies": {
     "glass-easel": "^0.7.0"
+  },
+  "devDependencies": {
+    "devtools-protocol": "^0.0.1319565"
   }
 }

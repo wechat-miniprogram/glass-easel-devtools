@@ -56,6 +56,10 @@ importers:
       glass-easel:
         specifier: ^0.7.0
         version: 0.7.0
+    devDependencies:
+      devtools-protocol:
+        specifier: ^0.0.1319565
+        version: 0.0.1319565
 
   extension:
     dependencies:
@@ -1052,6 +1056,10 @@ packages:
       define-data-property: 1.1.4
       has-property-descriptors: 1.0.2
       object-keys: 1.1.1
+    dev: true
+
+  /devtools-protocol@0.0.1319565:
+    resolution: {integrity: sha512-Xc1Xrng6tSt5t0IIFCMeYUIqKEbvJVnKakfUCCq9WIk5m+9SbrPIXFtGcwwos8DucDyViEzwjy6PgIZWGUldyQ==}
     dev: true
 
   /dir-glob@3.0.1:
