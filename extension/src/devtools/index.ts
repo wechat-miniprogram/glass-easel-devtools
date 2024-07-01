@@ -1,7 +1,7 @@
 chrome.devtools.panels.create(
   'glass-easel',
-  'icons/glass-easel-grey-48.png',
-  '../panel.html',
+  '../icons/glass-easel-grey-48.png',
+  'panel.html',
   (_panel) => {
     // empty
   },

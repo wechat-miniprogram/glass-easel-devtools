@@ -10,5 +10,8 @@
     "glass-easel": "^0.7.0",
     "glass-easel-devtools-agent": "workspace:*",
     "glass-easel-devtools-panel": "workspace:*"
+  },
+  "devDependencies": {
+    "copy-webpack-plugin": "^12.0.2"
   }
 }

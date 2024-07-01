@@ -1,5 +1,5 @@
 import { type protocol } from 'glass-easel-devtools-agent'
-import { type PanelSendMessage } from '../panel/message'
+import { type PanelSendMessageMeta } from '../panel'
 import { ConnectionSource } from '../utils'
 
 // inject a small user script
@@ -57,7 +57,7 @@ chrome.runtime.onConnect.addListener((port) => {
 // connections from DevTools
 const newDevToolsConnection = (port: chrome.runtime.Port) => {
   let tabId = 0
-  port.onMessage.addListener((message: PanelSendMessage) => {
+  port.onMessage.addListener((message: PanelSendMessageMeta) => {
     if (message.kind === '_init') {
       if (tabId) delete tabMetaMap[tabId]
       tabId = message.tabId
