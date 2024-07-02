@@ -1,6 +1,9 @@
 import type * as dom from './dom'
 import type * as css from './css'
 
+export type * as dom from './dom'
+export type * as css from './css'
+
 export type AgentSendMessage =
   | { kind: '' }
   | { kind: 'event'; name: string; detail: any }
@@ -27,6 +30,9 @@ export interface RequestResponse {
 export type AgentEventKind = Impl<
   Record<string, EventDetail>,
   {
+    childNodeInserted: dom.ChildNodeInserted
+    childNodeRemoved: dom.ChildNodeRemoved
+    childNodeCountUpdated: dom.ChildNodeCountUpdated
     fontsUpdated: css.FontsUpdated
   }
 >

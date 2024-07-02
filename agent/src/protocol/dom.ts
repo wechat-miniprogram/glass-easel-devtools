@@ -64,6 +64,7 @@ export interface Enable extends RequestResponse {
  * Retrive the top-level document.
  *
  * This will always return a node that contains all mount points.
+ * The `nodeId` of it is always `1` .
  */
 interface GetDocument extends RequestResponse {
   request: Record<string, never>
@@ -115,7 +116,7 @@ interface SetAttributesAsText extends RequestResponse {
  * The name-value pairs are stringified and flattened into a single string array.
  * Common glass-easel managed attributes (e.g. `id` `class` ) are returned when they are not initial value.
  */
-export interface GetAttributes extends RequestResponse {
+interface GetAttributes extends RequestResponse {
   request: { nodeId: NodeId }
   response: { attributes: string[] }
   cdpRequestResponse: [Protocol.DOM.GetAttributesRequest, Protocol.DOM.GetAttributesResponse]
@@ -124,7 +125,7 @@ export interface GetAttributes extends RequestResponse {
 /**
  * Get special attribute names of a node.
  */
-export interface GetGlassEaselAttributes extends RequestResponse {
+interface GetGlassEaselAttributes extends RequestResponse {
   request: { nodeId: NodeId }
   response: { datasets: []; marks: []; eventBindings: [] }
 }
@@ -245,17 +246,25 @@ interface SetChildNodes extends EventDetail {
   cdpEventDetail: Protocol.DOM.SetChildNodesEvent
 }
 
-interface ChildNodeInserted extends EventDetail {
+/**
+ * A new child node is inserted.
+ *
+ * `previousNodeId` can be `0` which means insertion as the first child.
+ */
+export interface ChildNodeInserted extends EventDetail {
   detail: { parentNodeId: NodeId; previousNodeId: NodeId; node: Node }
   cdpEventDetail: Protocol.DOM.ChildNodeInsertedEvent
 }
 
-interface ChildNodeRemoved extends EventDetail {
+/**
+ * A child node is removed.
+ */
+export interface ChildNodeRemoved extends EventDetail {
   detail: { parentNodeId: NodeId; nodeId: NodeId }
   cdpEventDetail: Protocol.DOM.ChildNodeRemovedEvent
 }
 
-interface childNodeCountUpdated extends EventDetail {
+export interface ChildNodeCountUpdated extends EventDetail {
   detail: { nodeId: NodeId; childNodeCount: number }
   cdpEventDetail: Protocol.DOM.ChildNodeCountUpdatedEvent
 }
