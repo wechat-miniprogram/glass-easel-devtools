@@ -4,7 +4,7 @@
   "main": "src/utils.ts",
   "scripts": {
     "build": "webpack --config webpack.config.js",
-    "dev": "webpack --config webpack.config.js --watch"
+    "dev": "webpack --config webpack.config.js --mode development --watch"
   },
   "dependencies": {
     "glass-easel": "^0.7.0",

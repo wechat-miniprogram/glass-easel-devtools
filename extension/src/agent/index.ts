@@ -2,13 +2,15 @@ import { CurrentWindowBackendContext, type GeneralBackendElement } from 'glass-e
 import { getDevTools, type protocol } from 'glass-easel-devtools-agent'
 import { type DevToolsBridge } from '../utils'
 
+export type AgentSendMessageMeta = protocol.AgentSendMessage | { kind: '_init' }
+
 // receive the host element
 const hostElement = document.querySelector('glass-easel-devtools')
 if (!hostElement) throw new Error('Failed to initialize glass-easel DevTools agent')
 const hostContext = new CurrentWindowBackendContext()
 
 // messaging with content script
-const postMessage = (message: protocol.AgentSendMessage) => {
+const postMessage = (message: AgentSendMessageMeta) => {
   const ev = new CustomEvent('glass-easel-devtools-agent-send', { detail: message })
   hostElement.dispatchEvent(ev)
 }
@@ -35,3 +37,6 @@ const devTools = getDevTools(
 
 const userGlobal = window as unknown as { __glassEaselDevTools__?: DevToolsBridge }
 userGlobal.__glassEaselDevTools__?._devToolsConnect(devTools)
+
+// send a message to indicate the agent ready
+postMessage({ kind: '_init' })

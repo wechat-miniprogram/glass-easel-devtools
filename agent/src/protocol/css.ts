@@ -1,6 +1,30 @@
 import type { Protocol } from 'devtools-protocol'
 import type { EventDetail, NodeId, RequestResponse } from './index'
 
+export type AgentEventKind = {
+  fontsUpdated: FontsUpdated
+  mediaQueryResultChanged: MediaQueryResultChanged
+  styleSheetAdded: StyleSheetAdded
+  styleSheetChanged: StyleSheetChanged
+  styleSheetRemoved: StyleSheetRemoved
+}
+
+export type AgentRequestKind = {
+  getComputedStyleForNode: GetComputedStyleForNode
+  getInlineStylesForNode: GetInlineStylesForNode
+  getMatchedStylesForNode: GetMatchedStylesForNode
+  addGlassEaselStyleSheetRule: AddGlassEaselStyleSheetRule
+  getGlassEaselStyleSheetIndexForNewRules: GetGlassEaselStyleSheetIndexForNewRules
+  resetGlassEaselStyleSheetRule: ResetGlassEaselStyleSheetRule
+  modifyGlassEaselStyleSheetRuleSelector: ModifyGlassEaselStyleSheetRuleSelector
+  addGlassEaselStyleSheetProperty: AddGlassEaselStyleSheetProperty
+  setGlassEaselStyleSheetPropertyDisabled: SetGlassEaselStyleSheetPropertyDisabled
+  removeGlassEaselStyleSheetProperty: RemoveGlassEaselStyleSheetProperty
+  replaceGlassEaselStyleSheetProperty: ReplaceGlassEaselStyleSheetProperty
+  replaceGlassEaselStyleSheetAllProperties: ReplaceGlassEaselStyleSheetAllProperties
+  replaceGlassEaselStyleSheetInlineStyle: ReplaceGlassEaselStyleSheetInlineStyle
+}
+
 export type StyleSheetId = string
 
 export type CSSNameValue = { name: string; value: string }
@@ -160,7 +184,7 @@ interface ReplaceGlassEaselStyleSheetInlineStyle extends RequestResponse {
   }
 }
 
-export interface FontsUpdated extends EventDetail {
+interface FontsUpdated extends EventDetail {
   detail: Record<string, never>
   cdpEventDetail: unknown
 }

@@ -9,18 +9,15 @@ import type {
   NodeId,
   dom,
 } from './protocol/index'
+import { MountPoint, StaticNodeName } from './mount_point'
+import { warn, debug } from './utils'
+import { GlassEaselNodeType, glassEaselNodeTypeToCDP } from './protocol/dom'
 
 export * as protocol from './protocol/index'
 
 export interface MessageChannel {
   send(data: AgentSendMessage): void
   recv(listener: (data: AgentRecvMessage) => void): void
-}
-
-export type NodeMeta = {
-  node: glassEasel.Node
-  nodeId: NodeId
-  sendChanges: boolean
 }
 
 export class Connection {
@@ -31,9 +28,7 @@ export class Connection {
   private requestHandlers = Object.create(null) as Record<string, (detail: any) => Promise<any>>
   readonly documentNodeId = 1
   private nodeIdInc = 2
-  private nodeIdMap = new WeakMap<glassEasel.Node, NodeId>()
-  private activeNodes = Object.create(null) as Record<NodeId, NodeMeta>
-  readonly mountPoints = [] as NodeId[]
+  mountPoints: MountPoint[] = []
 
   constructor(
     hostContext: glassEasel.GeneralBackendContext,
@@ -45,6 +40,7 @@ export class Connection {
     this.messageChannel = messageChannel
     messageChannel.recv((data) => {
       if (data.kind === 'request') {
+        debug(`recv request ${data.id}`, data.name, data.detail)
         this.recvRequest(data.id, data.name, data.detail)
       }
     })
@@ -64,6 +60,7 @@ export class Connection {
     handler
       .call(this, detail)
       .then((ret: unknown) => {
+        debug(`send response ${id}`, ret)
         const data: AgentSendMessage = { kind: 'response', id, detail: ret }
         this.messageChannel.send(data)
         return undefined
@@ -80,150 +77,86 @@ export class Connection {
   }
 
   setRequestHandler<T extends keyof AgentRequestKind>(
-    name: string,
+    name: T,
     handler: (detail: AgentRequestKind[T]['request']) => Promise<AgentRequestKind[T]['response']>,
   ) {
     this.requestHandlers[name] = handler
   }
 
   sendEvent<T extends keyof AgentEventKind>(name: T, detail: AgentEventKind[T]['detail']) {
+    debug('send event', name, detail)
     const data: AgentSendMessage = { kind: 'event', name, detail }
     this.messageChannel.send(data)
   }
 
-  private generateNodeId(): NodeId {
+  generateNodeId(): NodeId {
     const ret = this.nodeIdInc
     this.nodeIdInc += 1
     return ret
   }
 
-  private getNodeId(node: glassEasel.Node): NodeId {
-    const nodeId = this.nodeIdMap.get(node)
-    if (nodeId !== undefined) {
-      return nodeId
-    }
-    const newNodeId = this.generateNodeId()
-    this.nodeIdMap.set(node, newNodeId)
-    return newNodeId
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  private startWatch(node: glassEasel.Node) {
-    // TODO
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  private endWatch(node: glassEasel.Node) {
-    // TODO
-  }
-
-  /**
-   * Start tracking a node.
-   *
-   * This will also activate its parent or host (for shadow-root).
-   */
-  activateNode(node: glassEasel.Node, isMountPoint: boolean): NodeId {
-    const nodeId = this.getNodeId(node)
-    if (this.activeNodes[nodeId]) {
-      return nodeId
-    }
-    if (isMountPoint) {
-      this.mountPoints.push(nodeId)
-    } else {
-      const p =
-        node.ownerShadowRoot === node
-          ? (node as glassEasel.ShadowRoot).getHostNode()
-          : node.parentNode
-      if (p) this.activateNode(p, false)
-    }
-    this.activeNodes[nodeId] = { node, nodeId, sendChanges: false }
-    this.startWatch(node)
-    return nodeId
-  }
-
-  enableSendChanges(nodeId: NodeId, enabled: boolean) {
-    if (this.activeNodes[nodeId]) {
-      this.activeNodes[nodeId].sendChanges = enabled
-    }
-  }
-
-  resolveNodeId(nodeId: NodeId): glassEasel.Node | undefined {
-    return this.activeNodes[nodeId]?.node
-  }
-
-  /** Release a node tree (to allow gabbage collection). */
-  deactivateNodeTree(node: glassEasel.Node): NodeId | undefined {
-    const nodeId = this.nodeIdMap.get(node)
-    if (nodeId === undefined) {
-      return undefined
-    }
-    if (!this.activeNodes[nodeId]) {
-      return nodeId
-    }
-    delete this.activeNodes[nodeId]
-    this.endWatch(node)
-    const shadowRoot = (node as glassEasel.GeneralComponent).getShadowRoot?.()
-    if (shadowRoot) this.deactivateNodeTree(shadowRoot)
-    const childNodes: glassEasel.Node[] | undefined = (node as glassEasel.Element).childNodes
-    if (childNodes) {
-      childNodes.forEach((node) => this.deactivateNodeTree(node))
-    }
-    return nodeId
-  }
-
-  collectNodeDetails(nodeId: NodeId): dom.Node | undefined {
-    const meta = this.activeNodes[nodeId]
-    if (!meta) return undefined
-    const { node } = meta
-    return {
-      backendNodeId: nodeId,
-      nodeType,
-      nodeName,
-      nodeId,
-      parentId,
-      localName,
-      nodeValue,
-      attributes,
-      children,
-      distributedNodes,
-    }
+  init() {
+    this.setRequestHandler('DOM.getDocument', async ({ depth }) => {
+      let children: dom.Node[] | undefined
+      if (depth) {
+        children = this.mountPoints.map((n) => n.getRootDetails(depth - 1))
+      }
+      const ty = GlassEaselNodeType.Unknown
+      const root: dom.Node = {
+        backendNodeId: this.documentNodeId,
+        nodeType: glassEaselNodeTypeToCDP(ty),
+        glassEaselNodeType: ty,
+        nodeName: StaticNodeName.Document,
+        virtual: true,
+        inheritSlots: false,
+        nodeId: this.documentNodeId,
+        localName: StaticNodeName.Document,
+        nodeValue: '',
+        attributes: [],
+        children,
+      }
+      return { root }
+    })
   }
 }
 
-class InspectorDevToolsImpl {
+class InspectorDevToolsImpl implements glassEasel.InspectorDevTools {
   private conn: Connection
+  private pendingMountPoints: MountPoint[] = []
+  private enabled = false
 
   constructor(conn: Connection) {
     this.conn = conn
+    this.pendingMountPoints = []
+    conn.setRequestHandler('DOM.enable', async () => {
+      if (this.enabled) {
+        warn('agent has already been enabled')
+        return
+      }
+      conn.init()
+      this.enabled = true
+      const mps = this.pendingMountPoints
+      this.pendingMountPoints = []
+      mps.forEach((mp) => mp.attach())
+    })
   }
 
   // eslint-disable-next-line class-methods-use-this
-  addMountPoint(root: glassEasel.GeneralComponent): void {
+  addMountPoint(root: glassEasel.Element, env: glassEasel.MountPointEnv): void {
     if (root === this.conn.hostComponent) return
-    const previousNodeId = this.conn.mountPoints[this.conn.mountPoints.length - 1] ?? 0
-    const nodeId = this.conn.activateNode(root, true)
-    this.conn.sendEvent('childNodeInserted', {
-      parentNodeId: this.conn.documentNodeId,
-      previousNodeId,
-      node: this.conn.collectNodeDetails(nodeId)!,
-    })
-    this.conn.sendEvent('childNodeCountUpdated', {
-      nodeId: this.conn.documentNodeId,
-      childNodeCount: this.conn.mountPoints.length,
-    })
+    const mp = new MountPoint(this.conn, root, env)
+    if (this.enabled) {
+      mp.attach()
+    } else {
+      this.pendingMountPoints.push(mp)
+    }
   }
 
   // eslint-disable-next-line class-methods-use-this
   removeMountPoint(root: glassEasel.GeneralComponent): void {
-    const nodeId = this.conn.deactivateNodeTree(root)
-    if (!nodeId) return
-    this.conn.sendEvent('childNodeRemoved', {
-      parentNodeId: this.conn.documentNodeId,
-      nodeId,
-    })
-    this.conn.sendEvent('childNodeCountUpdated', {
-      nodeId: this.conn.documentNodeId,
-      childNodeCount: this.conn.mountPoints.length,
+    this.pendingMountPoints.filter((mp) => !mp.hasRoot(root))
+    this.conn.mountPoints.forEach((mp) => {
+      if (mp.hasRoot(root)) mp.detach()
     })
   }
 }
@@ -232,7 +165,7 @@ export const getDevTools = (
   hostContext: glassEasel.GeneralBackendContext,
   hostElement: glassEasel.GeneralBackendElement,
   channel: MessageChannel,
-) => {
+): glassEasel.DevTools => {
   const connection = new Connection(hostContext, hostElement, channel)
   return {
     inspector: new InspectorDevToolsImpl(connection),

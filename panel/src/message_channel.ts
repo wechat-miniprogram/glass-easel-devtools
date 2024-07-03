@@ -1,5 +1,5 @@
 import type { protocol } from 'glass-easel-devtools-agent'
-import { error, warn } from './utils'
+import { error, warn, debug } from './utils'
 
 export type { protocol } from 'glass-easel-devtools-agent'
 
@@ -24,6 +24,7 @@ export const setMessageChannel = (mc: MessageChannel) => {
       if (!handler) {
         warn(`missing event handler for ${data.name}`)
       } else {
+        debug(`recv event`, data.name, data.detail)
         handler(data.detail)
       }
     } else if (data.kind === 'response') {
@@ -33,6 +34,7 @@ export const setMessageChannel = (mc: MessageChannel) => {
         warn(`illegal response for request ${requestId}`)
       } else {
         delete requestCallbacks[requestId]
+        debug(`recv response ${requestId}`, data.detail)
         callback(data.detail)
       }
     } else if (data.kind === 'error') {
@@ -55,13 +57,14 @@ export const setEventHandler = <T extends keyof protocol.AgentEventKind>(
 }
 
 export const sendRequest = <T extends keyof protocol.AgentRequestKind>(
-  name: string,
+  name: T,
   detail: protocol.AgentRequestKind[T]['request'],
 ): Promise<protocol.AgentRequestKind[T]['response']> => {
   const requestId = requestIdInc
   requestIdInc += 1
   return new Promise((resolve): void => {
     requestCallbacks[requestId] = resolve
+    debug(`send request ${requestId}`, name, detail)
     messageChannel?.send({ kind: 'request', id: requestId, name, detail })
   })
 }

@@ -52,14 +52,16 @@ importers:
         version: 5.1.4(webpack@5.92.1)
 
   agent:
-    dependencies:
-      glass-easel:
-        specifier: ^0.7.0
-        version: 0.7.0
     devDependencies:
+      '@types/node':
+        specifier: ^20.14.9
+        version: 20.14.9
       devtools-protocol:
         specifier: ^0.0.1319565
         version: 0.0.1319565
+      glass-easel:
+        specifier: ^0.7.0
+        version: 0.7.0
 
   extension:
     dependencies:

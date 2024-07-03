@@ -30,9 +30,13 @@ if (hostElement) {
   const background = chrome.runtime.connect({
     name: ConnectionSource.ContentScript,
   })
-  setInterval(() => {
-    background.postMessage({ kind: '' })
-  }, 15000)
+  const sendHeartbeat = () => {
+    setTimeout(() => {
+      background.postMessage({ kind: '' })
+      sendHeartbeat()
+    }, 15000)
+  }
+  sendHeartbeat()
   background.onMessage.addListener((message: protocol.AgentRecvMessage) => {
     const ev = new CustomEvent('glass-easel-devtools-agent-recv', {
       detail: prepareDataToAgent(message),

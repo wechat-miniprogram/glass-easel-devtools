@@ -1,23 +1,65 @@
 import type { Protocol } from 'devtools-protocol'
-import type { EventDetail, NodeId, RequestResponse } from './index'
+import type { EventDetail, GlassEaselVar, NodeId, RequestResponse } from './index'
+
+export type AgentEventKind = {
+  setChildNodes: SetChildNodes
+  childNodeInserted: ChildNodeInserted
+  childNodeRemoved: ChildNodeRemoved
+  childNodeCountUpdated: ChildNodeCountUpdated
+  attributeRemoved: AttributeRemoved
+  attributeModified: AttributeModified
+  characterDataModified: CharacterDataModified
+}
+
+export type AgentRequestKind = {
+  enable: Enable
+  getDocument: GetDocument
+  pushNodesByBackendIdsToFrontend: PushNodesByBackendIdsToFrontend
+  removeAttribute: RemoveAttribute
+  setAttributeValue: SetAttributeValue
+  setAttributesAsText: SetAttributesAsText
+  getAttributes: GetAttributes
+  getGlassEaselAttributes: GetGlassEaselAttributes
+  requestChildNodes: RequestChildNodes
+  removeNode: RemoveNode
+  resolveNode: ResolveNode
+  setInspectedNode: SetInspectedNode
+  setNodeValue: SetNodeValue
+  scrollIntoViewIfNeeded: ScrollIntoViewIfNeeded
+  getNodeForLocation: GetNodeForLocation
+  querySelector: QuerySelector
+  querySelectorAll: QuerySelectorAll
+  getBoxModel: GetBoxModel
+}
 
 export type Quad = [number, number, number, number]
 
-// const enum CDPNodeType {
-//   ELEMENT_NODE = 1,
-//   ATTRIBUTE_NODE = 2,
-//   TEXT_NODE = 3,
-//   DOCUMENT_NODE = 9,
-//   DOCUMENT_TYPE_NODE = 10,
-//   DOCUMENT_FRAGMENT_NODE = 11,
-// }
+const enum CDPNodeType {
+  ELEMENT_NODE = 1,
+  ATTRIBUTE_NODE = 2,
+  TEXT_NODE = 3,
+  DOCUMENT_NODE = 9,
+  DOCUMENT_TYPE_NODE = 10,
+  DOCUMENT_FRAGMENT_NODE = 11,
+}
 
-const enum GlassEaselNodeType {
-  Document = 0x100,
+export const enum GlassEaselNodeType {
+  Unknown = 0x100,
   TextNode,
   NativeNode,
   Component,
   VirtualNode,
+  ShadowRoot,
+}
+
+export const glassEaselNodeTypeToCDP = (t: GlassEaselNodeType) => {
+  if (t === GlassEaselNodeType.TextNode) return CDPNodeType.TEXT_NODE
+  if (t === GlassEaselNodeType.NativeNode) return CDPNodeType.ELEMENT_NODE
+  if (t === GlassEaselNodeType.Component) return CDPNodeType.ELEMENT_NODE
+  if (t === GlassEaselNodeType.VirtualNode) return CDPNodeType.ELEMENT_NODE
+  if (t === GlassEaselNodeType.ShadowRoot) return CDPNodeType.DOCUMENT_NODE
+  if (t === GlassEaselNodeType.Unknown) return CDPNodeType.DOCUMENT_NODE
+  return CDPNodeType.DOCUMENT_NODE
 }
 
 /**
@@ -26,10 +68,16 @@ const enum GlassEaselNodeType {
 export type BackendNode = {
   /** The backend node id. */
   backendNodeId: NodeId
+  /** The basic type of the node. */
+  nodeType: CDPNodeType
   /** The type of the node. */
-  nodeType: GlassEaselNodeType
+  glassEaselNodeType: GlassEaselNodeType
   /** The tag name of the node. */
   nodeName: string
+  /** Is virtual (virtual node or virtual-host component) or not. */
+  virtual: boolean
+  /** Is slot-inherited or not. */
+  inheritSlots: boolean
 }
 
 /**
@@ -44,7 +92,7 @@ export type Node = BackendNode & {
   localName: string
   /** The text content (if any). */
   nodeValue: string
-  /** The attributes (name-value pairs are stringified and flattened into a single string array). */
+  /** The attributes (see `GetAttributes` for details). */
   attributes: string[]
   /** The shadow-tree children (can be undefined which means to fetch in future). */
   children?: Node[]
@@ -55,7 +103,7 @@ export type Node = BackendNode & {
 /**
  * Inform that the panel is enabled.
  */
-export interface Enable extends RequestResponse {
+interface Enable extends RequestResponse {
   request: Record<string, never>
   cdpRequestResponse: [Protocol.DOM.EnableRequest, unknown]
 }
@@ -67,7 +115,7 @@ export interface Enable extends RequestResponse {
  * The `nodeId` of it is always `1` .
  */
 interface GetDocument extends RequestResponse {
-  request: Record<string, never>
+  request: { depth?: number }
   response: { root: Node }
   cdpRequestResponse: [Protocol.DOM.GetDocumentRequest, Protocol.DOM.GetDocumentResponse]
 }
@@ -114,7 +162,8 @@ interface SetAttributesAsText extends RequestResponse {
  * Get attribute names and values of a node.
  *
  * The name-value pairs are stringified and flattened into a single string array.
- * Common glass-easel managed attributes (e.g. `id` `class` ) are returned when they are not initial value.
+ * Common glass-easel managed attributes (e.g. `id` `class` ) will has a colon `:` as its prefix.
+ * Slot names (as `:name` ), datasets, and marks are also included.
  */
 interface GetAttributes extends RequestResponse {
   request: { nodeId: NodeId }
@@ -127,7 +176,22 @@ interface GetAttributes extends RequestResponse {
  */
 interface GetGlassEaselAttributes extends RequestResponse {
   request: { nodeId: NodeId }
-  response: { datasets: []; marks: []; eventBindings: [] }
+  response: {
+    slotName: string | null
+    slotValues: { [name: string]: GlassEaselVar } | null
+    styleSegments: string[]
+    eventBindings: {
+      name: string
+      catch: boolean
+      mutBind: boolean
+      capture: boolean
+      value: GlassEaselVar
+    }[]
+    normalAttributes: { name: string; value: GlassEaselVar }[]
+    properties: { name: string; value: GlassEaselVar }[]
+    dataset: { name: string; value: GlassEaselVar }[]
+    marks: { name: string; value: GlassEaselVar }[]
+  }
 }
 
 /**
@@ -192,22 +256,6 @@ interface GetNodeForLocation extends RequestResponse {
 }
 
 /**
- * Highlight a node.
- */
-interface HighlightNode extends RequestResponse {
-  request: { nodeId: NodeId } | { backendNodeId: NodeId }
-  cdpRequestResponse: [Protocol.Overlay.HighlightNodeRequest, unknown]
-}
-
-/**
- * Remove the highlight.
- */
-interface HideHighlight extends RequestResponse {
-  request: Record<string, never>
-  cdpRequestResponse: [unknown, unknown]
-}
-
-/**
  * Query selector.
  */
 interface QuerySelector extends RequestResponse {
@@ -251,7 +299,7 @@ interface SetChildNodes extends EventDetail {
  *
  * `previousNodeId` can be `0` which means insertion as the first child.
  */
-export interface ChildNodeInserted extends EventDetail {
+interface ChildNodeInserted extends EventDetail {
   detail: { parentNodeId: NodeId; previousNodeId: NodeId; node: Node }
   cdpEventDetail: Protocol.DOM.ChildNodeInsertedEvent
 }
@@ -259,12 +307,12 @@ export interface ChildNodeInserted extends EventDetail {
 /**
  * A child node is removed.
  */
-export interface ChildNodeRemoved extends EventDetail {
+interface ChildNodeRemoved extends EventDetail {
   detail: { parentNodeId: NodeId; nodeId: NodeId }
   cdpEventDetail: Protocol.DOM.ChildNodeRemovedEvent
 }
 
-export interface ChildNodeCountUpdated extends EventDetail {
+interface ChildNodeCountUpdated extends EventDetail {
   detail: { nodeId: NodeId; childNodeCount: number }
   cdpEventDetail: Protocol.DOM.ChildNodeCountUpdatedEvent
 }
@@ -275,7 +323,7 @@ interface AttributeRemoved extends EventDetail {
 }
 
 interface AttributeModified extends EventDetail {
-  detail: { nodeId: NodeId; name: string; value: string }
+  detail: { nodeId: NodeId; name: string; value: string; detail: GlassEaselVar }
   cdpEventDetail: Protocol.DOM.AttributeModifiedEvent
 }
 

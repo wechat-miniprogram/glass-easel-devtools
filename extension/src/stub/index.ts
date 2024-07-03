@@ -1,17 +1,18 @@
 /* eslint-disable class-methods-use-this */
 
+import type * as glassEasel from 'glass-easel'
 import { type DevTools, type DevToolsBridge, type InspectorDevTools } from '../utils'
 
 let devToolsTarget: DevTools | null = null
-const mountPoints = new Set()
+const mountPoints = new Map<glassEasel.Element, glassEasel.MountPointEnv>()
 
 class Inspector implements InspectorDevTools {
-  addMountPoint(elem: unknown) {
-    mountPoints.add(elem)
-    if (devToolsTarget) devToolsTarget.inspector?.addMountPoint(elem)
+  addMountPoint(elem: glassEasel.Element, env: glassEasel.MountPointEnv) {
+    mountPoints.set(elem, env)
+    if (devToolsTarget) devToolsTarget.inspector?.addMountPoint(elem, env)
   }
 
-  removeMountPoint(elem: unknown) {
+  removeMountPoint(elem: glassEasel.Element) {
     mountPoints.delete(elem)
     if (devToolsTarget) devToolsTarget.inspector?.removeMountPoint(elem)
   }
@@ -21,7 +22,7 @@ const glassEaselDevTools = {
   inspector: new Inspector(),
   _devToolsConnect(target: DevTools) {
     devToolsTarget = target
-    mountPoints.forEach((elem) => target.inspector?.addMountPoint(elem))
+    mountPoints.forEach((env, elem) => target.inspector?.addMountPoint(elem, env))
   },
   _devToolsDisconnect() {
     devToolsTarget = null

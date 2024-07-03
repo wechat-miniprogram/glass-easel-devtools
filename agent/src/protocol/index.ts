@@ -1,8 +1,11 @@
 import type * as dom from './dom'
 import type * as css from './css'
+import type * as overlay from './overlay'
 
+export * from './var'
 export type * as dom from './dom'
 export type * as css from './css'
+export type * as overlay from './overlay'
 
 export type AgentSendMessage =
   | { kind: '' }
@@ -27,21 +30,20 @@ export interface RequestResponse {
   cdpRequestResponse?: [unknown, unknown]
 }
 
+type KeyPrefix<P extends string, R extends Record<string, any>> = {
+  [T in keyof R as T extends string ? `${P}.${T}` : never]: R[T]
+}
+
 export type AgentEventKind = Impl<
   Record<string, EventDetail>,
-  {
-    childNodeInserted: dom.ChildNodeInserted
-    childNodeRemoved: dom.ChildNodeRemoved
-    childNodeCountUpdated: dom.ChildNodeCountUpdated
-    fontsUpdated: css.FontsUpdated
-  }
+  KeyPrefix<'DOM', dom.AgentEventKind> & KeyPrefix<'CSS', css.AgentEventKind>
 >
 
 export type AgentRequestKind = Impl<
   Record<string, RequestResponse>,
-  {
-    enable: dom.Enable
-  }
+  KeyPrefix<'DOM', dom.AgentRequestKind> &
+    KeyPrefix<'CSS', css.AgentRequestKind> &
+    KeyPrefix<'Overlay', overlay.AgentRequestKind>
 >
 
 /** The node id ( `0` is preserved). */

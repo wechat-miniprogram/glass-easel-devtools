@@ -13,7 +13,6 @@ module.exports = [
         type: 'commonjs2',
       },
     },
-    optimization: { minimize: false },
     devtool: 'source-map',
     resolve: {
       extensions: ['.ts', '.js'],

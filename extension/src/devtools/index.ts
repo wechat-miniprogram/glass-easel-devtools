@@ -1,7 +1,9 @@
+import { inFirefox } from "../utils"
+
 chrome.devtools.panels.create(
   'glass-easel',
   '../icons/glass-easel-grey-48.png',
-  'panel.html',
+  inFirefox() ? 'panel.html' : 'dist/panel.html',
   (_panel) => {
     // empty
   },

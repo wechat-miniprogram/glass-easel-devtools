@@ -4,12 +4,11 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "webpack --config webpack.config.js",
-    "dev": "webpack --config webpack.config.js --watch"
-  },
-  "peerDependencies": {
-    "glass-easel": "^0.7.0"
+    "dev": "webpack --config webpack.config.js --mode development --watch"
   },
   "devDependencies": {
-    "devtools-protocol": "^0.0.1319565"
+    "@types/node": "^20.14.9",
+    "devtools-protocol": "^0.0.1319565",
+    "glass-easel": "^0.7.0"
   }
 }

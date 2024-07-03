@@ -10,9 +10,13 @@ const background = chrome.runtime.connect({
 const postToBackground = (msg: PanelSendMessageMeta) => {
   background.postMessage(msg)
 }
-setInterval(() => {
-  postToBackground({ kind: '' })
-}, 15000)
+const sendHeartbeat = () => {
+  setTimeout(() => {
+    postToBackground({ kind: '' })
+    sendHeartbeat()
+  }, 15000)
+}
+sendHeartbeat()
 background.onMessage.addListener((message: PanelRecvMessage) => {
   listener?.(message)
 })
@@ -20,14 +24,16 @@ postToBackground({ kind: '_init', tabId: chrome.devtools.inspectedWindow.tabId }
 
 // passing massage through channel
 let listener: ((data: PanelRecvMessage) => void) | null = null
-startup({
-  send(data: PanelSendMessage) {
-    postToBackground(data)
-  },
-  recv(f: (data: PanelRecvMessage) => void) {
-    listener = f
-  },
-})
+setTimeout(() => {
+  startup({
+    send(data: PanelSendMessage) {
+      postToBackground(data)
+    },
+    recv(f: (data: PanelRecvMessage) => void) {
+      listener = f
+    },
+  })
+}, 0)
 
 // eslint-disable-next-line no-console
 console.log('glass-easel DevTools extension DevTools panel created')
