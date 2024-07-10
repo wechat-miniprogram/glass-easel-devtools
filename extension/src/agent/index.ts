@@ -35,6 +35,7 @@ const devTools = getDevTools(
   messageChannel,
 )
 
+// connect to stub
 const userGlobal = window as unknown as { __glassEaselDevTools__?: DevToolsBridge }
 userGlobal.__glassEaselDevTools__?._devToolsConnect(devTools)
 

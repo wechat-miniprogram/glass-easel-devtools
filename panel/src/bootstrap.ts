@@ -1,8 +1,12 @@
-import * as glassEasel from 'glass-easel'
+import { glassEasel, type Root } from 'glass-easel-miniprogram-adapter'
 import { codeSpace, initWithBackend } from '../src' // import the plugin-generated code
 import { type MessageChannel, setMessageChannel } from './message_channel'
+import { componentDefinition } from './pages/index'
+import { warn } from './utils'
 
 export { MessageChannel, PanelRecvMessage, PanelSendMessage } from './message_channel'
+
+let root: Root | null = null
 
 const insertIntoDocumentBody = () => {
   // create the backend context
@@ -10,7 +14,7 @@ const insertIntoDocumentBody = () => {
   const ab = initWithBackend(backendContext)
 
   // create a mini-program page
-  const root = ab.createRoot(
+  root = ab.createRoot(
     'glass-easel-root', // the tag name of the mount point
     codeSpace,
     'pages/index/index', // the mini-program page to load
@@ -29,4 +33,13 @@ const insertIntoDocumentBody = () => {
 export const startup = (messageChannel: MessageChannel) => {
   setMessageChannel(messageChannel)
   insertIntoDocumentBody()
+}
+
+export const restart = () => {
+  if (!root) {
+    warn('cannot restart panel before startup')
+    return
+  }
+  const comp = root.get().asInstanceOf(componentDefinition)
+  comp?.restart()
 }

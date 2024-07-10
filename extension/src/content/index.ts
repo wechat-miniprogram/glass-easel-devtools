@@ -9,44 +9,45 @@ const prepareDataToAgent = <T>(data: T): T => {
 }
 
 // avoid double injection
-const hostElement = document.querySelector('glass-easel-devtools')
-if (hostElement) {
-  // empty
-} else {
-  // create a host node
-  const hostElement = document.createElement('glass-easel-devtools')
-  const hostNodeStyle = `
-    display: block;
-    position: fixed;
-    left: 0;
-    top: 0;
-    right: 0;
-    bottom: 0;
-  `
-  hostElement.setAttribute('style', hostNodeStyle)
-  document.documentElement.appendChild(hostElement)
-
-  // messaging from background to agent
-  const background = chrome.runtime.connect({
-    name: ConnectionSource.ContentScript,
-  })
-  const sendHeartbeat = () => {
-    setTimeout(() => {
-      background.postMessage({ kind: '' })
-      sendHeartbeat()
-    }, 15000)
-  }
-  sendHeartbeat()
-  background.onMessage.addListener((message: protocol.AgentRecvMessage) => {
-    const ev = new CustomEvent('glass-easel-devtools-agent-recv', {
-      detail: prepareDataToAgent(message),
-    })
-    hostElement.dispatchEvent(ev)
-  })
-
-  // messaging from agent to background
-  hostElement.addEventListener('glass-easel-devtools-agent-send', (ev) => {
-    const { detail } = ev as CustomEvent<protocol.AgentSendMessage>
-    background.postMessage(detail)
-  })
+const existingElements = document.querySelectorAll('glass-easel-devtools')
+for (let i = 0; i < existingElements.length; i += 1) {
+  const hostElement = existingElements[i]
+  hostElement.parentNode?.removeChild(hostElement)
 }
+
+// create a host node
+const hostElement = document.createElement('glass-easel-devtools')
+const hostNodeStyle = `
+  display: block;
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+`
+hostElement.setAttribute('style', hostNodeStyle)
+document.documentElement.appendChild(hostElement)
+
+// messaging from background to agent
+const background = chrome.runtime.connect({
+  name: ConnectionSource.ContentScript,
+})
+const sendHeartbeat = () => {
+  setTimeout(() => {
+    background.postMessage({ kind: '' })
+    sendHeartbeat()
+  }, 15000)
+}
+sendHeartbeat()
+background.onMessage.addListener((message: protocol.AgentRecvMessage) => {
+  const ev = new CustomEvent('glass-easel-devtools-agent-recv', {
+    detail: prepareDataToAgent(message),
+  })
+  hostElement.dispatchEvent(ev)
+})
+
+// messaging from agent to background
+hostElement.addEventListener('glass-easel-devtools-agent-send', (ev) => {
+  const { detail } = ev as CustomEvent<protocol.AgentSendMessage>
+  background.postMessage(detail)
+})

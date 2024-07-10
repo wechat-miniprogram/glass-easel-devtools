@@ -14,7 +14,7 @@ const config = (input, output, copyRes) => {
       module: false,
       iife: true,
     },
-    devtool: 'source-map',
+    devtool: 'inline-source-map',
     resolve: {
       extensions: ['.ts', '.js'],
     },
@@ -26,6 +26,9 @@ const config = (input, output, copyRes) => {
           exclude: /node_modules/,
         },
       ],
+    },
+    watchOptions: {
+      aggregateTimeout: 500,
     },
     performance: {
       hints: false,

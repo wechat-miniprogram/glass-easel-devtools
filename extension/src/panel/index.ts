@@ -1,7 +1,13 @@
-import { startup, type PanelRecvMessage, type PanelSendMessage } from 'glass-easel-devtools-panel'
+import {
+  startup,
+  restart,
+  type PanelRecvMessage,
+  type PanelSendMessage,
+} from 'glass-easel-devtools-panel'
 import { ConnectionSource } from '../utils'
 
 export type PanelSendMessageMeta = PanelSendMessage | { kind: '_init'; tabId: number }
+export type PanelRecvMessageMeta = PanelRecvMessage | { kind: '_connected' }
 
 // build connection to main service
 const background = chrome.runtime.connect({
@@ -17,8 +23,12 @@ const sendHeartbeat = () => {
   }, 15000)
 }
 sendHeartbeat()
-background.onMessage.addListener((message: PanelRecvMessage) => {
-  listener?.(message)
+background.onMessage.addListener((message: PanelRecvMessageMeta) => {
+  if (message.kind === '_connected') {
+    restart()
+  } else {
+    listener?.(message)
+  }
 })
 postToBackground({ kind: '_init', tabId: chrome.devtools.inspectedWindow.tabId })
 

@@ -3,7 +3,7 @@
   "version": "0.7.0",
   "main": "src/utils.ts",
   "scripts": {
-    "build": "webpack --config webpack.config.js",
+    "build": "webpack --config webpack.config.js --no-devtool",
     "dev": "webpack --config webpack.config.js --mode development --watch"
   },
   "dependencies": {

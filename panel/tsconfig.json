@@ -1,7 +1,6 @@
 {
     "extends": "../tsconfig.json",
     "compilerOptions": {
-        "lib": ["ES6", "ES7", "DOM", "ESNext"],
         "declaration": true,
         "declarationDir": "dist"
     },

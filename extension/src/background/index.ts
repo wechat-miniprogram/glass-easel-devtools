@@ -1,4 +1,3 @@
-import { type PanelSendMessage } from 'glass-easel-devtools-panel'
 import { type AgentSendMessageMeta } from '../agent'
 import { type PanelSendMessageMeta } from '../panel'
 import { ConnectionSource } from '../utils'
@@ -45,7 +44,6 @@ const tabMetaMap = Object.create(null) as Record<
   {
     devTools: chrome.runtime.Port
     contentScript?: chrome.runtime.Port
-    pendingMessages: PanelSendMessage[]
   }
 >
 chrome.runtime.onConnect.addListener((port) => {
@@ -63,15 +61,16 @@ const newDevToolsConnection = (port: chrome.runtime.Port) => {
     if (message.kind === '_init') {
       if (tabId) delete tabMetaMap[tabId]
       tabId = message.tabId
-      tabMetaMap[tabId] = { devTools: port, pendingMessages: [] }
+      tabMetaMap[tabId] = { devTools: port }
       injectContentScript(tabId)
     } else if (message.kind !== '') {
       const tabMeta = tabMetaMap[tabId]
       if (!tabMeta) return
       if (tabMeta.contentScript) {
-        tabMeta.contentScript?.postMessage(message)
+        tabMeta.contentScript.postMessage(message)
       } else {
-        tabMeta.pendingMessages.push(message)
+        // eslint-disable-next-line no-console
+        console.warn('Failed to send message to agent since the agent is not connected')
       }
     }
   })
@@ -91,9 +90,7 @@ const newContentScriptConnection = (port: chrome.runtime.Port) => {
     if (!tabMeta) return
     if (message.kind === '_init') {
       tabMeta.contentScript = port
-      const list = tabMeta.pendingMessages
-      tabMeta.pendingMessages = []
-      list.forEach((msg) => port.postMessage(msg))
+      tabMeta.devTools.postMessage({ kind: '_connected' })
     } else {
       tabMeta.devTools.postMessage(message)
     }
