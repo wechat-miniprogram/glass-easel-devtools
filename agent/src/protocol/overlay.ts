@@ -9,7 +9,7 @@ export type AgentRequestKind = {
 /**
  * Highlight a node.
  */
-interface HighlightNode extends RequestResponse {
+export interface HighlightNode extends RequestResponse {
   request: { nodeId: NodeId } | { backendNodeId: NodeId }
   cdpRequestResponse: [Protocol.Overlay.HighlightNodeRequest, unknown]
 }
@@ -17,7 +17,7 @@ interface HighlightNode extends RequestResponse {
 /**
  * Remove the highlight.
  */
-interface HideHighlight extends RequestResponse {
+export interface HideHighlight extends RequestResponse {
   request: Record<string, never>
   cdpRequestResponse: [unknown, unknown]
 }

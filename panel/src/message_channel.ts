@@ -51,7 +51,7 @@ export const setMessageChannel = (mc: MessageChannel) => {
 
 export const setEventHandler = <T extends keyof protocol.AgentEventKind>(
   name: T,
-  handler: (detail: protocol.AgentEventKind[T]) => void,
+  handler: (detail: protocol.AgentEventKind[T]['detail']) => void,
 ) => {
   eventHandlers[name] = handler
 }

@@ -18,7 +18,7 @@ for (let i = 0; i < existingElements.length; i += 1) {
 // create a host node
 const hostElement = document.createElement('glass-easel-devtools')
 const hostNodeStyle = `
-  display: block;
+  display: none;
   position: fixed;
   left: 0;
   top: 0;

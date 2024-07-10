@@ -1,8 +1,9 @@
 import { glassEasel, type Root } from 'glass-easel-miniprogram-adapter'
-import { codeSpace, initWithBackend } from '../src' // import the plugin-generated code
+import { codeSpace, initWithBackend, registerGlobalEventListener } from '../src' // import the plugin-generated code
 import { type MessageChannel, setMessageChannel } from './message_channel'
 import { componentDefinition } from './pages/index'
 import { warn } from './utils'
+import { loadGlobalComponents } from './global_components'
 
 export { MessageChannel, PanelRecvMessage, PanelSendMessage } from './message_channel'
 
@@ -11,7 +12,11 @@ let root: Root | null = null
 const insertIntoDocumentBody = () => {
   // create the backend context
   const backendContext = new glassEasel.CurrentWindowBackendContext() // or another backend context
+  registerGlobalEventListener(backendContext)
   const ab = initWithBackend(backendContext)
+
+  // add global using components
+  loadGlobalComponents(codeSpace)
 
   // create a mini-program page
   root = ab.createRoot(

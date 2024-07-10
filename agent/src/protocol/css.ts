@@ -59,7 +59,7 @@ export type CSSMatchedRule = {
 /**
  * Get computed style of a node.
  */
-interface GetComputedStyleForNode extends RequestResponse {
+export interface GetComputedStyleForNode extends RequestResponse {
   request: { nodeId: NodeId }
   response: { computedStyle: CSSNameValue[] }
   cdpRequestResponse: [
@@ -71,7 +71,7 @@ interface GetComputedStyleForNode extends RequestResponse {
 /**
  * Get inline styles of a node.
  */
-interface GetInlineStylesForNode extends RequestResponse {
+export interface GetInlineStylesForNode extends RequestResponse {
   request: { nodeId: NodeId }
   response: { inlineStyle: CSSStyle }
   cdpRequestResponse: [
@@ -83,7 +83,7 @@ interface GetInlineStylesForNode extends RequestResponse {
 /**
  * Get matched styles of a node.
  */
-interface GetMatchedStylesForNode extends RequestResponse {
+export interface GetMatchedStylesForNode extends RequestResponse {
   request: { nodeId: NodeId }
   response: {
     inlineStyle: CSSStyle
@@ -95,14 +95,14 @@ interface GetMatchedStylesForNode extends RequestResponse {
 /**
  * Add a new CSS rule.
  */
-interface AddGlassEaselStyleSheetRule extends RequestResponse {
+export interface AddGlassEaselStyleSheetRule extends RequestResponse {
   request: { mediaQueryText: string; selector: string }
 }
 
 /**
  * Get the style sheet for temporary rules.
  */
-interface GetGlassEaselStyleSheetIndexForNewRules extends RequestResponse {
+export interface GetGlassEaselStyleSheetIndexForNewRules extends RequestResponse {
   request: Record<string, never>
   response: { styleSheetId: StyleSheetId }
 }
@@ -110,28 +110,28 @@ interface GetGlassEaselStyleSheetIndexForNewRules extends RequestResponse {
 /**
  * Clear a CSS rule.
  */
-interface ResetGlassEaselStyleSheetRule extends RequestResponse {
+export interface ResetGlassEaselStyleSheetRule extends RequestResponse {
   request: { styleSheetId: StyleSheetId; ruleIndex: number }
 }
 
 /**
  * Modify the CSS rule selector.
  */
-interface ModifyGlassEaselStyleSheetRuleSelector extends RequestResponse {
+export interface ModifyGlassEaselStyleSheetRuleSelector extends RequestResponse {
   request: { styleSheetId: StyleSheetId; ruleIndex: number; selector: string }
 }
 
 /**
  * Add a new CSS property.
  */
-interface AddGlassEaselStyleSheetProperty extends RequestResponse {
+export interface AddGlassEaselStyleSheetProperty extends RequestResponse {
   request: { styleSheetId: StyleSheetId; ruleIndex: number; styleText: string }
 }
 
 /**
  * Set the disabled status of a new CSS property.
  */
-interface SetGlassEaselStyleSheetPropertyDisabled extends RequestResponse {
+export interface SetGlassEaselStyleSheetPropertyDisabled extends RequestResponse {
   request: {
     styleSheetId: StyleSheetId
     ruleIndex: number
@@ -143,7 +143,7 @@ interface SetGlassEaselStyleSheetPropertyDisabled extends RequestResponse {
 /**
  * Remove a CSS property.
  */
-interface RemoveGlassEaselStyleSheetProperty extends RequestResponse {
+export interface RemoveGlassEaselStyleSheetProperty extends RequestResponse {
   request: {
     styleSheetId: StyleSheetId
     ruleIndex: number
@@ -154,7 +154,7 @@ interface RemoveGlassEaselStyleSheetProperty extends RequestResponse {
 /**
  * Replace a CSS property.
  */
-interface ReplaceGlassEaselStyleSheetProperty extends RequestResponse {
+export interface ReplaceGlassEaselStyleSheetProperty extends RequestResponse {
   request: {
     styleSheetId: StyleSheetId
     ruleIndex: number
@@ -166,7 +166,7 @@ interface ReplaceGlassEaselStyleSheetProperty extends RequestResponse {
 /**
  * Replace all CSS properties.
  */
-interface ReplaceGlassEaselStyleSheetAllProperties extends RequestResponse {
+export interface ReplaceGlassEaselStyleSheetAllProperties extends RequestResponse {
   request: {
     styleSheetId: StyleSheetId
     ruleIndex: number
@@ -177,24 +177,24 @@ interface ReplaceGlassEaselStyleSheetAllProperties extends RequestResponse {
 /**
  * Replace inline style for a node.
  */
-interface ReplaceGlassEaselStyleSheetInlineStyle extends RequestResponse {
+export interface ReplaceGlassEaselStyleSheetInlineStyle extends RequestResponse {
   request: {
     nodeId: NodeId
     styleText: string
   }
 }
 
-interface FontsUpdated extends EventDetail {
+export interface FontsUpdated extends EventDetail {
   detail: Record<string, never>
   cdpEventDetail: unknown
 }
 
-interface MediaQueryResultChanged extends EventDetail {
+export interface MediaQueryResultChanged extends EventDetail {
   detail: Record<string, never>
   cdpEventDetail: unknown
 }
 
-interface StyleSheetAdded extends EventDetail {
+export interface StyleSheetAdded extends EventDetail {
   detail: {
     header: {
       styleSheetId: StyleSheetId
@@ -204,12 +204,12 @@ interface StyleSheetAdded extends EventDetail {
   cdpEventDetail: Protocol.CSS.StyleSheetAddedEvent
 }
 
-interface StyleSheetChanged extends EventDetail {
+export interface StyleSheetChanged extends EventDetail {
   detail: { styleSheetId: string }
   cdpEventDetail: Protocol.CSS.StyleSheetChangedEvent
 }
 
-interface StyleSheetRemoved extends EventDetail {
+export interface StyleSheetRemoved extends EventDetail {
   detail: { styleSheetId: string }
   cdpEventDetail: Protocol.CSS.StyleSheetRemovedEvent
 }

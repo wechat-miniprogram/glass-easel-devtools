@@ -103,7 +103,7 @@ export type Node = BackendNode & {
 /**
  * Inform that the panel is enabled.
  */
-interface Enable extends RequestResponse {
+export interface Enable extends RequestResponse {
   request: Record<string, never>
   cdpRequestResponse: [Protocol.DOM.EnableRequest, unknown]
 }
@@ -114,7 +114,7 @@ interface Enable extends RequestResponse {
  * This will always return a node that contains all mount points.
  * The `nodeId` of it is always `1` .
  */
-interface GetDocument extends RequestResponse {
+export interface GetDocument extends RequestResponse {
   request: { depth?: number }
   response: { root: Node }
   cdpRequestResponse: [Protocol.DOM.GetDocumentRequest, Protocol.DOM.GetDocumentResponse]
@@ -123,7 +123,7 @@ interface GetDocument extends RequestResponse {
 /**
  * Activate some nodes and listening to further mutations.
  */
-interface PushNodesByBackendIdsToFrontend extends RequestResponse {
+export interface PushNodesByBackendIdsToFrontend extends RequestResponse {
   request: { backendNodeIds: NodeId[] }
   response: { nodeIds: NodeId[] }
   cdpRequestResponse: [
@@ -135,7 +135,7 @@ interface PushNodesByBackendIdsToFrontend extends RequestResponse {
 /**
  * Remove an attribute.
  */
-interface RemoveAttribute extends RequestResponse {
+export interface RemoveAttribute extends RequestResponse {
   request: { nodeId: NodeId; name: string }
   cdpRequestResponse: [Protocol.DOM.RemoveAttributeRequest, unknown]
 }
@@ -143,7 +143,7 @@ interface RemoveAttribute extends RequestResponse {
 /**
  * Set an attribute.
  */
-interface SetAttributeValue extends RequestResponse {
+export interface SetAttributeValue extends RequestResponse {
   request: { nodeId: NodeId; name: string; value: string }
   cdpRequestResponse: [Protocol.DOM.SetAttributeValueRequest, unknown]
 }
@@ -153,7 +153,7 @@ interface SetAttributeValue extends RequestResponse {
  *
  * This method is designed for the compatibilities with CDP (and not preferred).
  */
-interface SetAttributesAsText extends RequestResponse {
+export interface SetAttributesAsText extends RequestResponse {
   request: { nodeId: NodeId; text: string; name?: string }
   cdpRequestResponse: [Protocol.DOM.SetAttributesAsTextRequest, unknown]
 }
@@ -165,7 +165,7 @@ interface SetAttributesAsText extends RequestResponse {
  * Common glass-easel managed attributes (e.g. `id` `class` ) will has a colon `:` as its prefix.
  * Slot names (as `:name` ), datasets, and marks are also included.
  */
-interface GetAttributes extends RequestResponse {
+export interface GetAttributes extends RequestResponse {
   request: { nodeId: NodeId }
   response: { attributes: string[] }
   cdpRequestResponse: [Protocol.DOM.GetAttributesRequest, Protocol.DOM.GetAttributesResponse]
@@ -174,7 +174,7 @@ interface GetAttributes extends RequestResponse {
 /**
  * Get special attribute names of a node.
  */
-interface GetGlassEaselAttributes extends RequestResponse {
+export interface GetGlassEaselAttributes extends RequestResponse {
   request: { nodeId: NodeId }
   response: {
     slotName: string | null
@@ -197,7 +197,7 @@ interface GetGlassEaselAttributes extends RequestResponse {
 /**
  * Get child nodes.
  */
-interface RequestChildNodes extends RequestResponse {
+export interface RequestChildNodes extends RequestResponse {
   request: { nodeId: NodeId }
   cdpRequestResponse: [Protocol.DOM.RequestChildNodesRequest, unknown]
 }
@@ -205,7 +205,7 @@ interface RequestChildNodes extends RequestResponse {
 /**
  * Remove a node.
  */
-interface RemoveNode extends RequestResponse {
+export interface RemoveNode extends RequestResponse {
   request: { nodeId: NodeId }
   cdpRequestResponse: [Protocol.DOM.RemoveNodeRequest, unknown]
 }
@@ -213,7 +213,7 @@ interface RemoveNode extends RequestResponse {
 /**
  * Set a node as a global variable.
  */
-interface ResolveNode extends RequestResponse {
+export interface ResolveNode extends RequestResponse {
   request: { nodeId: NodeId } | { backendNodeId: NodeId }
   response: { glassEaselGeneratedVarName: string }
   cdpRequestResponse: [Protocol.DOM.ResolveNodeRequest, Protocol.DOM.ResolveNodeResponse]
@@ -222,7 +222,7 @@ interface ResolveNode extends RequestResponse {
 /**
  * Set the inspected focusing node.
  */
-interface SetInspectedNode extends RequestResponse {
+export interface SetInspectedNode extends RequestResponse {
   request: { nodeId: NodeId }
   cdpRequestResponse: [Protocol.DOM.SetInspectedNodeRequest, unknown]
 }
@@ -230,7 +230,7 @@ interface SetInspectedNode extends RequestResponse {
 /**
  * Set the text content.
  */
-interface SetNodeValue extends RequestResponse {
+export interface SetNodeValue extends RequestResponse {
   request: { nodeId: NodeId; value: string }
   cdpRequestResponse: [Protocol.DOM.SetNodeValueRequest, unknown]
 }
@@ -238,7 +238,7 @@ interface SetNodeValue extends RequestResponse {
 /**
  * Scroll to show the target element.
  */
-interface ScrollIntoViewIfNeeded extends RequestResponse {
+export interface ScrollIntoViewIfNeeded extends RequestResponse {
   request: { nodeId: NodeId } | { backendNodeId: NodeId }
   cdpRequestResponse: [Protocol.DOM.ScrollIntoViewIfNeededRequest, unknown]
 }
@@ -246,7 +246,7 @@ interface ScrollIntoViewIfNeeded extends RequestResponse {
 /**
  * Element from X/Y location.
  */
-interface GetNodeForLocation extends RequestResponse {
+export interface GetNodeForLocation extends RequestResponse {
   request: { x: number; y: number }
   response: { backendNodeId: NodeId }
   cdpRequestResponse: [
@@ -258,7 +258,7 @@ interface GetNodeForLocation extends RequestResponse {
 /**
  * Query selector.
  */
-interface QuerySelector extends RequestResponse {
+export interface QuerySelector extends RequestResponse {
   request: { nodeId: NodeId; selector: string }
   response: { nodeId: NodeId }
   cdpRequestResponse: [Protocol.DOM.QuerySelectorRequest, Protocol.DOM.QuerySelectorResponse]
@@ -267,7 +267,7 @@ interface QuerySelector extends RequestResponse {
 /**
  * Query selector for all nodes.
  */
-interface QuerySelectorAll extends RequestResponse {
+export interface QuerySelectorAll extends RequestResponse {
   request: { nodeId: NodeId; selector: string }
   response: { nodeIds: NodeId[] }
   cdpRequestResponse: [Protocol.DOM.QuerySelectorAllRequest, Protocol.DOM.QuerySelectorAllResponse]
@@ -276,7 +276,7 @@ interface QuerySelectorAll extends RequestResponse {
 /**
  * Get box model and related information.
  */
-interface GetBoxModel extends RequestResponse {
+export interface GetBoxModel extends RequestResponse {
   request: { nodeId: NodeId } | { backendNodeId: NodeId }
   response: {
     content: Quad
@@ -289,7 +289,7 @@ interface GetBoxModel extends RequestResponse {
   cdpRequestResponse: [Protocol.DOM.GetBoxModelRequest, Protocol.DOM.GetBoxModelResponse]
 }
 
-interface SetChildNodes extends EventDetail {
+export interface SetChildNodes extends EventDetail {
   detail: { parentId: NodeId; nodes: Node[] }
   cdpEventDetail: Protocol.DOM.SetChildNodesEvent
 }
@@ -299,7 +299,7 @@ interface SetChildNodes extends EventDetail {
  *
  * `previousNodeId` can be `0` which means insertion as the first child.
  */
-interface ChildNodeInserted extends EventDetail {
+export interface ChildNodeInserted extends EventDetail {
   detail: { parentNodeId: NodeId; previousNodeId: NodeId; node: Node }
   cdpEventDetail: Protocol.DOM.ChildNodeInsertedEvent
 }
@@ -307,27 +307,27 @@ interface ChildNodeInserted extends EventDetail {
 /**
  * A child node is removed.
  */
-interface ChildNodeRemoved extends EventDetail {
+export interface ChildNodeRemoved extends EventDetail {
   detail: { parentNodeId: NodeId; nodeId: NodeId }
   cdpEventDetail: Protocol.DOM.ChildNodeRemovedEvent
 }
 
-interface ChildNodeCountUpdated extends EventDetail {
+export interface ChildNodeCountUpdated extends EventDetail {
   detail: { nodeId: NodeId; childNodeCount: number }
   cdpEventDetail: Protocol.DOM.ChildNodeCountUpdatedEvent
 }
 
-interface AttributeRemoved extends EventDetail {
+export interface AttributeRemoved extends EventDetail {
   detail: { nodeId: NodeId; name: string }
   cdpEventDetail: Protocol.DOM.AttributeRemovedEvent
 }
 
-interface AttributeModified extends EventDetail {
+export interface AttributeModified extends EventDetail {
   detail: { nodeId: NodeId; name: string; value: string; detail: GlassEaselVar }
   cdpEventDetail: Protocol.DOM.AttributeModifiedEvent
 }
 
-interface CharacterDataModified extends EventDetail {
+export interface CharacterDataModified extends EventDetail {
   detail: { nodeId: NodeId; characterData: string }
   cdpEventDetail: Protocol.DOM.CharacterDataModifiedEvent
 }

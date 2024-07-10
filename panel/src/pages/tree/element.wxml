@@ -1,0 +1,13 @@
+<view class="tag-body" hover-class="tag-body_hover">
+  <view class="fold-arrow">
+    <view wx:if="{{ hasChildNodes }}">▶</view>
+  </view>
+  <view class="tag-text">&lt;</view>
+  <view class="tag-name">{{ tagName }}</view>
+  <block wx:for="{{ attributes }}">
+    <view class="attribute">
+      <view class="attribute-name">{{ item.name }}</view>=<view class="attribute-value">{{ item.value }}</view>
+    </view>
+  </block>
+  <view class="tag-text">&gt;</view>
+</view>

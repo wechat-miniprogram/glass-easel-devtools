@@ -1,23 +1,24 @@
-import { sendRequest, setEventHandler } from '../../message_channel'
-
-setEventHandler('DOM.childNodeInserted', () => {
-  // TODO
-})
-
-setEventHandler('DOM.childNodeCountUpdated', () => {
-  /* empty */
-})
+import { DeepCopyKind } from 'glass-easel'
+import { type protocol, sendRequest } from '../../message_channel'
 
 export const componentDefinition = Component()
-  .data(() => ({}))
-  .init(({ data, setData, method }) => {
+  .options({
+    dataDeepCopy: DeepCopyKind.None,
+    propertyPassingDeepCopy: DeepCopyKind.None,
+  })
+  .data(() => ({
+    mountPoints: [] as protocol.dom.Node[],
+  }))
+  .init(({ setData, method }) => {
     const initDocument = async () => {
       await sendRequest('DOM.enable', {})
-      const root = await sendRequest('DOM.getDocument', { depth: 1 })
-      // TODO
+      const res = await sendRequest('DOM.getDocument', { depth: 1 })
+      setData({ mountPoints: res.root.children ?? [] })
     }
 
+    // reconnect, clear elements, and fetch all elements
     const restart = method(() => {
+      setData({ mountPoints: [] })
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       initDocument()
     })

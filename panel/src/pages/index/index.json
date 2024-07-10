@@ -1,6 +1,5 @@
 {
   "usingComponents": {
-    "view": "/components/view/view",
-    "image": "/components/image/image"
+    "element": "/pages/tree/element"
   }
 }

@@ -7,11 +7,11 @@
     "dev": "webpack --config webpack.config.js --mode development --watch"
   },
   "peerDependencies": {
-    "glass-easel": "^0.7.0"
+    "glass-easel": "^0.8.0"
   },
   "devDependencies": {
     "@types/node": "^20.14.9",
     "devtools-protocol": "^0.0.1319565",
-    "glass-easel": "^0.7.0"
+    "glass-easel": "^0.8.0"
   }
 }

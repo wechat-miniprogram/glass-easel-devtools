@@ -1,9 +1,16 @@
-.logo {
-  width: 256px;
-  margin: 0 auto;
+body {
+  margin: 0;
+  height: 100vh;
 }
 
-.hello {
-  margin: 20px;
-  text-align: center;
+.wrapper {
+  font-family: monospace;
+  font-size: 12px;
+  background: #eee;
+  height: 100%;
+  cursor: default;
+}
+
+.tree {
+  padding: 5px;
 }

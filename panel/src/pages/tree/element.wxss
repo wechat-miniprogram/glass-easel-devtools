@@ -1,0 +1,36 @@
+@common-text: #666;
+@important-text: #222;
+@selected-bg: #ccc;
+
+:host {
+  display: block;
+}
+
+.tag-body {
+  display: inline-block;
+  color: @common-text;
+}
+
+.tag-body_hover {
+  background: @selected-bg;
+}
+
+.fold-arrow {
+  display: inline-block;
+  width: 1em;
+  color: @important-text;
+  text-align: center;
+}
+
+.tag-text {
+  display: inline;
+}
+
+.tag-name {
+  display: inline-block;
+  color: @important-text;
+}
+
+.attributes {
+  display: inline-block;
+}

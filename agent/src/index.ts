@@ -10,7 +10,7 @@ import type {
   dom,
 } from './protocol/index'
 import { MountPoint, StaticNodeName } from './mount_point'
-import { warn, debug } from './utils'
+import { debug } from './utils'
 import { GlassEaselNodeType, glassEaselNodeTypeToCDP } from './protocol/dom'
 
 export * as protocol from './protocol/index'
@@ -122,22 +122,14 @@ export class Connection {
 
 class InspectorDevToolsImpl implements glassEasel.InspectorDevTools {
   private conn: Connection
-  private pendingMountPoints: MountPoint[] = []
   private enabled = false
 
   constructor(conn: Connection) {
     this.conn = conn
-    this.pendingMountPoints = []
     conn.setRequestHandler('DOM.enable', async () => {
-      if (this.enabled) {
-        warn('agent has already been enabled')
-        return
-      }
-      conn.init()
+      if (this.enabled) return
       this.enabled = true
-      const mps = this.pendingMountPoints
-      this.pendingMountPoints = []
-      mps.forEach((mp) => mp.attach())
+      conn.init()
     })
   }
 
@@ -145,16 +137,11 @@ class InspectorDevToolsImpl implements glassEasel.InspectorDevTools {
   addMountPoint(root: glassEasel.Element, env: glassEasel.MountPointEnv): void {
     if (root === this.conn.hostComponent) return
     const mp = new MountPoint(this.conn, root, env)
-    if (this.enabled) {
-      mp.attach()
-    } else {
-      this.pendingMountPoints.push(mp)
-    }
+    mp.attach()
   }
 
   // eslint-disable-next-line class-methods-use-this
   removeMountPoint(root: glassEasel.GeneralComponent): void {
-    this.pendingMountPoints.filter((mp) => !mp.hasRoot(root))
     this.conn.mountPoints.forEach((mp) => {
       if (mp.hasRoot(root)) mp.detach()
     })
