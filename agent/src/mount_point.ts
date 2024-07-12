@@ -2,6 +2,7 @@ import type * as glassEasel from 'glass-easel'
 import { type Connection } from '.'
 import { glassEaselVarToString, toGlassEaselVar, type NodeId, type dom } from './protocol'
 import { GlassEaselNodeType, glassEaselNodeTypeToCDP } from './protocol/dom'
+import { warn } from './utils'
 
 export type NodeMeta = {
   node: glassEasel.Node
@@ -46,51 +47,95 @@ const getNodeName = (
   return StaticNodeName.Unknown
 }
 
-export class MountPoint {
+export class MountPointsManager {
   private conn: Connection
-  private root: glassEasel.Element
-  private env: glassEasel.MountPointEnv
   private nodeIdMap = new WeakMap<glassEasel.Node, NodeId>()
   private activeNodes = Object.create(null) as Record<NodeId, NodeMeta>
+  readonly documentNodeId = 1
+  private nodeIdInc = 2
+  mountPoints: { nodeMeta: NodeMeta; env: glassEasel.MountPointEnv }[] = []
 
-  constructor(conn: Connection, root: glassEasel.Element, env: glassEasel.MountPointEnv) {
+  constructor(conn: Connection) {
     this.conn = conn
-    this.root = root
-    this.env = env
+    this.init()
   }
 
-  hasRoot(root: glassEasel.Element): boolean {
-    return root === this.root
+  init() {
+    this.conn.setRequestHandler('DOM.getDocument', async ({ depth }) => {
+      let children: dom.Node[] | undefined
+      if (depth) {
+        children = this.mountPoints.map(({ nodeMeta }) =>
+          this.collectNodeDetails(nodeMeta, depth - 1, true),
+        )
+      }
+      const ty = GlassEaselNodeType.Unknown
+      const root: dom.Node = {
+        backendNodeId: this.documentNodeId,
+        nodeType: glassEaselNodeTypeToCDP(ty),
+        glassEaselNodeType: ty,
+        nodeName: StaticNodeName.Document,
+        virtual: true,
+        inheritSlots: false,
+        nodeId: this.documentNodeId,
+        localName: StaticNodeName.Document,
+        nodeValue: '',
+        attributes: [],
+        children,
+      }
+      return { root }
+    })
+
+    this.conn.setRequestHandler('DOM.requestChildNodes', async ({ nodeId }) => {
+      const { node } = this.queryActiveNode(nodeId)
+      const elem = node.asElement()
+      if (!elem) return
+      const nodes = elem.childNodes.map((child) => {
+        const nodeMeta = this.activateNode(child, false, true)
+        return this.collectNodeDetails(nodeMeta, 0, false)
+      })
+      this.conn.sendEvent('DOM.setChildNodes', { parentId: nodeId, nodes })
+    })
   }
 
-  attach() {
-    const nodeId = this.activateNode(this.root, true, true)
-    const previousNode = this.conn.mountPoints[this.conn.mountPoints.length - 1]
-    const previousNodeId = previousNode ? this.getNodeId(previousNode.root) : undefined
-    this.conn.mountPoints.push(this)
+  attach(root: glassEasel.Element, env: glassEasel.MountPointEnv) {
+    const nodeMeta = this.activateNode(root, true, true)
+    const previousNode = this.mountPoints[this.mountPoints.length - 1]
+    const previousNodeId = previousNode ? previousNode.nodeMeta.nodeId : undefined
+    this.mountPoints.push({ nodeMeta, env })
     this.conn.sendEvent('DOM.childNodeInserted', {
-      parentNodeId: this.conn.documentNodeId,
+      parentNodeId: this.documentNodeId,
       previousNodeId: previousNodeId ?? 0,
-      node: this.collectNodeDetails(nodeId, 0)!,
+      node: this.collectNodeDetails(nodeMeta, 0, true),
     })
     this.conn.sendEvent('DOM.childNodeCountUpdated', {
-      nodeId: this.conn.documentNodeId,
-      childNodeCount: this.conn.mountPoints.length,
+      nodeId: this.documentNodeId,
+      childNodeCount: this.mountPoints.length,
     })
   }
 
-  detach() {
-    const nodeId = this.deactivateNodeTree(this.root)
+  detach(root: glassEasel.Element) {
+    const index = this.mountPoints.findIndex((x) => x.nodeMeta.node === root)
+    if (index < 0) {
+      warn('no such mount point to remove')
+      return
+    }
+    this.mountPoints.splice(index, 1)
+    const nodeId = this.deactivateNodeTree(root)
     if (!nodeId) return
-    this.conn.mountPoints = this.conn.mountPoints.filter((mp) => mp !== this)
     this.conn.sendEvent('DOM.childNodeRemoved', {
-      parentNodeId: this.conn.documentNodeId,
+      parentNodeId: this.documentNodeId,
       nodeId,
     })
     this.conn.sendEvent('DOM.childNodeCountUpdated', {
-      nodeId: this.conn.documentNodeId,
-      childNodeCount: this.conn.mountPoints.length,
+      nodeId: this.documentNodeId,
+      childNodeCount: this.mountPoints.length,
     })
+  }
+
+  generateNodeId(): NodeId {
+    const ret = this.nodeIdInc
+    this.nodeIdInc += 1
+    return ret
   }
 
   private getNodeId(node: glassEasel.Node): NodeId {
@@ -98,9 +143,15 @@ export class MountPoint {
     if (nodeId !== undefined) {
       return nodeId
     }
-    const newNodeId = this.conn.generateNodeId()
+    const newNodeId = this.generateNodeId()
     this.nodeIdMap.set(node, newNodeId)
     return newNodeId
+  }
+
+  private queryActiveNode(nodeId: NodeId): NodeMeta {
+    const nodeMeta = this.activeNodes[nodeId]
+    if (!nodeMeta) throw new Error(`no active node found for node id ${nodeId}`)
+    return nodeMeta
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -118,13 +169,18 @@ export class MountPoint {
    *
    * This will also activate its parent or host (for shadow-root).
    */
-  private activateNode(node: glassEasel.Node, isMountPoint: boolean, sendChanges: boolean): NodeId {
+  private activateNode(
+    node: glassEasel.Node,
+    isMountPoint: boolean,
+    sendChanges: boolean,
+  ): NodeMeta {
     const nodeId = this.getNodeId(node)
     if (this.activeNodes[nodeId]) {
-      if (!this.activeNodes[nodeId].sendChanges && sendChanges) {
-        this.activeNodes[nodeId].sendChanges = true
+      const nodeMeta = this.activeNodes[nodeId]
+      if (!nodeMeta.sendChanges && sendChanges) {
+        nodeMeta.sendChanges = true
       }
-      return nodeId
+      return nodeMeta
     }
     if (!isMountPoint) {
       const p =
@@ -133,9 +189,10 @@ export class MountPoint {
           : node.parentNode
       if (p) this.activateNode(p, false, true)
     }
-    this.activeNodes[nodeId] = { node, nodeId, sendChanges }
+    const nodeMeta = { node, nodeId, sendChanges }
+    this.activeNodes[nodeId] = nodeMeta
     this.startWatch(node)
-    return nodeId
+    return nodeMeta
   }
 
   private enableSendChanges(nodeId: NodeId, enabled: boolean) {
@@ -168,10 +225,9 @@ export class MountPoint {
     return nodeId
   }
 
-  private collectNodeBasicInfomation(nodeId: NodeId): dom.BackendNode | undefined {
-    const meta = this.activeNodes[nodeId]
-    if (!meta) return undefined
-    const { node } = meta
+  // eslint-disable-next-line class-methods-use-this
+  private collectNodeBasicInfomation(nodeMeta: NodeMeta): dom.BackendNode {
+    const { nodeId, node } = nodeMeta
     const ty = getNodeType(node)
     const nodeName = getNodeName(node, ty, false)
     const virtual = node.asElement()?.isVirtual() ?? false
@@ -186,15 +242,8 @@ export class MountPoint {
     }
   }
 
-  getRootDetails(depth: number): dom.Node {
-    const nodeId = this.getNodeId(this.root)
-    return this.collectNodeDetails(nodeId, depth)!
-  }
-
-  collectNodeDetails(nodeId: NodeId, depth: number): dom.Node | undefined {
-    const meta = this.activeNodes[nodeId]
-    if (!meta) return undefined
-    const { node } = meta
+  collectNodeDetails(nodeMeta: NodeMeta, depth: number, isMountPoint: boolean): dom.Node {
+    const { nodeId, node } = nodeMeta
 
     // collect node information
     const {
@@ -204,9 +253,9 @@ export class MountPoint {
       nodeName,
       virtual,
       inheritSlots,
-    } = this.collectNodeBasicInfomation(nodeId)!
+    } = this.collectNodeBasicInfomation(nodeMeta)
     let parentId: NodeId | undefined
-    if (node === this.root) parentId = this.conn.documentNodeId
+    if (isMountPoint) parentId = this.documentNodeId
     else if (node.parentNode) this.getNodeId(node.parentNode)
     else parentId = undefined
     const localName = getNodeName(node, ty, true)
@@ -226,9 +275,27 @@ export class MountPoint {
         slotName = maybeSlotName
         attributes.push(':name', slotName)
       }
-      elem.attributes.forEach(({ name, value }) => {
-        attributes.push(name, glassEaselVarToString(toGlassEaselVar(value)))
-      })
+      if (elem.asNativeNode()) {
+        elem.attributes.forEach(({ name, value }) => {
+          attributes.push(name, glassEaselVarToString(toGlassEaselVar(value)))
+        })
+      } else {
+        const comp = elem.asGeneralComponent()
+        if (comp) {
+          const definition = comp.getComponentDefinition()
+          // TODO
+        }
+      }
+    }
+
+    // collect shadow-roots
+    const sr = node.asGeneralComponent()?.getShadowRoot()
+    const shadowRootType = sr ? 'open' : undefined
+    let shadowRoots: dom.Node[] | undefined
+    if (sr) {
+      const nodeMeta = this.activateNode(sr, false, true)
+      const n = this.collectNodeDetails(nodeMeta, depth - 1, false)
+      if (n) shadowRoots = [n]
     }
 
     // collect children
@@ -237,8 +304,8 @@ export class MountPoint {
       const elem = node.asElement()!
       children = []
       elem.childNodes.forEach((child) => {
-        const nodeId = this.activateNode(child, false, true)
-        const n = this.collectNodeDetails(nodeId, depth - 1)
+        const nodeMeta = this.activateNode(child, false, true)
+        const n = this.collectNodeDetails(nodeMeta, depth - 1, false)
         if (n) children!.push(n)
       })
     }
@@ -267,6 +334,8 @@ export class MountPoint {
       localName,
       nodeValue,
       attributes,
+      shadowRootType,
+      shadowRoots,
       children,
       distributedNodes,
     }

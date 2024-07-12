@@ -3,9 +3,9 @@ import type * as css from './css'
 import type * as overlay from './overlay'
 
 export * from './var'
-export type * as dom from './dom'
-export type * as css from './css'
-export type * as overlay from './overlay'
+export * as dom from './dom'
+export * as css from './css'
+export * as overlay from './overlay'
 
 export type AgentSendMessage =
   | { kind: '' }

@@ -1,4 +1,4 @@
-@common-text: #666;
+@common-text: #888;
 @important-text: #222;
 @selected-bg: #ccc;
 
@@ -7,30 +7,68 @@
 }
 
 .tag-body {
-  display: inline-block;
   color: @common-text;
-}
-
-.tag-body_hover {
-  background: @selected-bg;
 }
 
 .fold-arrow {
   display: inline-block;
   width: 1em;
+  height: 1em;
+  line-height: 1em;
   color: @important-text;
   text-align: center;
+}
+.fold-arrow-icon {
+  width: 1em;
+  transition: transform 200ms ease;
+}
+.fold-arrow-icon_open {
+  transform: rotate(90deg);
 }
 
 .tag-text {
   display: inline;
 }
-
 .tag-name {
   display: inline-block;
-  color: @important-text;
+  color: #06a;
+}
+.tag-name_hover {
+  background: @selected-bg;
 }
 
-.attributes {
+.attribute {
   display: inline-block;
+  margin-left: 0.5em;
+}
+.attribute-name {
+  display: inline-block;
+  color: #084;
+}
+.attribute-name_property {
+  color: #06a;
+}
+.attribute-value {
+  display: inline-block;
+  color: #840;
+}
+
+.shadow-roots {
+  margin-left: 1em;
+}
+
+.children {
+  margin-left: 1em;
+}
+
+.virtual-tag-name {
+  display: inline-block;
+  font-style: italic;
+}
+.virtual-tag-name_hover {
+  background: @selected-bg;
+}
+
+.text-content {
+  color: @important-text;
 }

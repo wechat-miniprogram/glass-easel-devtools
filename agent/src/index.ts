@@ -1,17 +1,12 @@
-/* eslint-disable @typescript-eslint/require-await */
-
 import type * as glassEasel from 'glass-easel'
 import type {
   AgentEventKind,
   AgentRequestKind,
   AgentRecvMessage,
   AgentSendMessage,
-  NodeId,
-  dom,
 } from './protocol/index'
-import { MountPoint, StaticNodeName } from './mount_point'
+import { MountPointsManager } from './mount_point'
 import { debug } from './utils'
-import { GlassEaselNodeType, glassEaselNodeTypeToCDP } from './protocol/dom'
 
 export * as protocol from './protocol/index'
 
@@ -26,9 +21,6 @@ export class Connection {
   readonly hostComponent?: glassEasel.GeneralComponent // TODO
   private messageChannel: MessageChannel
   private requestHandlers = Object.create(null) as Record<string, (detail: any) => Promise<any>>
-  readonly documentNodeId = 1
-  private nodeIdInc = 2
-  mountPoints: MountPoint[] = []
 
   constructor(
     hostContext: glassEasel.GeneralBackendContext,
@@ -88,63 +80,31 @@ export class Connection {
     const data: AgentSendMessage = { kind: 'event', name, detail }
     this.messageChannel.send(data)
   }
-
-  generateNodeId(): NodeId {
-    const ret = this.nodeIdInc
-    this.nodeIdInc += 1
-    return ret
-  }
-
-  init() {
-    this.setRequestHandler('DOM.getDocument', async ({ depth }) => {
-      let children: dom.Node[] | undefined
-      if (depth) {
-        children = this.mountPoints.map((n) => n.getRootDetails(depth - 1))
-      }
-      const ty = GlassEaselNodeType.Unknown
-      const root: dom.Node = {
-        backendNodeId: this.documentNodeId,
-        nodeType: glassEaselNodeTypeToCDP(ty),
-        glassEaselNodeType: ty,
-        nodeName: StaticNodeName.Document,
-        virtual: true,
-        inheritSlots: false,
-        nodeId: this.documentNodeId,
-        localName: StaticNodeName.Document,
-        nodeValue: '',
-        attributes: [],
-        children,
-      }
-      return { root }
-    })
-  }
 }
 
 class InspectorDevToolsImpl implements glassEasel.InspectorDevTools {
   private conn: Connection
+  private mountPoints: MountPointsManager
   private enabled = false
 
   constructor(conn: Connection) {
     this.conn = conn
+    this.mountPoints = new MountPointsManager(conn)
     conn.setRequestHandler('DOM.enable', async () => {
       if (this.enabled) return
       this.enabled = true
-      conn.init()
     })
   }
 
   // eslint-disable-next-line class-methods-use-this
   addMountPoint(root: glassEasel.Element, env: glassEasel.MountPointEnv): void {
     if (root === this.conn.hostComponent) return
-    const mp = new MountPoint(this.conn, root, env)
-    mp.attach()
+    this.mountPoints.attach(root, env)
   }
 
   // eslint-disable-next-line class-methods-use-this
   removeMountPoint(root: glassEasel.GeneralComponent): void {
-    this.conn.mountPoints.forEach((mp) => {
-      if (mp.hasRoot(root)) mp.detach()
-    })
+    this.mountPoints.detach(root)
   }
 }
 

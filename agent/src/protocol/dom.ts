@@ -94,6 +94,10 @@ export type Node = BackendNode & {
   nodeValue: string
   /** The attributes (see `GetAttributes` for details). */
   attributes: string[]
+  /** The type of the shadow-root type (if any). */
+  shadowRootType?: 'open'
+  /** The shadow root nodes (if any, at most one child). */
+  shadowRoots?: Node[]
   /** The shadow-tree children (can be undefined which means to fetch in future). */
   children?: Node[]
   /** The slot content. */

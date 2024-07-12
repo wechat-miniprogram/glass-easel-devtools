@@ -22,29 +22,24 @@ export class EventDispatcher<
     if (this.listeners[key]) this.listeners[key].filter((x) => x !== func)
   }
 
+  bindComponentLifetimes(
+    ctx: builder.BuilderContext<any, any, any>,
+    getKey: () => K,
+    func: (args: T) => void,
+  ) {
+    const { lifetime } = ctx
+    lifetime('attached', () => {
+      this.addListener(getKey(), func)
+    })
+    lifetime('detached', () => {
+      this.removeListener(getKey(), func)
+    })
+  }
+
   dispatch(args: T) {
     const funcArr = this.listeners[args[this.keyName]]
     funcArr?.forEach((f) => f(args))
   }
-}
-
-export const registerNodeEventListener = <
-  N extends string,
-  K extends string | number,
-  T extends { [k in N]: K },
->(
-  ev: EventDispatcher<N, K, T>,
-  ctx: builder.BuilderContext<any, any, any>,
-  k: K,
-  func: (args: T) => void,
-) => {
-  const { lifetime } = ctx
-  lifetime('attached', () => {
-    ev.addListener(k, func)
-  })
-  lifetime('detached', () => {
-    ev.removeListener(k, func)
-  })
 }
 
 export const childNodeCountUpdated = new EventDispatcher<
@@ -54,4 +49,13 @@ export const childNodeCountUpdated = new EventDispatcher<
 >('nodeId')
 setEventHandler('DOM.childNodeCountUpdated', (args) => {
   childNodeCountUpdated.dispatch(args)
+})
+
+export const setChildNodes = new EventDispatcher<
+  'parentId',
+  protocol.NodeId,
+  protocol.dom.SetChildNodes['detail']
+>('parentId')
+setEventHandler('DOM.setChildNodes', (args) => {
+  setChildNodes.dispatch(args)
 })

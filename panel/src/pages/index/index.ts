@@ -12,7 +12,7 @@ export const componentDefinition = Component()
   .init(({ setData, method }) => {
     const initDocument = async () => {
       await sendRequest('DOM.enable', {})
-      const res = await sendRequest('DOM.getDocument', { depth: 1 })
+      const res = await sendRequest('DOM.getDocument', { depth: 3 })
       setData({ mountPoints: res.root.children ?? [] })
     }
 
