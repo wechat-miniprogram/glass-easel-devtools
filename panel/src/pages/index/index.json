@@ -1,5 +1,6 @@
 {
   "usingComponents": {
-    "element": "/pages/tree/element"
+    "element": "/pages/tree/element",
+    "detail": "/pages/detail/detail"
   }
 }

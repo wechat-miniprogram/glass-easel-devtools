@@ -2,9 +2,14 @@
   <view wx:if="{{ mountPoints.length === 0 }}">
     <view>No glass-easel mount points found. (Is the glass-easel built in development mode?)</view>
   </view>
-  <view wx:else class="tree">
-    <block wx:for="{{ mountPoints }}">
-      <element node-info="{{ item }}" />
-    </block>
+  <view wx:else class="main">
+    <view class="tree">
+      <block wx:for="{{ mountPoints }}">
+        <element node-info="{{ item }}" />
+      </block>
+    </view>
+    <view class="detail">
+      <detail />
+    </view>
   </view>
 </view>

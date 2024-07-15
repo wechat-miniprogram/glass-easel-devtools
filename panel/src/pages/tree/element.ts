@@ -1,8 +1,10 @@
 import { DeepCopyKind } from 'glass-easel'
+import { initStoreBindings } from 'mobx-miniprogram-bindings'
 import { protocol } from 'glass-easel-devtools-agent'
 import { childNodeCountUpdated, setChildNodes } from '../../events'
 import { sendRequest } from '../../message_channel'
 import { warn } from '../../utils'
+import { store } from '../store'
 
 type AttributeMeta = { name: string; value: string; isProperty: boolean }
 
@@ -44,6 +46,11 @@ Component()
       nodeId = n
     }
 
+    initStoreBindings(ctx, {
+      store,
+      fields: ['selectedNodeId'],
+    })
+
     childNodeCountUpdated.bindComponentLifetimes(
       ctx,
       () => nodeId,
@@ -69,14 +76,12 @@ Component()
         const tagName = nodeInfo?.nodeName ?? ''
         const nv = nodeInfo?.attributes ?? []
         const attributes = [] as AttributeMeta[]
+        const coreAttrCount = nodeInfo?.glassEaselAttributeCount ?? 0
         for (let i = 0; i < nv.length; i += 2) {
-          const n = nv[i]
-          const v = nv[i + 1] ?? ''
-          if (n.startsWith(':')) {
-            attributes.push({ name: n.slice(1), value: v, isProperty: false })
-          } else {
-            attributes.push({ name: n, value: v, isProperty: true })
-          }
+          const name = nv[i]
+          const value = nv[i + 1] ?? ''
+          const isProperty = i / 2 >= coreAttrCount
+          attributes.push({ name, value, isProperty })
         }
         const hasShadowRoot = nodeInfo?.shadowRootType === 'open'
         const shadowRoots = nodeInfo?.shadowRoots ?? []
@@ -122,6 +127,10 @@ Component()
       })
     })
 
-    return { toggleChildren }
+    const selectTag = listener(() => {
+      store.selectNode(nodeId)
+    })
+
+    return { toggleChildren, selectTag }
   })
   .register()

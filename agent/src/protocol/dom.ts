@@ -94,6 +94,8 @@ export type Node = BackendNode & {
   nodeValue: string
   /** The attributes (see `GetAttributes` for details). */
   attributes: string[]
+  /** The count of the core attributes */
+  glassEaselAttributeCount: number
   /** The type of the shadow-root type (if any). */
   shadowRootType?: 'open'
   /** The shadow root nodes (if any, at most one child). */
@@ -166,12 +168,11 @@ export interface SetAttributesAsText extends RequestResponse {
  * Get attribute names and values of a node.
  *
  * The name-value pairs are stringified and flattened into a single string array.
- * Common glass-easel managed attributes (e.g. `id` `class` ) will has a colon `:` as its prefix.
- * Slot names (as `:name` ), datasets, and marks are also included.
+ * Common glass-easel managed attributes (e.g. `id` `class` ), datasets, and marks are also included.
  */
 export interface GetAttributes extends RequestResponse {
   request: { nodeId: NodeId }
-  response: { attributes: string[] }
+  response: { attributes: string[]; glassEaselAttributeCount: number }
   cdpRequestResponse: [Protocol.DOM.GetAttributesRequest, Protocol.DOM.GetAttributesResponse]
 }
 
@@ -181,18 +182,21 @@ export interface GetAttributes extends RequestResponse {
 export interface GetGlassEaselAttributes extends RequestResponse {
   request: { nodeId: NodeId }
   response: {
-    slotName: string | null
-    slotValues: { [name: string]: GlassEaselVar } | null
-    styleSegments: string[]
+    glassEaselNodeType: GlassEaselNodeType
+    is: string
+    id: string
+    slot: string
+    slotName: string | undefined
+    slotValues: { name: string; value: GlassEaselVar }[] | undefined
     eventBindings: {
       name: string
-      catch: boolean
-      mutBind: boolean
+      count: number
+      hasCatch: boolean
+      hasMutBind: boolean
       capture: boolean
-      value: GlassEaselVar
     }[]
-    normalAttributes: { name: string; value: GlassEaselVar }[]
-    properties: { name: string; value: GlassEaselVar }[]
+    normalAttributes?: { name: string; value: GlassEaselVar }[]
+    properties?: { name: string; value: GlassEaselVar }[]
     dataset: { name: string; value: GlassEaselVar }[]
     marks: { name: string; value: GlassEaselVar }[]
   }

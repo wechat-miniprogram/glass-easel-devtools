@@ -36,8 +36,10 @@ const devTools = getDevTools(
 )
 
 // connect to stub
-const userGlobal = window as unknown as { __glassEaselDevTools__?: DevToolsBridge }
-userGlobal.__glassEaselDevTools__?._devToolsConnect(devTools)
+setTimeout(() => {
+  const userGlobal = window as unknown as { __glassEaselDevTools__?: DevToolsBridge }
+  userGlobal.__glassEaselDevTools__?._devToolsConnect(devTools)
+}, 0)
 
 // send a message to indicate the agent ready
 postMessage({ kind: '_init' })

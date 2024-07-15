@@ -1,0 +1,4 @@
+@common-text: #888;
+@important-text: #222;
+@selected-bg: #ccc;
+@hover-bg: #bbb;

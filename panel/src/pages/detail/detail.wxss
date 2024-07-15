@@ -1,0 +1,6 @@
+@import url('../common.wxss');
+
+:host {
+  display: block;
+}
+

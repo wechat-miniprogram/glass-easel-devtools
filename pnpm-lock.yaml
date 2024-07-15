@@ -84,16 +84,22 @@ importers:
       glass-easel:
         specifier: ^0.8.0
         version: 0.8.0
+      glass-easel-devtools-agent:
+        specifier: workspace:*
+        version: link:../agent
       glass-easel-miniprogram-adapter:
         specifier: ^0.8.0
         version: 0.8.0(glass-easel@0.8.0)
+      mobx-miniprogram:
+        specifier: ^6.12.3
+        version: 6.12.3
+      mobx-miniprogram-bindings:
+        specifier: ^3.0.1
+        version: 3.0.1(mobx-miniprogram@6.12.3)
     devDependencies:
       css-loader:
         specifier: ^7.1.2
         version: 7.1.2(webpack@5.92.1)
-      glass-easel-devtools-agent:
-        specifier: workspace:*
-        version: link:../agent
       glass-easel-miniprogram-webpack-plugin:
         specifier: ^0.8.0
         version: 0.8.0(glass-easel-miniprogram-adapter@0.8.0)(glass-easel@0.8.0)(webpack@5.92.1)
@@ -2220,6 +2226,18 @@ packages:
   /minimist@1.2.8:
     resolution: {integrity: sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==}
     dev: true
+
+  /mobx-miniprogram-bindings@3.0.1(mobx-miniprogram@6.12.3):
+    resolution: {integrity: sha512-pS/l/9LBDThxMEW/AqNQzr1D/NrNRwMqBkgn6HSkIx4LuHiM6GhlJlOY5pygqj4XOreDwnPU1bxiC+6yLFsmiw==}
+    peerDependencies:
+      mobx-miniprogram: ^6.0.0
+    dependencies:
+      mobx-miniprogram: 6.12.3
+    dev: false
+
+  /mobx-miniprogram@6.12.3:
+    resolution: {integrity: sha512-GEq1EG7jZPnrHYV43oppa6jY9lgbNRuGPiXyOFRoluHjd5LIGBf3a+zXMjzO1AVwrFOWvVRazxtzfiRXMUUqZw==}
+    dev: false
 
   /ms@2.1.2:
     resolution: {integrity: sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==}

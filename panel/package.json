@@ -8,8 +8,10 @@
   },
   "dependencies": {
     "glass-easel": "^0.8.0",
+    "glass-easel-devtools-agent": "workspace:*",
     "glass-easel-miniprogram-adapter": "^0.8.0",
-    "glass-easel-devtools-agent": "workspace:*"
+    "mobx-miniprogram": "^6.12.3",
+    "mobx-miniprogram-bindings": "^3.0.1"
   },
   "devDependencies": {
     "css-loader": "^7.1.2",

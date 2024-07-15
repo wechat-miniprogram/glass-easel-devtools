@@ -1,0 +1,46 @@
+
+
+<view wx:if="{{ info.normalAttributes }}" class="section">
+  <block>
+    <view class="section-title">Attributes</view>
+    <view class="section-body">
+      <view wx:for="{{ info.normalAttributes }}" class="section-item">
+        <view class="section-key">{{ name }}</view>="<view class="section-value">{{ value }}</view>"
+      </view>
+    </view>
+  </block>
+</view>
+<view wx:if="{{ info.properties }}" class="section">
+  <block>
+    <view class="section-title">Properties</view>
+    <view class="section-body">
+      <view wx:for="{{ info.properties }}" class="section-item">
+        <view class="section-key">{{ info.name }}</view>="<view class="section-value">{{ info.value }}</view>"
+      </view>
+    </view>
+  </block>
+</view>
+
+<view class="section">
+  <block wx:if="{{ info.dataset.length }}">
+    <view class="section-title">Properties</view>
+    <view class="section-body">
+      <view wx:for="{{ info.dataset }}" class="section-item">
+        <view class="section-key">{{ info.name }}</view>="<view class="section-value">{{ info.value }}</view>"
+      </view>
+    </view>
+  </block>
+  <view wx:else class="section-empty">empty</view>
+</view>
+
+<view class="section">
+  <block wx:if="{{ info.marks.length }}">
+    <view class="section-title">Properties</view>
+    <view class="section-body">
+      <view wx:for="{{ info.marks }}" class="section-item">
+        <view class="section-key">{{ info.name }}</view>="<view class="section-value">{{ info.value }}</view>"
+      </view>
+    </view>
+  </block>
+  <view wx:else class="section-empty">empty</view>
+</view>

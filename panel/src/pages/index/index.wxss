@@ -11,6 +11,19 @@ body {
   cursor: default;
 }
 
+.main {
+  display: flex;
+  height: 100%;
+}
 .tree {
+  flex: 1 1 auto;
   padding: 5px;
+  overflow: auto;
+}
+.detail {
+  flex: none;
+  width: 300px;
+  border-left: 1px solid #888;
+  padding: 5px;
+  overflow: auto;
 }

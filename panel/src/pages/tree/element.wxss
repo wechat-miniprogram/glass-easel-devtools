@@ -1,13 +1,12 @@
-@common-text: #888;
-@important-text: #222;
-@selected-bg: #ccc;
+@import url('../common.wxss');
 
 :host {
   display: block;
 }
 
-.tag-body {
+.tag {
   color: @common-text;
+  white-space: nowrap;
 }
 
 .fold-arrow {
@@ -26,15 +25,21 @@
   transform: rotate(90deg);
 }
 
+.tag-body {
+  display: inline-block;
+}
+.tag-body_hover {
+  background: @hover-bg;
+}
+.tag-body_selected {
+  background: @selected-bg;
+}
 .tag-text {
   display: inline;
 }
 .tag-name {
   display: inline-block;
   color: #06a;
-}
-.tag-name_hover {
-  background: @selected-bg;
 }
 
 .attribute {
@@ -71,4 +76,5 @@
 
 .text-content {
   color: @important-text;
+  padding: 1px 0;
 }

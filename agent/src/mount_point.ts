@@ -1,6 +1,12 @@
 import type * as glassEasel from 'glass-easel'
 import { type Connection } from '.'
-import { glassEaselVarToString, toGlassEaselVar, type NodeId, type dom } from './protocol'
+import {
+  type GlassEaselVar,
+  glassEaselVarToString,
+  toGlassEaselVar,
+  type NodeId,
+  type dom,
+} from './protocol'
 import { GlassEaselNodeType, glassEaselNodeTypeToCDP } from './protocol/dom'
 import { warn } from './utils'
 
@@ -53,7 +59,8 @@ export class MountPointsManager {
   private activeNodes = Object.create(null) as Record<NodeId, NodeMeta>
   readonly documentNodeId = 1
   private nodeIdInc = 2
-  mountPoints: { nodeMeta: NodeMeta; env: glassEasel.MountPointEnv }[] = []
+  private mountPoints: { nodeMeta: NodeMeta; env: glassEasel.MountPointEnv }[] = []
+  private selectedNodeId = 0
 
   constructor(conn: Connection) {
     this.conn = conn
@@ -80,9 +87,17 @@ export class MountPointsManager {
         localName: StaticNodeName.Document,
         nodeValue: '',
         attributes: [],
+        glassEaselAttributeCount: 0,
         children,
       }
       return { root }
+    })
+
+    this.conn.setRequestHandler('DOM.setInspectedNode', async ({ nodeId }) => {
+      const { node } = this.queryActiveNode(nodeId)
+      const elem = node.asElement()
+      if (!elem) return
+      this.selectedNodeId = nodeId
     })
 
     this.conn.setRequestHandler('DOM.requestChildNodes', async ({ nodeId }) => {
@@ -94,6 +109,132 @@ export class MountPointsManager {
         return this.collectNodeDetails(nodeMeta, 0, false)
       })
       this.conn.sendEvent('DOM.setChildNodes', { parentId: nodeId, nodes })
+    })
+
+    this.conn.setRequestHandler('DOM.getGlassEaselAttributes', async ({ nodeId }) => {
+      const { node } = this.queryActiveNode(nodeId)
+      const elem = node.asElement()
+      if (!elem) {
+        return {
+          glassEaselNodeType: GlassEaselNodeType.TextNode,
+          is: '',
+          id: '',
+          slot: '',
+          slotName: undefined,
+          slotValues: undefined,
+          eventBindings: [],
+          dataset: [],
+          marks: [],
+        }
+      }
+
+      // element types
+      const comp = elem.asGeneralComponent()
+      const nativeNode = elem.asNativeNode()
+      const virtualNode = elem.asVirtualNode()
+      let glassEaselNodeType = GlassEaselNodeType.Unknown
+      if (comp) glassEaselNodeType = GlassEaselNodeType.Component
+      if (nativeNode) glassEaselNodeType = GlassEaselNodeType.NativeNode
+      if (virtualNode) glassEaselNodeType = GlassEaselNodeType.VirtualNode
+
+      // collect basic attributes
+      let is = ''
+      if (comp) is = comp.is
+      if (nativeNode) is = nativeNode.is
+      if (virtualNode) is = virtualNode.is
+      const id = elem.id
+      const slot = elem.slot
+      let slotName
+      const maybeSlotName = Reflect.get(elem, '_$slotName') as unknown
+      if (typeof maybeSlotName === 'string') slotName = maybeSlotName
+      let slotValues: { name: string; value: GlassEaselVar }[] | undefined
+      const maybeSlotValues = Reflect.get(elem, '_$slotValues') as unknown
+      if (typeof maybeSlotValues === 'object' && maybeSlotValues !== null) {
+        slotValues = []
+        Object.entries(maybeSlotValues).forEach(([name, value]) => {
+          slotValues!.push({ name, value: toGlassEaselVar(value) })
+        })
+      }
+
+      // collect event bindings
+      const eventBindings: {
+        name: string
+        capture: boolean
+        count: number
+        hasCatch: boolean
+        hasMutBind: boolean
+      }[] = []
+      type EventPoint = {
+        mutCount?: number
+        finalCount?: number
+        funcArr?: { _$arr?: { f: unknown }[] | null }
+      }
+      const maybeEventTarget = Reflect.get(elem, '_$eventTarget') as
+        | {
+            listeners?: { [name: string]: EventPoint }
+            captureListeners?: { [name: string]: EventPoint }
+          }
+        | null
+        | undefined
+      if (typeof maybeEventTarget === 'object' && maybeEventTarget !== null) {
+        const processListeners = (capture: boolean, listeners?: { [name: string]: EventPoint }) => {
+          if (typeof listeners === 'object' && listeners !== null) {
+            Object.entries(listeners).forEach(([name, value]) => {
+              const count = value?.funcArr?._$arr?.length ?? 0
+              if (count > 0) {
+                const hasCatch = (value?.finalCount ?? 0) > 0
+                const hasMutBind = (value?.finalCount ?? 0) > 0
+                eventBindings.push({ name, capture, count, hasCatch, hasMutBind })
+              }
+            })
+          }
+        }
+        processListeners(true, maybeEventTarget.captureListeners)
+        processListeners(false, maybeEventTarget.listeners)
+      }
+
+      // collect attributes or properties
+      let normalAttributes: { name: string; value: GlassEaselVar }[] | undefined
+      let properties: { name: string; value: GlassEaselVar }[] | undefined
+      if (nativeNode) {
+        normalAttributes = []
+        elem.attributes.forEach(({ name, value }) => {
+          normalAttributes!.push({ name, value: toGlassEaselVar(value) })
+        })
+      }
+      if (comp) {
+        properties = []
+        const beh = comp.getComponentDefinition().behavior
+        const names = beh.listProperties()
+        names.forEach((name) => {
+          properties!.push({ name, value: toGlassEaselVar(comp.data[name]) })
+        })
+      }
+
+      // collect dataset
+      const dataset: { name: string; value: GlassEaselVar }[] = []
+      Object.entries(elem.dataset ?? {}).forEach(([name, value]) => {
+        dataset.push({ name, value: toGlassEaselVar(value) })
+      })
+      const marks: { name: string; value: GlassEaselVar }[] = []
+      const maybeMarks = Reflect.get(elem, '_$marks') as { [key: string]: unknown } | undefined
+      Object.entries(maybeMarks ?? {}).forEach(([name, value]) => {
+        dataset.push({ name, value: toGlassEaselVar(value) })
+      })
+
+      return {
+        glassEaselNodeType,
+        is,
+        id,
+        slot,
+        slotName,
+        slotValues,
+        eventBindings,
+        normalAttributes,
+        properties,
+        dataset,
+        marks,
+      }
     })
   }
 
@@ -244,6 +385,9 @@ export class MountPointsManager {
 
   collectNodeDetails(nodeMeta: NodeMeta, depth: number, isMountPoint: boolean): dom.Node {
     const { nodeId, node } = nodeMeta
+    const tmplDevAttrs = (
+      node as glassEasel.Node & { _$wxTmplDevArgs?: glassEasel.template.TmplDevArgs }
+    )._$wxTmplDevArgs
 
     // collect node information
     const {
@@ -263,28 +407,40 @@ export class MountPointsManager {
 
     // collect attributes
     const attributes: string[] = []
+    let glassEaselAttributeCount = 0
     let slotName: string | undefined
     if (ty !== GlassEaselNodeType.TextNode) {
-      const elem = node.asElement()!
-      if (elem.slot) attributes.push(':slot', elem.slot)
-      if (elem.id) attributes.push(':id', elem.id)
-      if (elem.class) attributes.push(':class', elem.class)
-      if (elem.style) attributes.push(':style', elem.style)
-      const maybeSlotName = Reflect.get(elem, '_$slotName') as unknown
-      if (typeof maybeSlotName === 'string') {
-        slotName = maybeSlotName
-        attributes.push(':name', slotName)
-      }
-      if (elem.asNativeNode()) {
-        elem.attributes.forEach(({ name, value }) => {
+      const activeAttrs = tmplDevAttrs?.A
+      if (activeAttrs) {
+        // show active attributes based on template information
+        // TODO
+      } else {
+        // detect changed attributes
+        const elem = node.asElement()!
+        if (elem.slot) attributes.push('slot', elem.slot)
+        if (elem.id) attributes.push('id', elem.id)
+        if (elem.class) attributes.push('class', elem.class)
+        if (elem.style) attributes.push('style', elem.style)
+        const maybeSlotName = Reflect.get(elem, '_$slotName') as unknown
+        if (typeof maybeSlotName === 'string') {
+          slotName = maybeSlotName
+          attributes.push('name', slotName)
+        }
+        glassEaselAttributeCount = attributes.length / 2
+        if (elem.asNativeNode()) {
+          elem.attributes.forEach(({ name, value }) => {
+            attributes.push(name, glassEaselVarToString(toGlassEaselVar(value)))
+          })
+        }
+        Object.entries(elem.dataset ?? {}).forEach(([key, value]) => {
+          const name = `data:${key}`
           attributes.push(name, glassEaselVarToString(toGlassEaselVar(value)))
         })
-      } else {
-        const comp = elem.asGeneralComponent()
-        if (comp) {
-          const definition = comp.getComponentDefinition()
-          // TODO
-        }
+        const marks = Reflect.get(elem, '_$marks') as { [key: string]: unknown } | undefined
+        Object.entries(marks ?? {}).forEach(([key, value]) => {
+          const name = `mark:${key}`
+          attributes.push(name, glassEaselVarToString(toGlassEaselVar(value)))
+        })
       }
     }
 
@@ -310,7 +466,7 @@ export class MountPointsManager {
       })
     }
 
-    // collect children
+    // collect slot content
     let distributedNodes: dom.BackendNode[] | undefined
     if (typeof slotName === 'string') {
       const elem = node.asElement()!
@@ -334,6 +490,7 @@ export class MountPointsManager {
       localName,
       nodeValue,
       attributes,
+      glassEaselAttributeCount,
       shadowRootType,
       shadowRoots,
       children,

@@ -1,28 +1,31 @@
-<view wx:if="{{ kind === 1 || kind === 2 }}" class="tag-body">
+<view wx:if="{{ kind === 1 || kind === 2 }}" class="tag">
   <view class="fold-arrow">
     <view wx:if="{{ hasChildNodes }}" class="fold-arrow-icon {{ showChildNodes ? 'fold-arrow-icon_open' : '' }}" catch:tap="toggleChildren">▶</view>
   </view>
 
-  <block wx:if="{{ kind === 1 }}">
-    <view class="tag-text">&lt;</view>
-    <view class="tag-name" hover-class="tag-name_hover" catch:tap="toggleChildren">{{ tagName }}</view>
-    <block wx:for="{{ attributes }}">
-      <view class="attribute">
-        {{ ' ' }}<view class="attribute-name {{ item.isProperty ? 'attribute-name_property' : '' }}">
-          {{ item.name }}
-        </view>="<view class="attribute-value">
-          {{ item.value }}
-        </view>"
-      </view>
+  <view class="tag-body {{ selectedNodeId === nodeInfo.nodeId ? 'tag-body_selected' : '' }}" hover-class="tag-body_hover" catch:tap="selectTag">
+    <block wx:if="{{ kind === 1 }}">
+      <view class="tag-text">&lt;</view>
+      <view class="tag-name">{{ tagName }}</view>
+      <block wx:for="{{ attributes }}">
+        <view class="attribute">
+          {{ ' ' }}<view class="attribute-name {{ item.isProperty ? 'attribute-name_property' : '' }}">
+            {{ item.name }}
+          </view>="<view class="attribute-value">
+            {{ item.value }}
+          </view>"
+        </view>
+      </block>
+      <view class="tag-text">&gt;</view>
     </block>
-    <view class="tag-text">&gt;</view>
-    <view wx:if="{{ hasShadowRoot }}" class="shadow-roots">
-      <element wx:for="{{ shadowRoots }}" wx:key="nodeId" node-info="{{ item }}" />
-    </view>
-  </block>
-  <block wx:else>
-    <view class="virtual-tag-name" hover-class="virtual-tag-name_hover" catch:tap="toggleChildren">{{ tagName }}</view>
-  </block>
+    <block wx:else>
+      <view class="virtual-tag-name">{{ tagName }}</view>
+    </block>
+  </view>
+
+  <view wx:if="{{ hasShadowRoot }}" class="shadow-roots">
+    <element wx:for="{{ shadowRoots }}" wx:key="nodeId" node-info="{{ item }}" />
+  </view>
 
   <view wx:if="{{ showChildNodes }}" class="children">
     <element wx:for="{{ children }}" wx:key="nodeId" node-info="{{ item }}" />
