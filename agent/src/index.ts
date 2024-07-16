@@ -6,6 +6,7 @@ import type {
   AgentSendMessage,
 } from './protocol/index'
 import { MountPointsManager } from './mount_point'
+import { overlayCompDef, OverlayManager } from './overlay'
 import { debug } from './utils'
 
 export * as protocol from './protocol/index'
@@ -18,9 +19,9 @@ export interface MessageChannel {
 export class Connection {
   readonly hostContext: glassEasel.GeneralBackendContext
   readonly hostElement: glassEasel.GeneralBackendElement
-  readonly hostComponent?: glassEasel.GeneralComponent // TODO
   private messageChannel: MessageChannel
   private requestHandlers = Object.create(null) as Record<string, (detail: any) => Promise<any>>
+  readonly overlayManager: OverlayManager
 
   constructor(
     hostContext: glassEasel.GeneralBackendContext,
@@ -36,6 +37,7 @@ export class Connection {
         this.recvRequest(data.id, data.name, data.detail)
       }
     })
+    this.overlayManager = new OverlayManager(this)
   }
 
   private recvRequest(id: number, name: string, detail: unknown) {
@@ -80,6 +82,10 @@ export class Connection {
     const data: AgentSendMessage = { kind: 'event', name, detail }
     this.messageChannel.send(data)
   }
+
+  getOverlayComponent() {
+    return this.overlayManager.component.asInstanceOf(overlayCompDef)!
+  }
 }
 
 class InspectorDevToolsImpl implements glassEasel.InspectorDevTools {
@@ -98,7 +104,7 @@ class InspectorDevToolsImpl implements glassEasel.InspectorDevTools {
 
   // eslint-disable-next-line class-methods-use-this
   addMountPoint(root: glassEasel.Element, env: glassEasel.MountPointEnv): void {
-    if (root === this.conn.hostComponent) return
+    if (root === this.conn.overlayManager.component) return
     this.mountPoints.attach(root, env)
   }
 

@@ -7,7 +7,9 @@ export const store = makeAutoObservable({
 
   selectNode(n: protocol.NodeId) {
     this.selectedNodeId = n
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    sendRequest('DOM.setInspectedNode', { nodeId: n })
+    if (n > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      sendRequest('DOM.setInspectedNode', { nodeId: n })
+    }
   },
 })

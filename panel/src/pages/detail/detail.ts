@@ -15,7 +15,7 @@ const DEFAULT_NODE_DATA = {
   marks: [],
 }
 
-export const componentDefinition = Component()
+Component()
   .options({
     dataDeepCopy: DeepCopyKind.None,
     propertyPassingDeepCopy: DeepCopyKind.None,

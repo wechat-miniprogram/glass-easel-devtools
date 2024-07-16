@@ -1,5 +1,7 @@
 import { DeepCopyKind } from 'glass-easel'
+import { initStoreBindings } from 'mobx-miniprogram-bindings'
 import { type protocol, sendRequest } from '../../message_channel'
+import { store } from '../store'
 
 export const componentDefinition = Component()
   .options({
@@ -9,12 +11,20 @@ export const componentDefinition = Component()
   .data(() => ({
     mountPoints: [] as protocol.dom.Node[],
   }))
-  .init(({ setData, method }) => {
+  .init((ctx) => {
+    const { setData, method, listener } = ctx
+
     const initDocument = async () => {
       await sendRequest('DOM.enable', {})
       const res = await sendRequest('DOM.getDocument', { depth: 3 })
       setData({ mountPoints: res.root.children ?? [] })
     }
+
+    initStoreBindings(ctx, { store, fields: ['selectedNodeId'] })
+
+    const treeSpaceTap = listener(() => {
+      store.selectNode(0)
+    })
 
     // reconnect, clear elements, and fetch all elements
     const restart = method(() => {
@@ -24,6 +34,7 @@ export const componentDefinition = Component()
     })
 
     return {
+      treeSpaceTap,
       restart,
     }
   })

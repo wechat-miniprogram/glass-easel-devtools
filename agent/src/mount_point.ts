@@ -27,12 +27,7 @@ export const enum StaticNodeName {
 const getNodeType = (node: glassEasel.Node): GlassEaselNodeType => {
   if (node.asTextNode()) return GlassEaselNodeType.TextNode
   if (node.asNativeNode()) return GlassEaselNodeType.NativeNode
-  if (node.asVirtualNode()) {
-    if (node.ownerShadowRoot === node) {
-      return GlassEaselNodeType.ShadowRoot
-    }
-    return GlassEaselNodeType.VirtualNode
-  }
+  if (node.asVirtualNode()) return GlassEaselNodeType.VirtualNode
   if (node.asGeneralComponent()) return GlassEaselNodeType.Component
   return GlassEaselNodeType.Unknown
 }
@@ -49,7 +44,6 @@ const getNodeName = (
     return local ? comp.is : comp.tagName
   }
   if (nodeType === GlassEaselNodeType.VirtualNode) return node.asVirtualNode()!.is
-  if (nodeType === GlassEaselNodeType.ShadowRoot) return StaticNodeName.ShadowRoot
   return StaticNodeName.Unknown
 }
 
@@ -234,6 +228,37 @@ export class MountPointsManager {
         properties,
         dataset,
         marks,
+      }
+    })
+
+    this.conn.setRequestHandler('DOM.getGlassEaselComposedChildren', async ({ nodeId }) => {
+      const { node } = this.queryActiveNode(nodeId)
+      const elem = node.asElement()
+      if (!elem) return { nodes: [] }
+      const nodes: dom.Node[] = []
+      elem.forEachComposedChild((child) => {
+        const nodeMeta = this.activateNode(child, false, true)
+        nodes.push(this.collectNodeDetails(nodeMeta, 0, false))
+      })
+      return { nodes }
+    })
+
+    this.conn.setRequestHandler(
+      'DOM.pushNodesByBackendIdsToFrontend',
+      async ({ backendNodeIds }) => {
+        backendNodeIds.forEach((nodeId) => {
+          const { node } = this.queryActiveNode(nodeId)
+          this.activateNode(node, false, true)
+        })
+        return { nodeIds: backendNodeIds }
+      },
+    )
+
+    this.conn.setRequestHandler('Overlay.setInspectMode', async ({ mode }) => {
+      if (mode === 'searchForNode') {
+        this.conn.getOverlayComponent().startNodeSelect()
+      } else {
+        this.conn.getOverlayComponent().endNodeSelect()
       }
     })
   }
@@ -451,6 +476,7 @@ export class MountPointsManager {
     if (sr) {
       const nodeMeta = this.activateNode(sr, false, true)
       const n = this.collectNodeDetails(nodeMeta, depth - 1, false)
+      n.nodeName = 'shadow-root'
       if (n) shadowRoots = [n]
     }
 
@@ -496,5 +522,32 @@ export class MountPointsManager {
       children,
       distributedNodes,
     }
+  }
+
+  async elementFromPoint(x: number, y: number) {
+    const mountPoints = this.mountPoints.slice()
+    const elementFromPointPerContext = (nodeMeta: NodeMeta) =>
+      new Promise<NodeId | null>((resolve) => {
+        const context = nodeMeta.node.getBackendContext()
+        if (!context?.elementFromPoint) {
+          resolve(null)
+          return
+        }
+        context.elementFromPoint(x, y, (elem) => {
+          if (elem) {
+            // TODO consider a way to release the activated node, since this call may collect many nodes
+            const nodeId = this.activateNode(elem, false, false).nodeId
+            resolve(nodeId)
+          } else {
+            resolve(null)
+          }
+        })
+      })
+    while (mountPoints.length > 0) {
+      // eslint-disable-next-line no-await-in-loop
+      const ret = await elementFromPointPerContext(mountPoints.pop()!.nodeMeta)
+      if (ret !== null) return ret
+    }
+    return null
   }
 }

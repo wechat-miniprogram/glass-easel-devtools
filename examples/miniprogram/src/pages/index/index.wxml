@@ -2,10 +2,12 @@
   <view class="left">
     <img class="logo" src="resources/logo_256.png" />
     <view class="hello">
-      Hello world!
+      glass-easel-devtools
     </view>
   </view>
 
   <view class="right">
+    <view data-num-data="{{ 1 }}" data:arrayData="{{ ['a', 'b', 'c'] }}">This element has dataset.</view>
+    <view mark:objectData="{{ field1: false, field2: 'test' }}">This element has some marks.</view>
   </view>
 </view>

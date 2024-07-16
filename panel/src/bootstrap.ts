@@ -28,7 +28,6 @@ const insertInto = (
   )
 
   // insert the page into backend
-  // (this step is backend-related - if the backend is not DOM, refer to the backend documentation)
   let placeholder: glassEasel.GeneralBackendElement
   if (backendContext.mode === glassEasel.BackendMode.Composed) {
     const ctx = backendContext
@@ -53,6 +52,13 @@ const insertInto = (
     backendElement as unknown as glassEasel.GeneralBackendElement,
     placeholder as unknown as glassEasel.GeneralBackendElement,
   )
+  if (
+    backendContext.mode === glassEasel.BackendMode.Composed ||
+    backendContext.mode === glassEasel.BackendMode.Shadow
+  ) {
+    const elem = placeholder as glassEasel.composedBackend.Element | glassEasel.backend.Element
+    elem.release()
+  }
 }
 
 export const startup = (

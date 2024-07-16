@@ -36,7 +36,9 @@ type KeyPrefix<P extends string, R extends Record<string, any>> = {
 
 export type AgentEventKind = Impl<
   Record<string, EventDetail>,
-  KeyPrefix<'DOM', dom.AgentEventKind> & KeyPrefix<'CSS', css.AgentEventKind>
+  KeyPrefix<'DOM', dom.AgentEventKind> &
+    KeyPrefix<'CSS', css.AgentEventKind> &
+    KeyPrefix<'Overlay', overlay.AgentEventKind>
 >
 
 export type AgentRequestKind = Impl<

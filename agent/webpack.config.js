@@ -27,6 +27,11 @@ module.exports = [
           loader: 'ts-loader',
           exclude: /node_modules/,
         },
+        {
+          test: /\.wxml$/,
+          loader: path.join(__dirname, 'wxml_loader'),
+          exclude: /node_modules/,
+        },
       ],
     },
   },

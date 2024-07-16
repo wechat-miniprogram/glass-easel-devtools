@@ -1,6 +1,6 @@
 <view wx:if="{{ kind === 1 || kind === 2 }}" class="tag">
   <view class="fold-arrow">
-    <view wx:if="{{ hasChildNodes }}" class="fold-arrow-icon {{ showChildNodes ? 'fold-arrow-icon_open' : '' }}" catch:tap="toggleChildren">▶</view>
+    <view wx:if="{{ hasChildNodes || hasSlotContent }}" class="fold-arrow-icon {{ showChildNodes ? 'fold-arrow-icon_open' : '' }}" catch:tap="toggleChildren">▶</view>
   </view>
 
   <view class="tag-body {{ selectedNodeId === nodeInfo.nodeId ? 'tag-body_selected' : '' }}" hover-class="tag-body_hover" catch:tap="selectTag">

@@ -2,3 +2,8 @@
 @important-text: #222;
 @selected-bg: #ccc;
 @hover-bg: #bbb;
+
+@tag-name: #408;
+@core-attribute-name: #084;
+@property-name: #06a;
+@attribute-value: #840;

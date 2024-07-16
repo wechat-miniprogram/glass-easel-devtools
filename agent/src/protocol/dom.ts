@@ -20,6 +20,7 @@ export type AgentRequestKind = {
   setAttributesAsText: SetAttributesAsText
   getAttributes: GetAttributes
   getGlassEaselAttributes: GetGlassEaselAttributes
+  getGlassEaselComposedChildren: GetGlassEaselComposedChildren
   requestChildNodes: RequestChildNodes
   removeNode: RemoveNode
   resolveNode: ResolveNode
@@ -49,7 +50,6 @@ export const enum GlassEaselNodeType {
   NativeNode,
   Component,
   VirtualNode,
-  ShadowRoot,
 }
 
 export const glassEaselNodeTypeToCDP = (t: GlassEaselNodeType) => {
@@ -57,7 +57,6 @@ export const glassEaselNodeTypeToCDP = (t: GlassEaselNodeType) => {
   if (t === GlassEaselNodeType.NativeNode) return CDPNodeType.ELEMENT_NODE
   if (t === GlassEaselNodeType.Component) return CDPNodeType.ELEMENT_NODE
   if (t === GlassEaselNodeType.VirtualNode) return CDPNodeType.ELEMENT_NODE
-  if (t === GlassEaselNodeType.ShadowRoot) return CDPNodeType.DOCUMENT_NODE
   if (t === GlassEaselNodeType.Unknown) return CDPNodeType.DOCUMENT_NODE
   return CDPNodeType.DOCUMENT_NODE
 }
@@ -200,6 +199,14 @@ export interface GetGlassEaselAttributes extends RequestResponse {
     dataset: { name: string; value: GlassEaselVar }[]
     marks: { name: string; value: GlassEaselVar }[]
   }
+}
+
+/**
+ * Get the composed children of a node.
+ */
+export interface GetGlassEaselComposedChildren extends RequestResponse {
+  request: { nodeId: NodeId }
+  response: { nodes: Node[] }
 }
 
 /**

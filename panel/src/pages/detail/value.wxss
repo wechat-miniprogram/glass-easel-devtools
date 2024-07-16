@@ -1,0 +1,19 @@
+@import url('../common.wxss');
+
+:host {
+  display: inline-block;
+}
+
+.slice {
+  display: inline;
+  color: @common-text;
+}
+.slice_dynamic {
+  color: @attribute-value;
+}
+
+.inspect {
+  display: inline-block;
+  width: 1em;
+  text-align: center;
+}

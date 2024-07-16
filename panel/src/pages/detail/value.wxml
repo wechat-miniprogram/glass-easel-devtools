@@ -1,0 +1,2 @@
+<view wx:for="{{ slices }}" class="slice {{ item.dynamic ? 'slice_dynamic' : '' }}">{{ item.str }}</view>
+<view wx:if="{{ allowInspect }}" class="inspect">↖</view>

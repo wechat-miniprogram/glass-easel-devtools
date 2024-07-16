@@ -32,6 +32,7 @@ Component()
     hasShadowRoot: false,
     shadowRoots: [] as protocol.dom.Node[],
     hasChildNodes: true,
+    hasSlotContent: false,
     showChildNodes: false,
     children: [] as protocol.dom.Node[],
   }))
@@ -61,8 +62,11 @@ Component()
     setChildNodes.bindComponentLifetimes(
       ctx,
       () => nodeId,
-      (args) => {
-        setData({ children: args.nodes })
+      ({ nodes }) => {
+        setData({
+          hasChildNodes: nodes.length > 0,
+          children: nodes,
+        })
       },
     )
 
@@ -99,8 +103,7 @@ Component()
         })
       } else {
         let tagName = nodeInfo?.nodeName ?? ''
-        if (nodeType === protocol.dom.GlassEaselNodeType.ShadowRoot) tagName = 'shadow-root'
-        else if (nodeType === protocol.dom.GlassEaselNodeType.Unknown) tagName = 'unknown'
+        if (nodeType === protocol.dom.GlassEaselNodeType.Unknown) tagName = 'unknown'
         setData({
           kind: DisplayKind.VirtualTag,
           tagName,
@@ -114,17 +117,35 @@ Component()
           children,
         })
       }
+      const distributedNodes = nodeInfo?.distributedNodes
+      if (distributedNodes !== undefined) {
+        setData({
+          hasSlotContent: distributedNodes.length > 0,
+          showChildNodes: false,
+          children: [],
+        })
+      }
     })
 
     const toggleChildren = listener(() => {
-      if (!data.showChildNodes) {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        sendRequest('DOM.requestChildNodes', { nodeId })
-      }
       setData({
         showChildNodes: !data.showChildNodes,
         children: [],
       })
+      if (data.showChildNodes) {
+        const distributedNodes = data.nodeInfo?.distributedNodes
+        if (distributedNodes) {
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises, promise/catch-or-return
+          Promise.resolve().then(async () => {
+            const { nodes } = await sendRequest('DOM.getGlassEaselComposedChildren', { nodeId })
+            setData({ children: nodes })
+            return undefined
+          })
+        } else {
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
+          sendRequest('DOM.requestChildNodes', { nodeId })
+        }
+      }
     })
 
     const selectTag = listener(() => {

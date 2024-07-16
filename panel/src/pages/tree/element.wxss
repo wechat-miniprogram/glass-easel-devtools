@@ -14,7 +14,7 @@
   width: 1em;
   height: 1em;
   line-height: 1em;
-  color: @important-text;
+  color: #444;
   text-align: center;
 }
 .fold-arrow-icon {
@@ -39,7 +39,7 @@
 }
 .tag-name {
   display: inline-block;
-  color: #06a;
+  color: @tag-name;
 }
 
 .attribute {
@@ -48,14 +48,14 @@
 }
 .attribute-name {
   display: inline-block;
-  color: #084;
+  color: @core-attribute-name;
 }
 .attribute-name_property {
-  color: #06a;
+  color: @property-name;
 }
 .attribute-value {
   display: inline-block;
-  color: #840;
+  color: @attribute-value;
 }
 
 .shadow-roots {

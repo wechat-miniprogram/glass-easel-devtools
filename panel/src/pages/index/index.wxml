@@ -3,12 +3,12 @@
     <view>No glass-easel mount points found. (Is glass-easel built in development mode?)</view>
   </view>
   <view wx:else class="main">
-    <view class="tree">
+    <view class="tree" catch:tap="treeSpaceTap">
       <block wx:for="{{ mountPoints }}">
         <element node-info="{{ item }}" />
       </block>
     </view>
-    <view class="detail">
+    <view class="detail" hidden="{{ !selectedNodeId }}">
       <detail />
     </view>
   </view>

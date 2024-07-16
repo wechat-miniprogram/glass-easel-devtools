@@ -4,3 +4,31 @@
   display: block;
 }
 
+.section {
+  margin-bottom: 5px;
+  color: @common-text;
+}
+.section-title {
+  padding: 2px 5px;
+  background: #ccc;
+  color: @important-text;
+}
+.section-body {
+  padding: 0 5px;
+}
+.section-item {
+  white-space: nowrap;
+}
+.section-key {
+  display: inline;
+  color: @property-name;
+}
+.section-key-core {
+  display: inline;
+  color: @core-attribute-name;
+}
+
+.section-empty {
+  text-align: center;
+  font-style: italic;
+}
