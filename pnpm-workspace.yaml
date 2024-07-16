@@ -2,3 +2,5 @@ packages:
   - 'extension'
   - 'panel'
   - 'agent'
+  - 'examples/miniprogram'
+  - 'examples/standalone'

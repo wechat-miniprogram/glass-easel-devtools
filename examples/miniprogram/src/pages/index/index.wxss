@@ -1,0 +1,21 @@
+.wrapper {
+  display: flex;
+}
+
+.left {
+  width: 300px;
+  flex: none;
+}
+.logo {
+  display: block;
+  width: 256px;
+  margin: 0 auto;
+}
+.hello {
+  margin: 20px;
+  text-align: center;
+}
+
+.right {
+  flex: auto;
+}

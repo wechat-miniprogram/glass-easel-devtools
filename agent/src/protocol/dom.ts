@@ -190,10 +190,10 @@ export interface GetGlassEaselAttributes extends RequestResponse {
     slotValues: { name: string; value: GlassEaselVar }[] | undefined
     eventBindings: {
       name: string
+      capture: boolean
       count: number
       hasCatch: boolean
       hasMutBind: boolean
-      capture: boolean
     }[]
     normalAttributes?: { name: string; value: GlassEaselVar }[]
     properties?: { name: string; value: GlassEaselVar }[]

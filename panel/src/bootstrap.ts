@@ -9,9 +9,11 @@ export { MessageChannel, PanelRecvMessage, PanelSendMessage } from './message_ch
 
 let root: Root | null = null
 
-const insertIntoDocumentBody = () => {
+const insertInto = (
+  backendContext: glassEasel.GeneralBackendContext,
+  backendElement: glassEasel.GeneralBackendElement,
+) => {
   // create the backend context
-  const backendContext = new glassEasel.CurrentWindowBackendContext() // or another backend context
   registerGlobalEventListener(backendContext)
   const ab = initWithBackend(backendContext)
 
@@ -27,17 +29,39 @@ const insertIntoDocumentBody = () => {
 
   // insert the page into backend
   // (this step is backend-related - if the backend is not DOM, refer to the backend documentation)
-  const placeholder = document.createElement('span')
-  document.body.appendChild(placeholder)
+  let placeholder: glassEasel.GeneralBackendElement
+  if (backendContext.mode === glassEasel.BackendMode.Composed) {
+    const ctx = backendContext
+    const parent = backendElement as glassEasel.composedBackend.Element
+    placeholder = ctx.createElement('glass-easel-devtools-panel', 'glass-easel-devtools-panel')
+    parent.appendChild(placeholder)
+  } else if (backendContext.mode === glassEasel.BackendMode.Domlike) {
+    const ctx = backendContext
+    const parent = backendElement as glassEasel.domlikeBackend.Element
+    placeholder = ctx.document.createElement('glass-easel-devtools-panel')
+    parent.appendChild(placeholder)
+  } else if (backendContext.mode === glassEasel.BackendMode.Shadow) {
+    const parent = backendElement as glassEasel.backend.Element
+    const sr = parent.getShadowRoot()
+    if (!sr) throw new Error('the host element should be inside of a shadow tree')
+    placeholder = sr.createElement('glass-easel-devtools-panel', 'glass-easel-devtools-panel')
+    parent.appendChild(placeholder)
+  } else {
+    throw new Error('unrecognized host backend mode')
+  }
   root.attach(
-    document.body as unknown as glassEasel.GeneralBackendElement,
+    backendElement as unknown as glassEasel.GeneralBackendElement,
     placeholder as unknown as glassEasel.GeneralBackendElement,
   )
 }
 
-export const startup = (messageChannel: MessageChannel) => {
+export const startup = (
+  hostContext: glassEasel.GeneralBackendContext,
+  hostElement: glassEasel.GeneralBackendElement,
+  messageChannel: MessageChannel,
+) => {
   setMessageChannel(messageChannel)
-  insertIntoDocumentBody()
+  insertInto(hostContext, hostElement)
 }
 
 export const restart = () => {

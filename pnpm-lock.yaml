@@ -63,6 +63,110 @@ importers:
         specifier: ^0.8.0
         version: 0.8.0
 
+  examples/miniprogram:
+    dependencies:
+      glass-easel:
+        specifier: '*'
+        version: 0.8.0
+      glass-easel-miniprogram-adapter:
+        specifier: '*'
+        version: 0.8.0(glass-easel@0.8.0)
+    devDependencies:
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^6.6.0
+        version: 6.21.0(@typescript-eslint/parser@6.21.0)(eslint@7.32.0)(typescript@5.5.2)
+      '@typescript-eslint/parser':
+        specifier: ^6.6.0
+        version: 6.21.0(eslint@7.32.0)(typescript@5.5.2)
+      css-loader:
+        specifier: ^6.7.1
+        version: 6.11.0(webpack@5.92.1)
+      eslint:
+        specifier: ^7.17.0
+        version: 7.32.0
+      eslint-plugin-import:
+        specifier: ^2.22.1
+        version: 2.29.1(@typescript-eslint/parser@6.21.0)(eslint@7.32.0)
+      eslint-plugin-promise:
+        specifier: ^4.2.1
+        version: 4.3.1
+      glass-easel-miniprogram-webpack-plugin:
+        specifier: '*'
+        version: 0.8.0(glass-easel-miniprogram-adapter@0.8.0)(glass-easel@0.8.0)(webpack@5.92.1)
+      less:
+        specifier: ^4.1.3
+        version: 4.2.0
+      less-loader:
+        specifier: ^11.0.0
+        version: 11.1.4(less@4.2.0)(webpack@5.92.1)
+      mini-css-extract-plugin:
+        specifier: ^2.6.1
+        version: 2.9.0(webpack@5.92.1)
+      ts-loader:
+        specifier: ^9.4.2
+        version: 9.5.1(typescript@5.5.2)(webpack@5.92.1)
+      typescript:
+        specifier: ^5.2.2
+        version: 5.5.2
+      webpack:
+        specifier: ^5.85.0
+        version: 5.92.1(webpack-cli@5.1.4)
+      webpack-cli:
+        specifier: ^5.0.1
+        version: 5.1.4(webpack@5.92.1)
+
+  examples/standalone:
+    dependencies:
+      glass-easel:
+        specifier: '*'
+        version: 0.8.0
+      glass-easel-devtools-agent:
+        specifier: workspace:*
+        version: link:../../agent
+      glass-easel-devtools-panel:
+        specifier: workspace:*
+        version: link:../../panel
+    devDependencies:
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^6.6.0
+        version: 6.21.0(@typescript-eslint/parser@6.21.0)(eslint@7.32.0)(typescript@5.5.2)
+      '@typescript-eslint/parser':
+        specifier: ^6.6.0
+        version: 6.21.0(eslint@7.32.0)(typescript@5.5.2)
+      css-loader:
+        specifier: ^6.7.1
+        version: 6.11.0(webpack@5.92.1)
+      eslint:
+        specifier: ^7.17.0
+        version: 7.32.0
+      eslint-plugin-import:
+        specifier: ^2.22.1
+        version: 2.29.1(@typescript-eslint/parser@6.21.0)(eslint@7.32.0)
+      eslint-plugin-promise:
+        specifier: ^4.2.1
+        version: 4.3.1
+      less:
+        specifier: ^4.1.3
+        version: 4.2.0
+      less-loader:
+        specifier: ^11.0.0
+        version: 11.1.4(less@4.2.0)(webpack@5.92.1)
+      mini-css-extract-plugin:
+        specifier: ^2.6.1
+        version: 2.9.0(webpack@5.92.1)
+      ts-loader:
+        specifier: ^9.4.2
+        version: 9.5.1(typescript@5.5.2)(webpack@5.92.1)
+      typescript:
+        specifier: ^5.2.2
+        version: 5.5.2
+      webpack:
+        specifier: ^5.85.0
+        version: 5.92.1(webpack-cli@5.1.4)
+      webpack-cli:
+        specifier: ^5.0.1
+        version: 5.1.4(webpack@5.92.1)
+
   extension:
     dependencies:
       glass-easel:
@@ -963,6 +1067,29 @@ packages:
       path-key: 3.1.1
       shebang-command: 2.0.0
       which: 2.0.2
+    dev: true
+
+  /css-loader@6.11.0(webpack@5.92.1):
+    resolution: {integrity: sha512-CTJ+AEQJjq5NzLga5pE39qdiSV56F8ywCIsqNIRF0r7BDgWsN25aazToqAFg7ZrtA/U016xudB3ffgweORxX7g==}
+    engines: {node: '>= 12.13.0'}
+    peerDependencies:
+      '@rspack/core': 0.x || 1.x
+      webpack: ^5.0.0
+    peerDependenciesMeta:
+      '@rspack/core':
+        optional: true
+      webpack:
+        optional: true
+    dependencies:
+      icss-utils: 5.1.0(postcss@8.4.38)
+      postcss: 8.4.38
+      postcss-modules-extract-imports: 3.1.0(postcss@8.4.38)
+      postcss-modules-local-by-default: 4.0.5(postcss@8.4.38)
+      postcss-modules-scope: 3.2.0(postcss@8.4.38)
+      postcss-modules-values: 4.0.0(postcss@8.4.38)
+      postcss-value-parser: 4.2.0
+      semver: 7.6.2
+      webpack: 5.92.1(webpack-cli@5.1.4)
     dev: true
 
   /css-loader@7.1.2(webpack@5.92.1):
@@ -2089,6 +2216,17 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
+  /less-loader@11.1.4(less@4.2.0)(webpack@5.92.1):
+    resolution: {integrity: sha512-6/GrYaB6QcW6Vj+/9ZPgKKs6G10YZai/l/eJ4SLwbzqNTBsAqt5hSLVF47TgsiBxV1P6eAU0GYRH3YRuQU9V3A==}
+    engines: {node: '>= 14.15.0'}
+    peerDependencies:
+      less: ^3.5.0 || ^4.0.0
+      webpack: ^5.0.0
+    dependencies:
+      less: 4.2.0
+      webpack: 5.92.1(webpack-cli@5.1.4)
+    dev: true
+
   /less-loader@12.2.0(less@4.2.0)(webpack@5.92.1):
     resolution: {integrity: sha512-MYUxjSQSBUQmowc0l5nPieOYwMzGPUaTzB6inNW/bdPEG9zOL3eAAD1Qw5ZxSPk7we5dMojHwNODYMV1hq4EVg==}
     engines: {node: '>= 18.12.0'}
@@ -2530,7 +2668,7 @@ packages:
     dev: true
 
   /prr@1.0.1:
-    resolution: {integrity: sha512-yPw4Sng1gWghHQWj0B3ZggWUm4qVbPwPFcRG8KyxiU7J2OHFSoEHKS+EZ3fv5l1t9CyCiop6l/ZYeWbrgoQejw==}
+    resolution: {integrity: sha1-0/wRS6BplaRexok/SEzrHXj19HY=}
     requiresBuild: true
     dev: true
     optional: true

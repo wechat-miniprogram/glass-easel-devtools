@@ -1,0 +1,11 @@
+<view class="wrapper">
+  <view class="left">
+    <img class="logo" src="resources/logo_256.png" />
+    <view class="hello">
+      Hello world!
+    </view>
+  </view>
+
+  <view class="right">
+  </view>
+</view>

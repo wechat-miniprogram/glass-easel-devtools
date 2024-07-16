@@ -1,3 +1,4 @@
+import * as glassEasel from 'glass-easel'
 import {
   startup,
   restart,
@@ -35,14 +36,17 @@ postToBackground({ kind: '_init', tabId: chrome.devtools.inspectedWindow.tabId }
 // passing massage through channel
 let listener: ((data: PanelRecvMessage) => void) | null = null
 setTimeout(() => {
-  startup({
+  const hostContext = new glassEasel.CurrentWindowBackendContext()
+  const hostElement = document.body as unknown as glassEasel.GeneralBackendElement
+  const channel = {
     send(data: PanelSendMessage) {
       postToBackground(data)
     },
     recv(f: (data: PanelRecvMessage) => void) {
       listener = f
     },
-  })
+  }
+  startup(hostContext, hostElement, channel)
 }, 0)
 
 // eslint-disable-next-line no-console

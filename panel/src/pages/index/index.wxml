@@ -1,6 +1,6 @@
 <view class="wrapper">
   <view wx:if="{{ mountPoints.length === 0 }}">
-    <view>No glass-easel mount points found. (Is the glass-easel built in development mode?)</view>
+    <view>No glass-easel mount points found. (Is glass-easel built in development mode?)</view>
   </view>
   <view wx:else class="main">
     <view class="tree">
