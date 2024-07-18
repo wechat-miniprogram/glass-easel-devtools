@@ -13,7 +13,6 @@ import { warn } from './utils'
 export type NodeMeta = {
   node: glassEasel.Node
   nodeId: NodeId
-  sendChanges: boolean
 }
 
 export const enum StaticNodeName {
@@ -51,6 +50,7 @@ export class MountPointsManager {
   private conn: Connection
   private nodeIdMap = new WeakMap<glassEasel.Node, NodeId>()
   private activeNodes = Object.create(null) as Record<NodeId, NodeMeta>
+  private activeBackendNodes = Object.create(null) as Record<NodeId, WeakRef<glassEasel.Node>>
   readonly documentNodeId = 1
   private nodeIdInc = 2
   private mountPoints: { nodeMeta: NodeMeta; env: glassEasel.MountPointEnv }[] = []
@@ -62,9 +62,24 @@ export class MountPointsManager {
   }
 
   init() {
+    this.conn.setRequestHandler('DOM.describeNode', async (args) => {
+      let node: dom.Node
+      if (args.nodeId !== undefined) {
+        const nodeMeta = this.queryActiveNode(args.nodeId)
+        node = this.collectNodeDetails(nodeMeta, args.depth ?? 0, false)
+      } else if (args.backendNodeId !== undefined) {
+        const nodeMeta = this.activateBackendNodeIfNeeded(args.backendNodeId)
+        if (!nodeMeta) throw new Error('no such node found')
+        node = this.collectNodeDetails(nodeMeta, args.depth ?? 0, false)
+      } else {
+        throw new Error('missing (backend) node id')
+      }
+      return { node }
+    })
+
     this.conn.setRequestHandler('DOM.getDocument', async ({ depth }) => {
       let children: dom.Node[] | undefined
-      if (depth) {
+      if (depth && depth > 1) {
         children = this.mountPoints.map(({ nodeMeta }) =>
           this.collectNodeDetails(nodeMeta, depth - 1, true),
         )
@@ -95,14 +110,8 @@ export class MountPointsManager {
     })
 
     this.conn.setRequestHandler('DOM.requestChildNodes', async ({ nodeId }) => {
-      const { node } = this.queryActiveNode(nodeId)
-      const elem = node.asElement()
-      if (!elem) return
-      const nodes = elem.childNodes.map((child) => {
-        const nodeMeta = this.activateNode(child, false, true)
-        return this.collectNodeDetails(nodeMeta, 0, false)
-      })
-      this.conn.sendEvent('DOM.setChildNodes', { parentId: nodeId, nodes })
+      const nodeMeta = this.queryActiveNode(nodeId)
+      this.sendChildNodes(nodeMeta)
     })
 
     this.conn.setRequestHandler('DOM.getGlassEaselAttributes', async ({ nodeId }) => {
@@ -113,6 +122,7 @@ export class MountPointsManager {
           glassEaselNodeType: GlassEaselNodeType.TextNode,
           is: '',
           id: '',
+          class: '',
           slot: '',
           slotName: undefined,
           slotValues: undefined,
@@ -137,6 +147,7 @@ export class MountPointsManager {
       if (nativeNode) is = nativeNode.is
       if (virtualNode) is = virtualNode.is
       const id = elem.id
+      const nodeClass = elem.class
       const slot = elem.slot
       let slotName
       const maybeSlotName = Reflect.get(elem, '_$slotName') as unknown
@@ -220,6 +231,7 @@ export class MountPointsManager {
         glassEaselNodeType,
         is,
         id,
+        class: nodeClass,
         slot,
         slotName,
         slotValues,
@@ -237,7 +249,7 @@ export class MountPointsManager {
       if (!elem) return { nodes: [] }
       const nodes: dom.Node[] = []
       elem.forEachComposedChild((child) => {
-        const nodeMeta = this.activateNode(child, false, true)
+        const nodeMeta = this.activateNode(child)
         nodes.push(this.collectNodeDetails(nodeMeta, 0, false))
       })
       return { nodes }
@@ -246,9 +258,8 @@ export class MountPointsManager {
     this.conn.setRequestHandler(
       'DOM.pushNodesByBackendIdsToFrontend',
       async ({ backendNodeIds }) => {
-        backendNodeIds.forEach((nodeId) => {
-          const { node } = this.queryActiveNode(nodeId)
-          this.activateNode(node, false, true)
+        backendNodeIds.forEach((backendNodeId) => {
+          this.activateBackendNodeIfNeeded(backendNodeId)
         })
         return { nodeIds: backendNodeIds }
       },
@@ -256,15 +267,58 @@ export class MountPointsManager {
 
     this.conn.setRequestHandler('Overlay.setInspectMode', async ({ mode }) => {
       if (mode === 'searchForNode') {
-        this.conn.getOverlayComponent().startNodeSelect()
-      } else {
-        this.conn.getOverlayComponent().endNodeSelect()
+        let prevHighlight = 0
+        this.listOverlayComponents().forEach((x) =>
+          x.startNodeSelect((node, isFinal) => {
+            if (isFinal) {
+              this.listOverlayComponents().forEach((x) => x.endNodeSelect())
+              if (node) {
+                const backendNodeId = this.addBackendNode(node)
+                this.conn.sendEvent('Overlay.inspectNodeRequested', {
+                  backendNodeId,
+                })
+              }
+              this.conn.sendEvent('Overlay.inspectModeCanceled', {})
+            } else {
+              let nodeId = node ? this.getNodeId(node) : 0
+              if (!this.activeNodes[nodeId]) nodeId = 0
+              if (prevHighlight !== nodeId) {
+                prevHighlight = nodeId
+                this.conn.sendEvent('Overlay.nodeHighlightRequested', { nodeId })
+              }
+            }
+          }),
+        )
       }
+    })
+
+    this.conn.setRequestHandler('Overlay.highlightNode', async (args) => {
+      let node: glassEasel.Node
+      if ('nodeId' in args) {
+        node = this.queryActiveNode(args.nodeId).node
+      } else {
+        const n = this.getMaybeBackendNode(args.backendNodeId)
+        if (!n) throw new Error('no such node found')
+        node = n
+      }
+      this.listOverlayComponents().forEach((x) => {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        x.highlight(null)
+      })
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.getOverlayComponent(node).highlight(node)
+    })
+
+    this.conn.setRequestHandler('Overlay.hideHighlight', async () => {
+      this.listOverlayComponents().forEach((x) => {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        x.highlight(null)
+      })
     })
   }
 
   attach(root: glassEasel.Element, env: glassEasel.MountPointEnv) {
-    const nodeMeta = this.activateNode(root, true, true)
+    const nodeMeta = this.activateNode(root)
     const previousNode = this.mountPoints[this.mountPoints.length - 1]
     const previousNodeId = previousNode ? previousNode.nodeMeta.nodeId : undefined
     this.mountPoints.push({ nodeMeta, env })
@@ -298,6 +352,26 @@ export class MountPointsManager {
     })
   }
 
+  getOverlayComponent(node: glassEasel.Node) {
+    const ctx = node.getBackendContext()
+    if (!ctx) {
+      throw new Error('backend context has been released')
+    }
+    return this.conn.getOverlayComponent(ctx)
+  }
+
+  listOverlayComponents() {
+    const ret: ReturnType<Connection['getOverlayComponent']>[] = []
+    this.mountPoints.forEach((mp) => {
+      const ctx = mp.nodeMeta.node.getBackendContext()
+      if (!ctx) return
+      const comp = this.conn.getOverlayComponent(ctx)
+      if (ret.includes(comp)) return
+      ret.push(comp)
+    })
+    return ret
+  }
+
   generateNodeId(): NodeId {
     const ret = this.nodeIdInc
     this.nodeIdInc += 1
@@ -320,6 +394,12 @@ export class MountPointsManager {
     return nodeMeta
   }
 
+  private getMaybeBackendNode(backendNodeId: NodeId): glassEasel.Node | null {
+    const nodeMeta = this.activeNodes[backendNodeId]
+    if (nodeMeta) return nodeMeta?.node
+    return this.activeBackendNodes[backendNodeId]?.deref() ?? null
+  }
+
   // eslint-disable-next-line class-methods-use-this
   private startWatch(node: glassEasel.Node) {
     // TODO
@@ -335,40 +415,25 @@ export class MountPointsManager {
    *
    * This will also activate its parent or host (for shadow-root).
    */
-  private activateNode(
-    node: glassEasel.Node,
-    isMountPoint: boolean,
-    sendChanges: boolean,
-  ): NodeMeta {
+  private activateNode(node: glassEasel.Node): NodeMeta {
     const nodeId = this.getNodeId(node)
+    delete this.activeBackendNodes[nodeId]
     if (this.activeNodes[nodeId]) {
       const nodeMeta = this.activeNodes[nodeId]
-      if (!nodeMeta.sendChanges && sendChanges) {
-        nodeMeta.sendChanges = true
-      }
       return nodeMeta
     }
+    const isMountPoint = this.mountPoints.map((x) => x.nodeMeta.node).includes(node)
     if (!isMountPoint) {
-      const p =
-        node.ownerShadowRoot === node
-          ? (node as glassEasel.ShadowRoot).getHostNode()
-          : node.parentNode
-      if (p) this.activateNode(p, false, true)
+      let p: glassEasel.Node | undefined
+      if (node.parentNode) p = node.parentNode
+      else if (node.asShadowRoot()) p = node.asShadowRoot()!.getHostNode()
+      else p = undefined
+      if (p) this.activateNode(p)
     }
-    const nodeMeta = { node, nodeId, sendChanges }
+    const nodeMeta = { node, nodeId }
     this.activeNodes[nodeId] = nodeMeta
     this.startWatch(node)
     return nodeMeta
-  }
-
-  private enableSendChanges(nodeId: NodeId, enabled: boolean) {
-    if (this.activeNodes[nodeId]) {
-      this.activeNodes[nodeId].sendChanges = enabled
-    }
-  }
-
-  private resolveNodeId(nodeId: NodeId): glassEasel.Node | undefined {
-    return this.activeNodes[nodeId]?.node
   }
 
   /** Release a node tree (to allow gabbage collection). */
@@ -391,15 +456,32 @@ export class MountPointsManager {
     return nodeId
   }
 
+  private addBackendNode(node: glassEasel.Node): NodeId {
+    const nodeId = this.getNodeId(node)
+    this.activeBackendNodes[nodeId] = new WeakRef(node)
+    return nodeId
+  }
+
+  private activateBackendNodeIfNeeded(backendNodeId: NodeId): NodeMeta | null {
+    const node = this.activeBackendNodes[backendNodeId]?.deref()
+    if (node === undefined) {
+      const nodeMeta = this.activeNodes[backendNodeId]
+      return nodeMeta ?? null
+    }
+    return this.activateNode(node)
+  }
+
   // eslint-disable-next-line class-methods-use-this
-  private collectNodeBasicInfomation(nodeMeta: NodeMeta): dom.BackendNode {
-    const { nodeId, node } = nodeMeta
+  private collectNodeBasicInfomation(
+    backendNodeId: NodeId,
+    node: glassEasel.Node,
+  ): dom.BackendNode {
     const ty = getNodeType(node)
     const nodeName = getNodeName(node, ty, false)
     const virtual = node.asElement()?.isVirtual() ?? false
     const inheritSlots = node.asElement()?.isInheritSlots() ?? false
     return {
-      backendNodeId: nodeId,
+      backendNodeId,
       nodeType: glassEaselNodeTypeToCDP(ty),
       glassEaselNodeType: ty,
       nodeName,
@@ -422,10 +504,11 @@ export class MountPointsManager {
       nodeName,
       virtual,
       inheritSlots,
-    } = this.collectNodeBasicInfomation(nodeMeta)
+    } = this.collectNodeBasicInfomation(nodeId, node)
     let parentId: NodeId | undefined
     if (isMountPoint) parentId = this.documentNodeId
-    else if (node.parentNode) this.getNodeId(node.parentNode)
+    else if (node.parentNode) parentId = this.getNodeId(node.parentNode)
+    else if (node.asShadowRoot()) parentId = this.getNodeId(node.asShadowRoot()!.getHostNode())
     else parentId = undefined
     const localName = getNodeName(node, ty, true)
     const nodeValue = node.asTextNode()?.textContent ?? ''
@@ -474,7 +557,7 @@ export class MountPointsManager {
     const shadowRootType = sr ? 'open' : undefined
     let shadowRoots: dom.Node[] | undefined
     if (sr) {
-      const nodeMeta = this.activateNode(sr, false, true)
+      const nodeMeta = this.activateNode(sr)
       const n = this.collectNodeDetails(nodeMeta, depth - 1, false)
       n.nodeName = 'shadow-root'
       if (n) shadowRoots = [n]
@@ -482,11 +565,11 @@ export class MountPointsManager {
 
     // collect children
     let children: dom.Node[] | undefined
-    if (depth > 0 && ty !== GlassEaselNodeType.TextNode) {
+    if (depth > 1 && ty !== GlassEaselNodeType.TextNode) {
       const elem = node.asElement()!
       children = []
       elem.childNodes.forEach((child) => {
-        const nodeMeta = this.activateNode(child, false, true)
+        const nodeMeta = this.activateNode(child)
         const n = this.collectNodeDetails(nodeMeta, depth - 1, false)
         if (n) children!.push(n)
       })
@@ -498,8 +581,8 @@ export class MountPointsManager {
       const elem = node.asElement()!
       distributedNodes = []
       elem.forEachComposedChild((child) => {
-        const nodeId = this.activateNode(child, false, false)
-        const n = this.collectNodeBasicInfomation(nodeId)
+        const nodeId = this.addBackendNode(child)
+        const n = this.collectNodeBasicInfomation(nodeId, child)
         if (n) distributedNodes!.push(n)
       })
     }
@@ -524,30 +607,15 @@ export class MountPointsManager {
     }
   }
 
-  async elementFromPoint(x: number, y: number) {
-    const mountPoints = this.mountPoints.slice()
-    const elementFromPointPerContext = (nodeMeta: NodeMeta) =>
-      new Promise<NodeId | null>((resolve) => {
-        const context = nodeMeta.node.getBackendContext()
-        if (!context?.elementFromPoint) {
-          resolve(null)
-          return
-        }
-        context.elementFromPoint(x, y, (elem) => {
-          if (elem) {
-            // TODO consider a way to release the activated node, since this call may collect many nodes
-            const nodeId = this.activateNode(elem, false, false).nodeId
-            resolve(nodeId)
-          } else {
-            resolve(null)
-          }
-        })
-      })
-    while (mountPoints.length > 0) {
-      // eslint-disable-next-line no-await-in-loop
-      const ret = await elementFromPointPerContext(mountPoints.pop()!.nodeMeta)
-      if (ret !== null) return ret
-    }
-    return null
+  sendChildNodes(nodeMeta: NodeMeta) {
+    const { node, nodeId } = nodeMeta
+    const elem = node.asElement()
+    if (!elem) return
+    const nodes: dom.Node[] = []
+    elem.childNodes.forEach((child) => {
+      const nodeMeta = this.activateNode(child)
+      nodes.push(this.collectNodeDetails(nodeMeta, 0, false))
+    })
+    this.conn.sendEvent('DOM.setChildNodes', { parentId: nodeId, nodes })
   }
 }

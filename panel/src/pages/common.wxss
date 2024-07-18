@@ -1,7 +1,9 @@
 @common-text: #888;
 @important-text: #222;
-@selected-bg: #ccc;
-@hover-bg: #bbb;
+@primary-bg: #eee;
+@secondary-bg: #ccc;
+@selected-bg: #add;
+@hover-bg: #ace;
 
 @tag-name: #408;
 @core-attribute-name: #084;

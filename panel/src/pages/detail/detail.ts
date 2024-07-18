@@ -7,6 +7,7 @@ const DEFAULT_NODE_DATA = {
   glassEaselNodeType: 0,
   is: '',
   id: '',
+  class: '',
   slot: '',
   slotName: undefined,
   slotValues: undefined,

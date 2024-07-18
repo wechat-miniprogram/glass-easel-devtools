@@ -1,3 +1,5 @@
+@import url('../common.wxss');
+
 body {
   margin: 0;
   height: 100vh;
@@ -6,12 +8,40 @@ body {
 .wrapper {
   font-family: monospace;
   font-size: 12px;
-  background: #eee;
+  background: @primary-bg;
   height: 100%;
   cursor: default;
 }
+.empty {
+  color: @common-text;
+  font-style: italic;
+  padding: 5px;
+}
 
 .main {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.toolbar {
+  flex: none;
+  background: @secondary-bg;
+  color: @important-text;
+  border-bottom: 1px solid #888;
+}
+.tool {
+  display: inline-block;
+  padding: 5px 10px;
+}
+.tool_hover {
+  background: @hover-bg;
+}
+.tool_active {
+  background: @selected-bg;
+}
+
+.tree-detail {
+  flex: 1 1 auto;
   display: flex;
   height: 100%;
 }

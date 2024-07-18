@@ -4,6 +4,9 @@
     <view wx:if="{{ info.id }}" class="section-item">
       <view class="section-key-core">id</view> = <value value="{{ { type: 'primitive', value: info.id } }}" />
     </view>
+    <view wx:if="{{ info.class }}" class="section-item">
+      <view class="section-key-core">class</view> = <value value="{{ { type: 'primitive', value: info.class } }}" />
+    </view>
     <view wx:if="{{ info.slot }}" class="section-item">
       <view class="section-key-core">slot</view> = <value value="{{ { type: 'primitive', value: info.slot } }}" />
     </view>
@@ -17,6 +20,9 @@
     </view>
     <view wx:if="{{ info.id }}" class="section-item">
       <view class="section-key-core">id</view> = <value value="{{ { type: 'primitive', value: info.id } }}" />
+    </view>
+    <view wx:if="{{ info.class }}" class="section-item">
+      <view class="section-key-core">class</view> = <value value="{{ { type: 'primitive', value: info.class } }}" />
     </view>
     <view wx:if="{{ info.slot }}" class="section-item">
       <view class="section-key-core">slot</view> = <value value="{{ { type: 'primitive', value: info.slot } }}" />

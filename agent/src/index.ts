@@ -17,19 +17,11 @@ export interface MessageChannel {
 }
 
 export class Connection {
-  readonly hostContext: glassEasel.GeneralBackendContext
-  readonly hostElement: glassEasel.GeneralBackendElement
   private messageChannel: MessageChannel
   private requestHandlers = Object.create(null) as Record<string, (detail: any) => Promise<any>>
   readonly overlayManager: OverlayManager
 
-  constructor(
-    hostContext: glassEasel.GeneralBackendContext,
-    hostElement: glassEasel.GeneralBackendElement,
-    messageChannel: MessageChannel,
-  ) {
-    this.hostContext = hostContext
-    this.hostElement = hostElement
+  constructor(messageChannel: MessageChannel) {
     this.messageChannel = messageChannel
     messageChannel.recv((data) => {
       if (data.kind === 'request') {
@@ -37,7 +29,7 @@ export class Connection {
         this.recvRequest(data.id, data.name, data.detail)
       }
     })
-    this.overlayManager = new OverlayManager(this)
+    this.overlayManager = new OverlayManager()
   }
 
   private recvRequest(id: number, name: string, detail: unknown) {
@@ -83,8 +75,8 @@ export class Connection {
     this.messageChannel.send(data)
   }
 
-  getOverlayComponent() {
-    return this.overlayManager.component.asInstanceOf(overlayCompDef)!
+  getOverlayComponent(mp: glassEasel.GeneralBackendContext) {
+    return this.overlayManager.get(mp).asInstanceOf(overlayCompDef)!
   }
 }
 
@@ -104,7 +96,6 @@ class InspectorDevToolsImpl implements glassEasel.InspectorDevTools {
 
   // eslint-disable-next-line class-methods-use-this
   addMountPoint(root: glassEasel.Element, env: glassEasel.MountPointEnv): void {
-    if (root === this.conn.overlayManager.component) return
     this.mountPoints.attach(root, env)
   }
 
@@ -114,12 +105,8 @@ class InspectorDevToolsImpl implements glassEasel.InspectorDevTools {
   }
 }
 
-export const getDevTools = (
-  hostContext: glassEasel.GeneralBackendContext,
-  hostElement: glassEasel.GeneralBackendElement,
-  channel: MessageChannel,
-): glassEasel.DevTools => {
-  const connection = new Connection(hostContext, hostElement, channel)
+export const getDevTools = (channel: MessageChannel): glassEasel.DevTools => {
+  const connection = new Connection(channel)
   return {
     inspector: new InspectorDevToolsImpl(connection),
   }

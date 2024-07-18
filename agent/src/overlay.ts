@@ -1,5 +1,4 @@
 import * as glassEasel from 'glass-easel'
-import { type Connection } from '.'
 
 // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
 const wxml = require('./overlay.wxml') as Record<string, unknown>
@@ -7,6 +6,7 @@ const wxml = require('./overlay.wxml') as Record<string, unknown>
 export const enum OverlayState {
   None = 0,
   NodeSelect,
+  Highlight,
 }
 
 const space = new glassEasel.ComponentSpace()
@@ -21,74 +21,175 @@ export const overlayCompDef = space
   .template(wxml)
   .data(() => ({
     state: OverlayState.None,
+    selectMoveDetecting: false,
+    highlightRect: null as null | { left: number; top: number; width: number; height: number },
   }))
-  .init(({ data, method }) => {
-    const startNodeSelect = method(() => {
-      if (data.state !== OverlayState.None) {
-        return false
-      }
-      data.state = OverlayState.NodeSelect
-      // TODO
-      return true
-    })
+  .init((ctx) => {
+    const { self, data, setData, method, listener } = ctx
 
+    // selection
+    let nodeSelectUpdateCallback:
+      | null
+      | ((elem: glassEasel.Element | null, isFinal: boolean) => void) = null
+    const startNodeSelect = method(
+      (cb: (elem: glassEasel.Element | null, isFinal: boolean) => void) => {
+        if (data.state !== OverlayState.None && data.state !== OverlayState.Highlight) {
+          return false
+        }
+        setData({ state: OverlayState.NodeSelect })
+        nodeSelectUpdateCallback = cb
+        return true
+      },
+    )
     const endNodeSelect = method(() => {
       if (data.state !== OverlayState.NodeSelect) {
         return false
       }
-      data.state = OverlayState.None
+      setData({ state: OverlayState.None, highlightRect: null })
+      nodeSelectUpdateCallback = null
+      return true
+    })
+    const nodeSelectMove = listener<{ clientX: number; clientY: number }>(({ detail }) => {
+      if (data.selectMoveDetecting) return
+      const x = detail.clientX
+      const y = detail.clientY
+      const ctx = self.getBackendContext()
+      if (!ctx) {
+        setData({ highlightRect: null })
+        return
+      }
+      setData({ selectMoveDetecting: true })
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      elementFromPointInContext(ctx, x, y)
+        .then(async (elem) => {
+          setData({ selectMoveDetecting: false })
+          if (!elem) {
+            setData({ highlightRect: null })
+            return undefined
+          }
+          const { left, top, width, height } = await getBoundingClientRectInContext(elem)
+          if (data.state === OverlayState.NodeSelect) {
+            setData({ highlightRect: { left, top, width, height } })
+          }
+          nodeSelectUpdateCallback?.(elem, false)
+          return undefined
+        })
+        .catch(() => {
+          setData({ selectMoveDetecting: false, highlightRect: null })
+        })
+    })
+    const nodeSelectDone = listener<{ x: number; y: number }>(({ detail }) => {
+      const cb = nodeSelectUpdateCallback
+      endNodeSelect()
+      const { x, y } = detail
+      const ctx = self.getBackendContext()
+      if (!ctx) {
+        setData({ highlightRect: null })
+        return
+      }
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises, promise/catch-or-return
+      elementFromPointInContext(ctx, x, y).then(async (elem) => {
+        // eslint-disable-next-line promise/no-callback-in-promise
+        cb?.(elem, true)
+        return undefined
+      })
+    })
+
+    // highlight
+    const highlight = method(async (node: glassEasel.Node | null) => {
+      if (node && node.asElement()) {
+        const elem = node.asElement()!
+        const { left, top, width, height } = await getBoundingClientRectInContext(elem)
+        if (data.state !== OverlayState.None) {
+          return false
+        }
+        setData({ state: OverlayState.Highlight, highlightRect: { left, top, width, height } })
+      } else {
+        if (data.state !== OverlayState.Highlight) {
+          return false
+        }
+        setData({ state: OverlayState.None, highlightRect: null })
+      }
       return true
     })
 
-    return { startNodeSelect, endNodeSelect }
+    return { startNodeSelect, endNodeSelect, nodeSelectMove, nodeSelectDone, highlight }
   })
   .registerComponent()
 
-export class OverlayManager {
-  private conn: Connection
-  readonly component: glassEasel.Component<any, any, ComponentExport>
+const elementFromPointInContext = (
+  context: glassEasel.GeneralBackendContext,
+  x: number,
+  y: number,
+) =>
+  new Promise<glassEasel.Element | null>((resolve) => {
+    if (!context?.elementFromPoint) {
+      resolve(null)
+      return
+    }
+    // eslint-disable-next-line
+    context.elementFromPoint(x, y, (elem) => {
+      resolve(elem)
+    })
+  })
 
-  constructor(conn: Connection) {
-    this.conn = conn
-    const backendContext = this.conn.hostContext
-    const backendElement = this.conn.hostElement
+const getBoundingClientRectInContext = (elem: glassEasel.Element) =>
+  new Promise<{ left: number; top: number; width: number; height: number }>((resolve) => {
+    elem.getBoundingClientRect((rect) => {
+      resolve(rect)
+    })
+  })
+
+export class OverlayManager {
+  private backendContexts: WeakMap<
+    glassEasel.GeneralBackendContext,
+    glassEasel.Component<any, any, ComponentExport>
+  > = new WeakMap()
+
+  get(ctx: glassEasel.GeneralBackendContext): glassEasel.Component<any, any, ComponentExport> {
+    const comp = this.backendContexts.get(ctx)
+    if (comp) return comp
 
     // create the component
-    this.component = space.createComponentByUrl(
+    const component = space.createComponentByUrl(
       'glass-easel-devtools-agent',
       'glass-easel-devtools-agent',
       null,
-      backendContext,
+      ctx,
     ) as glassEasel.Component<any, any, ComponentExport>
-    let placeholder: glassEasel.GeneralBackendElement
+    this.backendContexts.set(ctx, component)
 
     // insert into backend
-    if (backendContext.mode === glassEasel.BackendMode.Composed) {
-      const ctx = backendContext
-      const parent = backendElement as glassEasel.composedBackend.Element
+    let parentElement: glassEasel.GeneralBackendElement
+    let placeholder: glassEasel.GeneralBackendElement
+    if (ctx.mode === glassEasel.BackendMode.Composed) {
+      parentElement = ctx.getRootNode()
       placeholder = ctx.createElement('glass-easel-devtools-panel', 'glass-easel-devtools-panel')
-      parent.appendChild(placeholder)
-    } else if (backendContext.mode === glassEasel.BackendMode.Domlike) {
-      const ctx = backendContext
-      const parent = backendElement as glassEasel.domlikeBackend.Element
+      parentElement.appendChild(placeholder)
+    } else if (ctx.mode === glassEasel.BackendMode.Domlike) {
+      parentElement = ctx.getRootNode()
       placeholder = ctx.document.createElement('glass-easel-devtools-panel')
-      parent.appendChild(placeholder)
-    } else if (backendContext.mode === glassEasel.BackendMode.Shadow) {
-      const parent = backendElement as glassEasel.backend.Element
-      const sr = parent.getShadowRoot()
+      parentElement.appendChild(placeholder)
+    } else if (ctx.mode === glassEasel.BackendMode.Shadow) {
+      const sr = ctx.getRootNode()
+      parentElement = sr
       if (!sr) throw new Error('the host element should be inside of a shadow tree')
       placeholder = sr.createElement('glass-easel-devtools-panel', 'glass-easel-devtools-panel')
-      parent.appendChild(placeholder)
+      sr.appendChild(placeholder)
     } else {
       throw new Error('unrecognized host backend mode')
     }
-    glassEasel.Element.replaceDocumentElement(this.component, backendElement, placeholder)
+    glassEasel.Element.replaceDocumentElement(component, parentElement, placeholder)
     if (
-      backendContext.mode === glassEasel.BackendMode.Composed ||
-      backendContext.mode === glassEasel.BackendMode.Shadow
+      ctx.mode === glassEasel.BackendMode.Composed ||
+      ctx.mode === glassEasel.BackendMode.Shadow
     ) {
+      const p = parentElement as glassEasel.composedBackend.Element | glassEasel.backend.Element
+      p.release()
       const elem = placeholder as glassEasel.composedBackend.Element | glassEasel.backend.Element
       elem.release()
     }
+
+    return component
   }
 }

@@ -10,7 +10,7 @@
 }
 .section-title {
   padding: 2px 5px;
-  background: #ccc;
+  background: @secondary-bg;
   color: @important-text;
 }
 .section-body {

@@ -1,9 +1,15 @@
 <view wx:if="{{ kind === 1 || kind === 2 }}" class="tag">
   <view class="fold-arrow">
-    <view wx:if="{{ hasChildNodes || hasSlotContent }}" class="fold-arrow-icon {{ showChildNodes ? 'fold-arrow-icon_open' : '' }}" catch:tap="toggleChildren">▶</view>
+    <view wx:if="{{ hasChildNodes || hasSlotContent || hasShadowRoot }}" class="fold-arrow-icon {{ showChildNodes ? 'fold-arrow-icon_open' : '' }}" catch:tap="toggleChildren">▶</view>
   </view>
 
-  <view class="tag-body {{ selectedNodeId === nodeInfo.nodeId ? 'tag-body_selected' : '' }}" hover-class="tag-body_hover" catch:tap="selectTag">
+  <view
+    class="tag-body {{ selectedNodeId === nodeInfo.nodeId ? 'tag-body_selected' : '' }} {{ highlightNodeId === nodeInfo.nodeId ? 'tag-body_highlight' : '' }}"
+    hover-class="tag-body_hover"
+    catch:tap="selectTag"
+    bind:mouseenter="startHoverTag"
+    bind:mouseleave="endHoverTag"
+  >
     <block wx:if="{{ kind === 1 }}">
       <view class="tag-text">&lt;</view>
       <view class="tag-name">{{ tagName }}</view>
@@ -23,12 +29,11 @@
     </block>
   </view>
 
-  <view wx:if="{{ hasShadowRoot }}" class="shadow-roots">
-    <element wx:for="{{ shadowRoots }}" wx:key="nodeId" node-info="{{ item }}" />
-  </view>
-
-  <view wx:if="{{ showChildNodes }}" class="children">
-    <element wx:for="{{ children }}" wx:key="nodeId" node-info="{{ item }}" />
+  <view hidden="{{ !showChildNodes }}" class="children">
+    <view wx:if="{{ hasShadowRoot }}" class="shadow-roots">
+      <element wx:for="{{ shadowRoots }}" wx:key="nodeId" id="child-{{ item.nodeId }}" node-info="{{ item }}" />
+    </view>
+    <element wx:for="{{ children }}" wx:key="nodeId" id="child-{{ item.nodeId }}" node-info="{{ item }}" />
   </view>
 </view>
 

@@ -32,39 +32,30 @@ const panelEnd = {
 
 // init iframe
 const iframe = document.createElement('iframe')
-iframe.src = 'javascript:false'
+// eslint-disable-next-line no-script-url
+iframe.src = 'stub.html'
 iframe.style.border = 'none'
 iframe.style.flex = '1'
-document.body.appendChild(iframe)
-const iframeWindow = iframe.contentWindow!
-Reflect.set(iframeWindow, '__agentEnd', agentEnd)
-iframeWindow.document.open()
-iframeWindow.document.write(`<!DOCTYPE html>
-  <html>
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width,initial-scale=1" />
-    </head>
-    <body>
-      <!-- the entry component will be loaded here -->
-    </body>
-    <script src="dist/agent.js"></script>
-  </html>
-`)
-iframeWindow.document.close()
-setTimeout(() => {
+iframe.onload = () => {
+  const iframeWindow = iframe.contentWindow!
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  ;(iframeWindow as any).__agentEnd = agentEnd
+  const agentTag = iframeWindow.document.createElement('script')
+  agentTag.src = 'dist/agent.js'
+  iframeWindow.document.body.appendChild(agentTag)
   iframeWindow.history.replaceState(null, '', '../miniprogram/dist/index.html')
-  const styleTag = iframeWindow.document.createElement('link')
-  styleTag.setAttribute('rel', 'stylesheet')
-  styleTag.setAttribute('href', 'index.css')
-  iframeWindow.document.head.appendChild(styleTag)
-  const scriptTag = iframeWindow.document.createElement('script')
-  scriptTag.src = 'index.js'
-  iframeWindow.document.body.appendChild(scriptTag)
   setTimeout(() => {
+    const styleTag = iframeWindow.document.createElement('link')
+    styleTag.setAttribute('rel', 'stylesheet')
+    styleTag.setAttribute('href', 'index.css')
+    iframeWindow.document.head.appendChild(styleTag)
+    const scriptTag = iframeWindow.document.createElement('script')
+    scriptTag.src = 'index.js'
+    iframeWindow.document.body.appendChild(scriptTag)
     panel.restart()
   }, 100)
-}, 0)
+}
+document.body.appendChild(iframe)
 
 // init panel
 const hostContext = new glassEasel.CurrentWindowBackendContext()

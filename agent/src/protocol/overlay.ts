@@ -41,7 +41,7 @@ export interface SetInspectMode extends RequestResponse {
  * Inspect focusing a node.
  */
 export interface InspectModeCanceled extends EventDetail {
-  detail: { backendNodeId: NodeId }
+  detail: Record<string, never>
   cdpEventDetail: unknown
 }
 

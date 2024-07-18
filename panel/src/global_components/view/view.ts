@@ -8,12 +8,14 @@ export const componentDefinition = Component()
   .data(() => ({
     hover: false,
   }))
-  .init(({ setData, method }) => {
-    const hoverStart = method(() => {
+  .init(({ self, setData, listener }) => {
+    const hoverStart = listener((ev) => {
       setData({ hover: true })
+      self.triggerEvent('mouseenter', ev.detail, {})
     })
-    const hoverEnd = method(() => {
+    const hoverEnd = listener((ev) => {
       setData({ hover: false })
+      self.triggerEvent('mouseleave', ev.detail, {})
     })
     return { hoverStart, hoverEnd }
   })

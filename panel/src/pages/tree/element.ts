@@ -1,9 +1,9 @@
 import { DeepCopyKind } from 'glass-easel'
 import { initStoreBindings } from 'mobx-miniprogram-bindings'
 import { protocol } from 'glass-easel-devtools-agent'
-import { childNodeCountUpdated, setChildNodes } from '../../events'
+import { childNodeCountUpdated, childNodeInserted, setChildNodes } from '../../events'
 import { sendRequest } from '../../message_channel'
-import { warn } from '../../utils'
+import { error, warn } from '../../utils'
 import { store } from '../store'
 
 type AttributeMeta = { name: string; value: string; isProperty: boolean }
@@ -14,7 +14,7 @@ const enum DisplayKind {
   VirtualTag = 2,
 }
 
-Component()
+export const compDef = Component()
   .options({
     dataDeepCopy: DeepCopyKind.None,
     propertyPassingDeepCopy: DeepCopyKind.None,
@@ -37,7 +37,7 @@ Component()
     children: [] as protocol.dom.Node[],
   }))
   .init((ctx) => {
-    const { data, setData, observer, listener } = ctx
+    const { self, data, setData, observer, listener, method } = ctx
     let nodeId = 0
     const initNodeId = (n: protocol.NodeId) => {
       if (n === 0) {
@@ -47,11 +47,13 @@ Component()
       nodeId = n
     }
 
+    // store bindings
     initStoreBindings(ctx, {
       store,
-      fields: ['selectedNodeId'],
+      fields: ['selectedNodeId', 'highlightNodeId'],
     })
 
+    // child nodes listeners
     childNodeCountUpdated.bindComponentLifetimes(
       ctx,
       () => nodeId,
@@ -69,7 +71,19 @@ Component()
         })
       },
     )
+    childNodeInserted.bindComponentLifetimes(
+      ctx,
+      () => nodeId,
+      ({ previousNodeId, node }) => {
+        const after = data.children.map((x) => x.nodeId).indexOf(previousNodeId)
+        const before = after + 1
+        self.groupUpdates(() => {
+          self.spliceArrayDataOnPath(['children'], before, 0, [node])
+        })
+      },
+    )
 
+    // init node info
     observer('nodeInfo', (nodeInfo) => {
       initNodeId(nodeInfo?.nodeId ?? 0)
       const nodeType = nodeInfo?.glassEaselNodeType
@@ -122,36 +136,60 @@ Component()
         setData({
           hasSlotContent: distributedNodes.length > 0,
           showChildNodes: false,
-          children: [],
         })
       }
     })
 
+    // toggle children events
+    const updateChildren = async () => {
+      const distributedNodes = data.nodeInfo?.distributedNodes
+      if (distributedNodes) {
+        const { nodes } = await sendRequest('DOM.getGlassEaselComposedChildren', { nodeId })
+        setData({ children: nodes })
+      } else {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        sendRequest('DOM.requestChildNodes', { nodeId })
+      }
+    }
     const toggleChildren = listener(() => {
       setData({
         showChildNodes: !data.showChildNodes,
-        children: [],
       })
       if (data.showChildNodes) {
-        const distributedNodes = data.nodeInfo?.distributedNodes
-        if (distributedNodes) {
-          // eslint-disable-next-line @typescript-eslint/no-floating-promises, promise/catch-or-return
-          Promise.resolve().then(async () => {
-            const { nodes } = await sendRequest('DOM.getGlassEaselComposedChildren', { nodeId })
-            setData({ children: nodes })
-            return undefined
-          })
-        } else {
-          // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          sendRequest('DOM.requestChildNodes', { nodeId })
-        }
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises, promise/catch-or-return
+        Promise.resolve().then(updateChildren)
+      }
+    })
+    const visitChildNodePath = method(async (nodePath: protocol.dom.Node[]) => {
+      const [node, ...childPath] = nodePath
+      if (childPath.length === 0) {
+        setData({ children: node.children })
+        store.selectNode(nodeId)
+        return
+      }
+      setData({
+        showChildNodes: true,
+        children: node.children,
+      })
+      const childComp = self.selectComponent(`#child-${childPath[0].nodeId}`, compDef)
+      if (childComp) {
+        await childComp.visitChildNodePath(childPath)
+      } else {
+        error(`cannot find child node id ${childPath[0].nodeId}`)
       }
     })
 
+    // tag events
     const selectTag = listener(() => {
       store.selectNode(nodeId)
     })
+    const startHoverTag = listener(() => {
+      store.setHighlightNode(nodeId)
+    })
+    const endHoverTag = listener(() => {
+      if (store.highlightNodeId === nodeId) store.setHighlightNode(0)
+    })
 
-    return { toggleChildren, selectTag }
+    return { toggleChildren, visitChildNodePath, selectTag, startHoverTag, endHoverTag }
   })
   .register()

@@ -59,3 +59,12 @@ export const setChildNodes = new EventDispatcher<
 setEventHandler('DOM.setChildNodes', (args) => {
   setChildNodes.dispatch(args)
 })
+
+export const childNodeInserted = new EventDispatcher<
+  'parentNodeId',
+  protocol.NodeId,
+  protocol.dom.ChildNodeInserted['detail']
+>('parentNodeId')
+setEventHandler('DOM.childNodeInserted', (args) => {
+  childNodeInserted.dispatch(args)
+})

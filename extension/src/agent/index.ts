@@ -29,11 +29,7 @@ const messageChannel = {
     requestListener = listener
   },
 }
-const devTools = getDevTools(
-  hostContext,
-  hostElement as unknown as GeneralBackendElement,
-  messageChannel,
-)
+const devTools = getDevTools(messageChannel)
 
 // connect to stub
 setTimeout(() => {

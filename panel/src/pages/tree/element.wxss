@@ -34,6 +34,9 @@
 .tag-body_selected {
   background: @selected-bg;
 }
+.tag-body_highlight {
+  background-color: rgba(0, 128, 192, 0.25);
+}
 .tag-text {
   display: inline;
 }
@@ -56,10 +59,6 @@
 .attribute-value {
   display: inline-block;
   color: @attribute-value;
-}
-
-.shadow-roots {
-  margin-left: 1em;
 }
 
 .children {

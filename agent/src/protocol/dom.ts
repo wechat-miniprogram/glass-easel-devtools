@@ -12,6 +12,7 @@ export type AgentEventKind = {
 }
 
 export type AgentRequestKind = {
+  describeNode: DescribeNode
   enable: Enable
   getDocument: GetDocument
   pushNodesByBackendIdsToFrontend: PushNodesByBackendIdsToFrontend
@@ -85,7 +86,7 @@ export type BackendNode = {
 export type Node = BackendNode & {
   /** Node id. */
   nodeId: NodeId
-  /** Node id of its parent (if any). */
+  /** Node id of its parent (if any); for shadow-root, this is its host. */
   parentId?: NodeId
   /** The local name of the node (for components, it is the component name). */
   localName: string
@@ -103,6 +104,15 @@ export type Node = BackendNode & {
   children?: Node[]
   /** The slot content. */
   distributedNodes?: BackendNode[]
+}
+
+/**
+ * Inform that the panel is enabled.
+ */
+export interface DescribeNode extends RequestResponse {
+  request: { nodeId?: NodeId; backendNodeId?: NodeId; depth?: number }
+  response: { node: Node }
+  cdpRequestResponse: [Protocol.DOM.DescribeNodeRequest, Protocol.DOM.DescribeNodeResponse]
 }
 
 /**
@@ -184,6 +194,7 @@ export interface GetGlassEaselAttributes extends RequestResponse {
     glassEaselNodeType: GlassEaselNodeType
     is: string
     id: string
+    class: string
     slot: string
     slotName: string | undefined
     slotValues: { name: string; value: GlassEaselVar }[] | undefined
