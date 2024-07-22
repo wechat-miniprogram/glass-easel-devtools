@@ -1,6 +1,7 @@
 <view class="title" catch:tap="toggleBody">
   <view class="arrow {{ collapsed ? '' : 'arrow_open' }}">▶</view>
   <view class="title-text">{{ title }}</view>
+  <view wx:if="{{ !collapsed && showRefresh }}" class="title-refresh" hover-class="title-refresh_hover" catch:tap="refresh">⟳</view>
 </view>
 <view class="body {{ collapsed ? 'body_collapsed' : '' }}">
   <slot />

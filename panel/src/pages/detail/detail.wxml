@@ -50,30 +50,30 @@
 
 <view hidden="{{ !info.normalAttributes }}">
   <detail-section class="section" title="attributes">
-    <view class="section-body">
+    <block wx:if="{{ info.normalAttributes.length }}">
       <view wx:for="{{ info.normalAttributes }}" class="section-item">
         <view class="section-key">{{ item.name }}</view> = <value value="{{ item.value }}" />
       </view>
-    </view>
+    </block>
+    <view wx:else class="section-empty">empty</view>
   </detail-section>
 </view>
 
 <view hidden="{{ !info.properties }}">
   <detail-section class="section" title="properties">
-    <view class="section-body">
+    <block wx:if="{{ info.properties.length }}">
       <view wx:for="{{ info.properties }}" class="section-item">
         <view class="section-key">{{ item.name }}</view> = <value value="{{ item.value }}" />
       </view>
-    </view>
+    </block>
+    <view wx:else class="section-empty">empty</view>
   </detail-section>
 </view>
 
 <detail-section class="section" title="dataset">
   <block wx:if="{{ info.dataset.length }}">
-    <view class="section-body">
-      <view wx:for="{{ info.dataset }}" class="section-item">
-        <view class="section-key">{{ item.name }}</view> = <value value="{{ item.value }}" />
-      </view>
+    <view wx:for="{{ info.dataset }}" class="section-item">
+      <view class="section-key">{{ item.name }}</view> = <value value="{{ item.value }}" />
     </view>
   </block>
   <view wx:else class="section-empty">empty</view>
@@ -81,11 +81,63 @@
 
 <detail-section class="section" title="marks">
   <block wx:if="{{ info.marks.length }}">
-    <view class="section-body">
-      <view wx:for="{{ info.marks }}" class="section-item">
-        <view class="section-key">{{ item.name }}</view> = <value value="{{ item.value }}" />
-      </view>
+    <view wx:for="{{ info.marks }}" class="section-item">
+      <view class="section-key">{{ item.name }}</view> = <value value="{{ item.value }}" />
     </view>
   </block>
   <view wx:else class="section-empty">empty</view>
+</detail-section>
+
+<detail-section
+  class="section"
+  title="box model"
+  show-refresh
+  model:collapsed="{{ boxModelCollapsed }}"
+  catch:refresh="refreshBoxModel"
+>
+  <block wx:if="{{ !boxModelCollapsed && boxModel }}">
+    <view class="box-model">
+      <view class="box-model-margin">
+        <view class="box-model-text">{{ boxModel.border[1] - boxModel.margin[1] }}</view>
+        <view class="box-model-line">
+          <view class="box-model-text">{{ boxModel.border[0] - boxModel.margin[0] }}</view>
+          <view class="box-model-border">
+            <view class="box-model-text">{{ boxModel.padding[1] - boxModel.border[1] }}</view>
+            <view class="box-model-line">
+              <view class="box-model-text">{{ boxModel.padding[0] - boxModel.border[0] }}</view>
+              <view class="box-model-padding">
+                <view class="box-model-text">{{ boxModel.content[1] - boxModel.padding[1] }}</view>
+                <view class="box-model-line">
+                  <view class="box-model-text">{{ boxModel.content[0] - boxModel.padding[0] }}</view>
+                  <view class="box-model-content">
+                    <view class="box-model-text">{{ boxModel.width }}</view>x<view class="box-model-text">{{ boxModel.height }}</view>
+                  </view>
+                  <view class="box-model-text">{{ boxModel.padding[4] - boxModel.content[4] }}</view>
+                </view>
+                <view class="box-model-text">{{ boxModel.padding[5] - boxModel.content[5] }}</view>
+              </view>
+              <view class="box-model-text">{{ boxModel.border[4] - boxModel.padding[4] }}</view>
+            </view>
+            <view class="box-model-text">{{ boxModel.border[5] - boxModel.padding[5] }}</view>
+          </view>
+          <view class="box-model-text">{{ boxModel.margin[4] - boxModel.border[4] }}</view>
+        </view>
+        <view class="box-model-text">{{ boxModel.margin[5] - boxModel.border[5] }}</view>
+      </view>
+    </view>
+  </block>
+</detail-section>
+
+<detail-section
+  class="section"
+  title="computed styles"
+  show-refresh
+  model:collapsed="{{ computedStyleCollapsed }}"
+  catch:refresh="refreshComputedStyles"
+>
+  <block wx:if="{{ !computedStyleCollapsed && computedStyles }}">
+    <view wx:for="{{ computedStyles }}" class="section-item">
+      <view class="section-key">{{ item.name }}</view>: <view class="section-value">{{ item.value }}</view>
+    </view>
+  </block>
 </detail-section>

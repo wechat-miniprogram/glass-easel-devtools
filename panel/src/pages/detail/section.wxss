@@ -5,19 +5,28 @@
 }
 
 .title {
-  padding: 2px 5px;
+  padding: 0 5px;
   background: @secondary-bg;
   color: @important-text;
+  line-height: 1.5;
 }
 .title-text {
   display: inline-block;
 }
+.title-refresh {
+  display: inline-block;
+  width: 1em;
+  height: 1.5em;
+  text-align: center;
+  margin-left: 0.5em;
+}
+.title-refresh_hover {
+  background-color: @hover-bg;
+}
 .arrow {
   display: inline-block;
   width: 1em;
-  height: 1em;
-  line-height: 1em;
-  color: #444;
+  height: 1.5em;
   text-align: center;
   transition: transform 200ms ease;
   margin-right: 0.25em;

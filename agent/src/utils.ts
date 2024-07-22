@@ -12,3 +12,7 @@ export const debug = (msg: string, ...args: unknown[]) => {
   // eslint-disable-next-line no-console
   console.debug(`[glass-easel-miniprogram-agent] ${msg}`, ...args)
 }
+
+export const backendUnsupported = (apiName: string) => {
+  warn(`"${apiName}" is not supported by the backend`)
+}

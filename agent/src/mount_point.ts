@@ -1,5 +1,5 @@
 import type * as glassEasel from 'glass-easel'
-import { type Connection } from '.'
+import { type protocol, type Connection } from '.'
 import {
   type GlassEaselVar,
   glassEaselVarToString,
@@ -8,6 +8,7 @@ import {
   type dom,
 } from './protocol'
 import { GlassEaselNodeType, glassEaselNodeTypeToCDP } from './protocol/dom'
+import * as backendUtils from './backend'
 import { warn } from './utils'
 
 export type NodeMeta = {
@@ -120,6 +121,7 @@ export class MountPointsManager {
       if (!elem) {
         return {
           glassEaselNodeType: GlassEaselNodeType.TextNode,
+          virtual: false,
           is: '',
           id: '',
           class: '',
@@ -142,6 +144,7 @@ export class MountPointsManager {
       if (virtualNode) glassEaselNodeType = GlassEaselNodeType.VirtualNode
 
       // collect basic attributes
+      const virtual = elem.isVirtual()
       let is = ''
       if (comp) is = comp.is
       if (nativeNode) is = nativeNode.is
@@ -224,11 +227,12 @@ export class MountPointsManager {
       const marks: { name: string; value: GlassEaselVar }[] = []
       const maybeMarks = Reflect.get(elem, '_$marks') as { [key: string]: unknown } | undefined
       Object.entries(maybeMarks ?? {}).forEach(([name, value]) => {
-        dataset.push({ name, value: toGlassEaselVar(value) })
+        marks.push({ name, value: toGlassEaselVar(value) })
       })
 
       return {
         glassEaselNodeType,
+        virtual,
         is,
         id,
         class: nodeClass,
@@ -264,6 +268,47 @@ export class MountPointsManager {
         return { nodeIds: backendNodeIds }
       },
     )
+
+    this.conn.setRequestHandler('DOM.getBoxModel', async (args) => {
+      let node: glassEasel.Node | null
+      if ('nodeId' in args) {
+        node = this.queryActiveNode(args.nodeId).node
+      } else {
+        node = this.getMaybeBackendNode(args.backendNodeId)
+      }
+      const ctx = node?.getBackendContext()
+      const elem = node?.getBackendElement()
+      if (!ctx || !elem) {
+        throw new Error('no such backend node found')
+      }
+      const { margin, border, padding, content } = await backendUtils.getBoxModel(ctx, elem)
+      const toQuad = (x: backendUtils.BoundingClientRect) => {
+        const lt = [x.left, x.top]
+        const rt = [x.left + x.width, x.top]
+        const lb = [x.left, x.top + x.height]
+        const rb = [x.left + x.width, x.top + x.height]
+        return [...lt, ...rt, ...rb, ...lb] as protocol.dom.Quad
+      }
+      return {
+        margin: toQuad(margin),
+        border: toQuad(border),
+        padding: toQuad(padding),
+        content: toQuad(content),
+        width: border.width,
+        height: border.height,
+      }
+    })
+
+    this.conn.setRequestHandler('CSS.getComputedStyleForNode', async ({ nodeId }) => {
+      const { node } = this.queryActiveNode(nodeId)
+      const ctx = node?.getBackendContext()
+      const elem = node?.getBackendElement()
+      if (!ctx || !elem) {
+        throw new Error('no such backend node found')
+      }
+      const computedStyle = (await backendUtils.getAllComputedStyles(ctx, elem)).properties
+      return { computedStyle }
+    })
 
     this.conn.setRequestHandler('Overlay.setInspectMode', async ({ mode }) => {
       if (mode === 'searchForNode') {

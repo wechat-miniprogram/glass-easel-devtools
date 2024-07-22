@@ -5,6 +5,7 @@ import { store } from '../store'
 
 const DEFAULT_NODE_DATA = {
   glassEaselNodeType: 0,
+  virtual: true,
   is: '',
   id: '',
   class: '',
@@ -24,8 +25,12 @@ Component()
   .data(() => ({
     nodeTypeName: '',
     info: DEFAULT_NODE_DATA as protocol.dom.GetGlassEaselAttributes['response'],
+    boxModel: null as null | protocol.dom.GetBoxModel['response'],
+    boxModelCollapsed: false,
+    computedStyles: null as null | { name: string; value: string }[],
+    computedStyleCollapsed: true,
   }))
-  .init(({ setData, lifetime }) => {
+  .init(({ data, setData, lifetime, method }) => {
     lifetime('attached', () => {
       autorun(async () => {
         const nodeId = store.selectedNodeId
@@ -33,6 +38,8 @@ Component()
           setData({ info: DEFAULT_NODE_DATA })
           return
         }
+
+        // fetch normal attributes
         const info = await sendRequest('DOM.getGlassEaselAttributes', { nodeId })
         if (store.selectedNodeId !== nodeId) return
         let nodeTypeName = 'Node (unknown)'
@@ -46,7 +53,33 @@ Component()
           nodeTypeName = 'Text Node'
         }
         setData({ nodeTypeName, info })
+
+        // fetch box model
+        if (!data.boxModelCollapsed) {
+          await refreshBoxModel()
+        }
+
+        // fetch computed style
+        if (!data.computedStyleCollapsed) {
+          await refreshComputedStyles()
+        }
       })
     })
+
+    const refreshBoxModel = method(async () => {
+      const nodeId = store.selectedNodeId
+      const boxModel = data.info.virtual ? null : await sendRequest('DOM.getBoxModel', { nodeId })
+      setData({ boxModel })
+    })
+
+    const refreshComputedStyles = method(async () => {
+      const nodeId = store.selectedNodeId
+      const computedStyles = data.info.virtual
+        ? null
+        : (await sendRequest('CSS.getComputedStyleForNode', { nodeId })).computedStyle
+      setData({ computedStyles })
+    })
+
+    return { refreshBoxModel, refreshComputedStyles }
   })
   .register()

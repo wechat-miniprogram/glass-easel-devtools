@@ -34,7 +34,7 @@ export type AgentRequestKind = {
   getBoxModel: GetBoxModel
 }
 
-export type Quad = [number, number, number, number]
+export type Quad = [number, number, number, number, number, number, number, number]
 
 const enum CDPNodeType {
   ELEMENT_NODE = 1,
@@ -192,6 +192,7 @@ export interface GetGlassEaselAttributes extends RequestResponse {
   request: { nodeId: NodeId }
   response: {
     glassEaselNodeType: GlassEaselNodeType
+    virtual: boolean
     is: string
     id: string
     class: string
