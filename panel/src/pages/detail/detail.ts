@@ -1,6 +1,6 @@
 import { DeepCopyKind } from 'glass-easel'
 import { autorun } from 'mobx-miniprogram'
-import { type protocol, sendRequest } from '../../message_channel'
+import { protocol, sendRequest } from '../../message_channel'
 import { store } from '../store'
 
 const DEFAULT_NODE_DATA = {
@@ -22,6 +22,7 @@ Component()
     propertyPassingDeepCopy: DeepCopyKind.None,
   })
   .data(() => ({
+    nodeTypeName: '',
     info: DEFAULT_NODE_DATA as protocol.dom.GetGlassEaselAttributes['response'],
   }))
   .init(({ setData, lifetime }) => {
@@ -34,7 +35,17 @@ Component()
         }
         const info = await sendRequest('DOM.getGlassEaselAttributes', { nodeId })
         if (store.selectedNodeId !== nodeId) return
-        setData({ info })
+        let nodeTypeName = 'Node (unknown)'
+        if (info.glassEaselNodeType === protocol.dom.GlassEaselNodeType.Component) {
+          nodeTypeName = 'Component'
+        } else if (info.glassEaselNodeType === protocol.dom.GlassEaselNodeType.NativeNode) {
+          nodeTypeName = 'Native Node'
+        } else if (info.glassEaselNodeType === protocol.dom.GlassEaselNodeType.VirtualNode) {
+          nodeTypeName = 'Virtual Node'
+        } else if (info.glassEaselNodeType === protocol.dom.GlassEaselNodeType.TextNode) {
+          nodeTypeName = 'Text Node'
+        }
+        setData({ nodeTypeName, info })
       })
     })
   })

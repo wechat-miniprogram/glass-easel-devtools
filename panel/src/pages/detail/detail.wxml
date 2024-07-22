@@ -1,6 +1,5 @@
-<view wx:if="{{ info.glassEaselNodeType === 0x102 }}" class="section">
-  <view class="section-title">Native Node</view>
-  <view class="section-body">
+<detail-section class="section" title="{{ nodeTypeName }}">
+  <block wx:if="{{ info.glassEaselNodeType === 0x102 }}">
     <view wx:if="{{ info.id }}" class="section-item">
       <view class="section-key-core">id</view> = <value value="{{ { type: 'primitive', value: info.id } }}" />
     </view>
@@ -10,11 +9,8 @@
     <view wx:if="{{ info.slot }}" class="section-item">
       <view class="section-key-core">slot</view> = <value value="{{ { type: 'primitive', value: info.slot } }}" />
     </view>
-  </view>
-</view>
-<view wx:elif="{{ info.glassEaselNodeType === 0x103 }}" class="section">
-  <view class="section-title">Component</view>
-  <view class="section-body">
+  </block>
+  <block wx:elif="{{ info.glassEaselNodeType === 0x103 }}">
     <view class="section-item">
       <view class="section-key-core">is</view> = <value value="{{ { type: 'primitive', value: info.is } }}" />
     </view>
@@ -27,11 +23,8 @@
     <view wx:if="{{ info.slot }}" class="section-item">
       <view class="section-key-core">slot</view> = <value value="{{ { type: 'primitive', value: info.slot } }}" />
     </view>
-  </view>
-</view>
-<view wx:elif="{{ info.glassEaselNodeType === 0x104 }}" class="section">
-  <view class="section-title">Virtual Node</view>
-  <view class="section-body">
+  </block>
+  <block wx:elif="{{ info.glassEaselNodeType === 0x104 }}">
     <view class="section-item">
       <view class="section-key-core">is</view> = <value value="{{ { type: 'primitive', value: info.is } }}" />
     </view>
@@ -41,44 +34,41 @@
     <view wx:if="{{ info.slot }}" class="section-item">
       <view class="section-key-core">slot</view> = <value value="{{ { type: 'primitive', value: info.slot } }}" />
     </view>
-  </view>
-</view>
+  </block>
+</detail-section>
 
-<view wx:if="{{ info.slotName !== undefined }}" class="section">
-  <view class="section-title">slot</view>
-  <view class="section-body">
+<view hidden="{{ info.slotName === undefined }}">
+  <detail-section class="section" title="slot">
     <view class="section-item">
       <view class="section-key-core">name</view> = <value value="{{ { type: 'primitive', value: info.slotName } }}" />
     </view>
     <view wx:for="{{ info.slotValues ?? [] }}" class="section-item">
       <view class="section-key">{{ item.name }}</view> = <value value="{{ item.value }}" />
     </view>
-  </view>
+  </detail-section>
 </view>
 
-<view wx:if="{{ info.normalAttributes }}" class="section">
-  <block>
-    <view class="section-title">attributes</view>
+<view hidden="{{ !info.normalAttributes }}">
+  <detail-section class="section" title="attributes">
     <view class="section-body">
       <view wx:for="{{ info.normalAttributes }}" class="section-item">
         <view class="section-key">{{ item.name }}</view> = <value value="{{ item.value }}" />
       </view>
     </view>
-  </block>
+  </detail-section>
 </view>
-<view wx:if="{{ info.properties }}" class="section">
-  <block>
-    <view class="section-title">properties</view>
+
+<view hidden="{{ !info.properties }}">
+  <detail-section class="section" title="properties">
     <view class="section-body">
       <view wx:for="{{ info.properties }}" class="section-item">
         <view class="section-key">{{ item.name }}</view> = <value value="{{ item.value }}" />
       </view>
     </view>
-  </block>
+  </detail-section>
 </view>
 
-<view class="section">
-  <view class="section-title">dataset</view>
+<detail-section class="section" title="dataset">
   <block wx:if="{{ info.dataset.length }}">
     <view class="section-body">
       <view wx:for="{{ info.dataset }}" class="section-item">
@@ -87,10 +77,9 @@
     </view>
   </block>
   <view wx:else class="section-empty">empty</view>
-</view>
+</detail-section>
 
-<view class="section">
-  <view class="section-title">marks</view>
+<detail-section class="section" title="marks">
   <block wx:if="{{ info.marks.length }}">
     <view class="section-body">
       <view wx:for="{{ info.marks }}" class="section-item">
@@ -99,4 +88,4 @@
     </view>
   </block>
   <view wx:else class="section-empty">empty</view>
-</view>
+</detail-section>

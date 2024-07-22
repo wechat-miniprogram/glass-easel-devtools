@@ -1,0 +1,35 @@
+@import url('../common.wxss');
+
+:host {
+  display: block;
+}
+
+.title {
+  padding: 2px 5px;
+  background: @secondary-bg;
+  color: @important-text;
+}
+.title-text {
+  display: inline-block;
+}
+.arrow {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  line-height: 1em;
+  color: #444;
+  text-align: center;
+  transition: transform 200ms ease;
+  margin-right: 0.25em;
+}
+.arrow_open {
+  transform: rotate(90deg);
+}
+
+.body {
+  padding: 0 5px;
+  overflow: hidden;
+}
+.body_collapsed {
+  height: 0;
+}

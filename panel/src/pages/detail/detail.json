@@ -1,6 +1,7 @@
 {
   "component": true,
   "usingComponents": {
-    "value": "./value"
+    "value": "./value",
+    "detail-section": "./section"
   }
 }

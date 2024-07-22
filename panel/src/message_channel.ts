@@ -1,7 +1,7 @@
 import type { protocol } from 'glass-easel-devtools-agent'
 import { error, warn, debug } from './utils'
 
-export type { protocol } from 'glass-easel-devtools-agent'
+export { protocol } from 'glass-easel-devtools-agent'
 
 export type PanelRecvMessage = protocol.AgentSendMessage
 export type PanelSendMessage = protocol.AgentRecvMessage
