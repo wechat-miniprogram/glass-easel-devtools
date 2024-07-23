@@ -27,6 +27,8 @@ Component()
     info: DEFAULT_NODE_DATA as protocol.dom.GetGlassEaselAttributes['response'],
     boxModel: null as null | protocol.dom.GetBoxModel['response'],
     boxModelCollapsed: false,
+    styles: null as null | protocol.css.GetMatchedStylesForNode['response'],
+    styleCollapsed: false,
     computedStyles: null as null | { name: string; value: string }[],
     computedStyleCollapsed: true,
   }))
@@ -59,6 +61,11 @@ Component()
           await refreshBoxModel()
         }
 
+        // fetch style
+        if (!data.styleCollapsed) {
+          await refreshStyles()
+        }
+
         // fetch computed style
         if (!data.computedStyleCollapsed) {
           await refreshComputedStyles()
@@ -72,6 +79,14 @@ Component()
       setData({ boxModel })
     })
 
+    const refreshStyles = method(async () => {
+      const nodeId = store.selectedNodeId
+      const styles = data.info.virtual
+        ? null
+        : await sendRequest('CSS.getMatchedStylesForNode', { nodeId })
+      setData({ styles })
+    })
+
     const refreshComputedStyles = method(async () => {
       const nodeId = store.selectedNodeId
       const computedStyles = data.info.virtual
@@ -80,6 +95,6 @@ Component()
       setData({ computedStyles })
     })
 
-    return { refreshBoxModel, refreshComputedStyles }
+    return { refreshBoxModel, refreshStyles, refreshComputedStyles }
   })
   .register()

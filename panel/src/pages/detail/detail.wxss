@@ -23,6 +23,9 @@
   display: inline;
   color: @attribute-value;
 }
+.section-value-extra {
+  color: @important-text;
+}
 
 .section-empty {
   text-align: center;
@@ -61,4 +64,20 @@
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.style-rule {
+  padding-left: 1em;
+  margin: 2px 0;
+}
+.style-rule_inactive {
+  text-decoration: line-through @important-text;
+}
+.style-rule-prefix {
+  margin-left: -1em;
+  font-style: italic;
+}
+.style-rule-title {
+  margin-left: -1em;
+  color: @important-text;
 }

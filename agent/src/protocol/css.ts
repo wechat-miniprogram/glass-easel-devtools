@@ -43,6 +43,7 @@ export type CSSProperty = CSSNameValue & {
 export type CSSStyle = {
   styleSheetId?: StyleSheetId
   cssProperties: CSSProperty[]
+  cssText?: string
 }
 
 export type CSSRule = {
@@ -50,6 +51,7 @@ export type CSSRule = {
   selectorList: { selectors: { text: string }[]; text: string }
   style: CSSStyle
   media?: { styleSheetId?: StyleSheetId; text: string }[]
+  inactive?: boolean
 }
 
 export type CSSMatchedRule = {
@@ -90,6 +92,10 @@ export interface GetMatchedStylesForNode extends RequestResponse {
     matchedCSSRules: CSSMatchedRule[]
     inherited: { inlineStyle?: CSSStyle; matchedCSSRules: CSSMatchedRule[] }[]
   }
+  cdpRequestResponse: [
+    Protocol.CSS.GetMatchedStylesForNodeRequest,
+    Protocol.CSS.GetMatchedStylesForNodeResponse,
+  ]
 }
 
 /**

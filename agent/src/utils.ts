@@ -14,5 +14,5 @@ export const debug = (msg: string, ...args: unknown[]) => {
 }
 
 export const backendUnsupported = (apiName: string) => {
-  warn(`"${apiName}" is not supported by the backend`)
+  throw new Error(`"${apiName}" is not supported by the backend`)
 }

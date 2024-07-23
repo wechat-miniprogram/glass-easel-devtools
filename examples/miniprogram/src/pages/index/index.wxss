@@ -19,3 +19,12 @@
 .right {
   flex: auto;
 }
+
+.my-class {
+  border-bottom: 1px solid green;
+}
+@media (min-width: 600px) {
+  .my-class {
+    border-bottom: 1px solid blue;
+  }
+}

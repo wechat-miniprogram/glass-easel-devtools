@@ -310,6 +310,26 @@ export class MountPointsManager {
       return { computedStyle }
     })
 
+    this.conn.setRequestHandler('CSS.getMatchedStylesForNode', async ({ nodeId }) => {
+      const { node } = this.queryActiveNode(nodeId)
+      const ctx = node?.getBackendContext()
+      const elem = node?.getBackendElement()
+      if (!ctx || !elem) {
+        throw new Error('no such backend node found')
+      }
+      const { inline, inlineText, rules } = await backendUtils.getMatchedRules(ctx, elem)
+      const inlineStyle = { cssProperties: inline, cssText: inlineText }
+      const matchedCSSRules = rules.map((rule) => ({
+        rule: {
+          selectorList: { selectors: [{ text: rule.selector }], text: rule.selector },
+          style: { cssProperties: rule.properties, cssText: rule.propertyText },
+          media: rule.mediaQueries.map((x) => ({ text: x })),
+          inactive: rule.inactive || false,
+        },
+      }))
+      return { inlineStyle, matchedCSSRules, inherited: [] }
+    })
+
     this.conn.setRequestHandler('Overlay.setInspectMode', async ({ mode }) => {
       if (mode === 'searchForNode') {
         let prevHighlight = 0

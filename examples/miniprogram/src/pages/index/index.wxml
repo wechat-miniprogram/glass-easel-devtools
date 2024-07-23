@@ -12,5 +12,6 @@
     <view style="padding: 1px 2px 3px 4px">This element has paddings.</view>
     <view style="border: 0 solid #808080; border-width: 1px 2px 3px 4px">This element has borders.</view>
     <view style="margin: 1px 2px 3px 4px">This element has margins.</view>
+    <view class="my-class">This element has media query styles.</view>
   </view>
 </view>

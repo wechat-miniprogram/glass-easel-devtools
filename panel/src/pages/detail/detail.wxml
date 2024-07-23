@@ -130,7 +130,31 @@
 
 <detail-section
   class="section"
-  title="computed styles"
+  title="style"
+  show-refresh
+  model:collapsed="{{ styleCollapsed }}"
+  catch:refresh="refreshStyles"
+>
+  <block wx:if="{{ !styleCollapsed && styles }}">
+    <view wx:if="{{ styles.inlineStyle.cssProperties.length }}" class="style-rule">
+      <view class="style-rule-prefix">Inline Style</view>
+      <view wx:for="{{ styles.inlineStyle.cssProperties }}" class="section-item">
+        <view class="section-key">{{ item.name }}</view>: <view class="section-value">{{ item.value }}</view> <view wx:if="{{ item.important }}" class="section-value-extra">{{ item.important ? '!important' : '' }}</view>
+      </view>
+    </view>
+    <view wx:for="{{ styles.matchedCSSRules }}" class="style-rule {{ item.rule.inactive ? 'style-rule_inactive' : '' }}">
+      <view wx:for="{{ item.rule.media ?? [] }}" class="style-rule-prefix">{{ item.text }}</view>
+      <view class="style-rule-title">{{ item.rule.selectorList.text }}</view>
+      <view wx:for="{{ item.rule.style.cssProperties }}" class="section-item">
+        <view class="section-key">{{ item.name }}</view>: <view class="section-value">{{ item.value }}</view> <view wx:if="{{ item.important }}" class="section-value-extra">{{ item.important ? '!important' : '' }}</view>
+      </view>
+    </view>
+  </block>
+</detail-section>
+
+<detail-section
+  class="section"
+  title="computed style"
   show-refresh
   model:collapsed="{{ computedStyleCollapsed }}"
   catch:refresh="refreshComputedStyles"
