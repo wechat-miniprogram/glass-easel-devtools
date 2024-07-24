@@ -17,6 +17,24 @@ export const componentDefinition = Component()
       setData({ hover: false })
       self.triggerEvent('mouseleave', ev.detail, {})
     })
-    return { hoverStart, hoverEnd }
+    const mousedown = listener((ev) => {
+      self.triggerEvent('mousedown', ev.detail, {})
+    })
+    const mousemove = listener((ev) => {
+      self.triggerEvent('mousemove', ev.detail, {})
+    })
+    const mouseup = listener((ev) => {
+      self.triggerEvent('mouseup', ev.detail, {})
+    })
+    const touchstart = listener((ev) => {
+      self.triggerEvent('touchstart', ev.detail, {})
+    })
+    const touchmove = listener((ev) => {
+      self.triggerEvent('touchmove', ev.detail, {})
+    })
+    const touchend = listener((ev) => {
+      self.triggerEvent('touchend', ev.detail, {})
+    })
+    return { hoverStart, hoverEnd, mousedown, mousemove, mouseup, touchstart, touchmove, touchend }
   })
   .register()

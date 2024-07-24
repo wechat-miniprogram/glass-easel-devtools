@@ -1,6 +1,9 @@
 /* eslint-disable arrow-body-style */
 
 import * as glassEasel from 'glass-easel'
+import parser from 'postcss-selector-parser'
+import { selectorSpecificity, compare as selectorCompare } from '@csstools/selector-specificity'
+import { tokenize, TokenType, stringify } from '@csstools/css-tokenizer'
 import { backendUnsupported } from './utils'
 
 export type BoundingClientRect = glassEasel.BoundingClientRect
@@ -17,7 +20,6 @@ export const getBoundingClientRect = (
       resolve({ left, top, width, height })
     } else if (!elem.getBoundingClientRect) {
       backendUnsupported('Element#getBoundingClientRect')
-      resolve({ left: 0, top: 0, width: 0, height: 0 })
     } else {
       elem.getBoundingClientRect((rect) => {
         resolve(rect)
@@ -147,10 +149,61 @@ export const getMatchedRules = (
   inlineText?: string
   rules: glassEasel.CSSRule[]
 }> => {
+  const parseNameValueStr = (cssText: string) => {
+    const ret: { name: string; value: string }[] = []
+    const tokens = tokenize({ css: cssText })
+    if (tokens.length === 0) return null
+    let nameStart = 0
+    for (let i = 0; i < tokens.length; i += 1) {
+      const t = tokens[i]
+      if (t[0] === TokenType.Colon) {
+        const name = stringify(...tokens.slice(nameStart, i))
+        i += 1
+        const valueStart = i
+        for (; i < tokens.length; i += 1) {
+          const t = tokens[i]
+          if (t[0] === TokenType.Semicolon) break
+        }
+        const value = stringify(...tokens.slice(valueStart, i))
+        ret.push({ name, value })
+        nameStart = i + 1
+      }
+    }
+    return ret
+  }
+  const calcRuleWeight = (rules: glassEasel.CSSRule[]): glassEasel.CSSRule[] => {
+    const rulesWithSelector = rules.map((rule) => {
+      if (rule.propertyText) {
+        rule.properties = parseNameValueStr(rule.propertyText) ?? rule.properties
+      }
+      const ps = parser().astSync(rule.selector)
+      const specificity = selectorSpecificity(ps)
+      return [specificity, rule] as const
+    })
+    rulesWithSelector.sort(([aSpec, aRule], [bSpec, bRule]) => {
+      const highBitsDiff = (aRule.weightHighBits || 0) - (bRule.weightHighBits || 0)
+      if (highBitsDiff !== 0) return highBitsDiff
+      if (aRule.weightLowBits !== undefined || bRule.weightLowBits !== undefined) {
+        const lowBitsDiff = (aRule.weightLowBits ?? -1) - (bRule.weightLowBits ?? -1)
+        if (lowBitsDiff !== 0) return lowBitsDiff
+      }
+      const selDiff = selectorCompare(aSpec, bSpec)
+      if (selDiff !== 0) return selDiff
+      const sheetDiff = aRule.sheetIndex - bRule.sheetIndex
+      if (sheetDiff !== 0) return sheetDiff
+      const ruleDiff = aRule.ruleIndex - bRule.ruleIndex
+      return ruleDiff
+    })
+    return rulesWithSelector.map(([_sel, rule]) => rule).reverse()
+  }
   return new Promise((resolve) => {
     if (ctx.mode === glassEasel.BackendMode.Domlike) {
       if (typeof ctx.getMatchedRules === 'function') {
         ctx.getMatchedRules(elem as glassEasel.domlikeBackend.Element, (ret) => {
+          ret.rules = calcRuleWeight(ret.rules)
+          if (ret.inlineText) {
+            ret.inline = parseNameValueStr(ret.inlineText) ?? ret.inline
+          }
           resolve(ret)
         })
       } else {
@@ -159,6 +212,7 @@ export const getMatchedRules = (
     } else {
       if ('getMatchedRules' in elem) {
         ;(elem as glassEasel.backend.Element).getMatchedRules!((ret) => {
+          ret.rules = calcRuleWeight(ret.rules)
           resolve(ret)
         })
       } else {

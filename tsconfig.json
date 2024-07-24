@@ -4,7 +4,7 @@
         "module": "es6",
         "target": "es5",
         "esModuleInterop": true,
-        "moduleResolution": "node",
+        "moduleResolution": "Bundler",
         "lib": ["ES6", "ES7", "DOM", "ESNext"]
     }
 }

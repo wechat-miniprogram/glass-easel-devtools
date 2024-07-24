@@ -1,2 +1,5 @@
 <view wx:for="{{ slices }}" class="slice {{ item.dynamic ? 'slice_dynamic' : '' }}">{{ item.str }}</view>
-<view wx:if="{{ allowInspect }}" class="inspect">↖</view>
+<block wx:if="{{ allowInspect }}">
+  <view wx:if="{{ varName }}" class="var-name">={{ varName }}</view>
+  <view wx:else class="var-name" hover-class="var-name_hover" catch:tap="useInConsole">↖</view>
+</block>

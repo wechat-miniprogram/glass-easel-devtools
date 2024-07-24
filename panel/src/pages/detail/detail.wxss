@@ -10,6 +10,7 @@
 }
 .section-item {
   white-space: nowrap;
+  user-select: text;
 }
 .section-key {
   display: inline;
@@ -68,7 +69,7 @@
 
 .style-rule {
   padding-left: 1em;
-  margin: 2px 0;
+  margin: 5px 0;
 }
 .style-rule_inactive {
   text-decoration: line-through @important-text;

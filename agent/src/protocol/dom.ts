@@ -21,11 +21,13 @@ export type AgentRequestKind = {
   setAttributesAsText: SetAttributesAsText
   getAttributes: GetAttributes
   getGlassEaselAttributes: GetGlassEaselAttributes
+  useGlassEaselAttributeInConsole: UseGlassEaselAttributeInConsole
   getGlassEaselComposedChildren: GetGlassEaselComposedChildren
   requestChildNodes: RequestChildNodes
   removeNode: RemoveNode
   resolveNode: ResolveNode
   setInspectedNode: SetInspectedNode
+  useGlassEaselElementInConsole: UseGlassEaselElementInConsole
   setNodeValue: SetNodeValue
   scrollIntoViewIfNeeded: ScrollIntoViewIfNeeded
   getNodeForLocation: GetNodeForLocation
@@ -214,6 +216,14 @@ export interface GetGlassEaselAttributes extends RequestResponse {
 }
 
 /**
+ * Use the value of a normal attribute or a property in console.
+ */
+export interface UseGlassEaselAttributeInConsole {
+  request: { nodeId: NodeId; attribute: string }
+  response: { varName: string }
+}
+
+/**
  * Get the composed children of a node.
  */
 export interface GetGlassEaselComposedChildren extends RequestResponse {
@@ -252,6 +262,14 @@ export interface ResolveNode extends RequestResponse {
 export interface SetInspectedNode extends RequestResponse {
   request: { nodeId: NodeId }
   cdpRequestResponse: [Protocol.DOM.SetInspectedNodeRequest, unknown]
+}
+
+/**
+ * Set the inspected focusing node.
+ */
+export interface UseGlassEaselElementInConsole extends RequestResponse {
+  request: { nodeId: NodeId }
+  response: { varName: string }
 }
 
 /**

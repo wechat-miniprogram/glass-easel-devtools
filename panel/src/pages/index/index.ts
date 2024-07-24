@@ -14,6 +14,7 @@ export const componentDefinition = Component()
   .data(() => ({
     mountPoints: [] as protocol.dom.Node[],
     inSelectMode: false,
+    detailWidth: 300,
   }))
   .init((ctx) => {
     const { self, data, setData, method, listener } = ctx
@@ -36,10 +37,10 @@ export const componentDefinition = Component()
       },
     )
 
-    initStoreBindings(ctx, { store, fields: ['selectedNodeId'] })
+    initStoreBindings(ctx, { store, fields: ['selectedNodeId', 'sideBarShown'] })
 
-    const treeSpaceTap = listener(() => {
-      store.selectNode(0)
+    const closeSideBar = listener(() => {
+      store.hideSideBar()
     })
 
     // node select
@@ -81,6 +82,25 @@ export const componentDefinition = Component()
       })
     })
 
+    // split drag & resize
+    let startPosX: null | number = null
+    const splitDragStart = listener<{ clientX: number; clientY: number; button: number }>((ev) => {
+      const { button, clientX } = ev.detail
+      if (button && button !== 0) return
+      startPosX = clientX
+    })
+    const splitDragMove = listener<{ clientX: number; clientY: number; button: number }>((ev) => {
+      if (startPosX === null) return
+      const newPosX = ev.detail.clientX
+      setData({ detailWidth: data.detailWidth + startPosX - newPosX })
+      startPosX = newPosX
+    })
+    const splitDragEnd = listener<{ clientX: number; clientY: number; button: number }>((ev) => {
+      const { button } = ev.detail
+      if (button && button !== 0) return
+      startPosX = null
+    })
+
     // reconnect, clear elements, and fetch all elements
     const restart = method(() => {
       setData({ mountPoints: [] })
@@ -89,8 +109,11 @@ export const componentDefinition = Component()
     })
 
     return {
-      treeSpaceTap,
       toggleSelectMode,
+      closeSideBar,
+      splitDragStart,
+      splitDragMove,
+      splitDragEnd,
       restart,
     }
   })

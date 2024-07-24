@@ -15,11 +15,11 @@
       <view class="tag-name">{{ tagName }}</view>
       <block wx:for="{{ attributes }}">
         <view class="attribute">
-          {{ ' ' }}<view class="attribute-name {{ item.isProperty ? 'attribute-name_property' : '' }}">
-            {{ item.name }}
-          </view>="<view class="attribute-value">
-            {{ item.value }}
-          </view>"
+          <block>{{ ' ' }}</block>
+          <view class="attribute-name {{ item.isProperty ? 'attribute-name_property' : '' }}">{{ item.name }}</view>
+          <block>{{ '="' }}</block>
+          <view class="attribute-value">{{ item.value }}</view>
+          <block>{{ '"' }}</block>
         </view>
       </block>
       <view class="tag-text">&gt;</view>
@@ -27,6 +27,11 @@
     <block wx:else>
       <view class="virtual-tag-name">{{ tagName }}</view>
     </block>
+  </view>
+
+  <view class="tag-var-name-wrapper" hidden="{{ selectedNodeId !== nodeInfo.nodeId }}">
+    <view wx:if="{{ tagVarName }}" class="tag-var-name">={{ tagVarName }}</view>
+    <view wx:else class="tag-var-name" hover-class="tag-var-name_hover" catch:tap="useElementInConsole">↖</view>
   </view>
 
   <view hidden="{{ !showChildNodes }}" class="children">

@@ -45,6 +45,24 @@
   color: @tag-name;
 }
 
+.tag-var-name-wrapper {
+  display: inline;
+}
+.tag-var-name {
+  display: inline-block;
+  margin-left: 0.25em;
+  height: 1em;
+  line-height: 1em;
+  min-width: 1em;
+  text-align: center;
+  font-size: 0.8em;
+  font-style: italic;
+  color: @important-text;
+}
+.tag-var-name_hover {
+  background: @hover-bg;
+}
+
 .attribute {
   display: inline-block;
   margin-left: 0.5em;

@@ -4,16 +4,24 @@
   </view>
 
   <view wx:else class="main">
-    <view class="toolbar">
-      <view class="tool {{ inSelectMode ? 'tool_active' : '' }}" hover-class="tool_hover" catch:tap="toggleSelectMode">↖Select</view>
-    </view>
-    <view class="tree-detail">
-      <view class="tree" catch:tap="treeSpaceTap">
-        <block wx:for="{{ mountPoints }}">
-          <element id="mount-point-{{ item.nodeId }}" node-info="{{ item }}" />
-        </block>
+    <view class="tree-detail" bind:mousemove="splitDragMove" bind:mouseup="splitDragEnd">
+      <view class="left">
+        <view class="toolbar">
+          <view class="tool {{ inSelectMode ? 'tool_active' : '' }}" hover-class="tool_hover" catch:tap="toggleSelectMode">Tap Select</view>
+          <view class="tool-space" />
+          <view hidden="{{ !selectedNodeId || !sideBarShown }}" class="tool" hover-class="tool_hover" catch:tap="closeSideBar">▶</view>
+        </view>
+        <view class="tree">
+          <block wx:for="{{ mountPoints }}">
+            <element id="mount-point-{{ item.nodeId }}" node-info="{{ item }}" />
+          </block>
+        </view>
       </view>
-      <view class="detail" hidden="{{ !selectedNodeId }}">
+      <view
+        class="tree-detail-split"
+        bind:mousedown="splitDragStart"
+      />
+      <view class="detail" hidden="{{ !selectedNodeId || !sideBarShown }}" style="width: {{ detailWidth }}px">
         <detail />
       </view>
     </view>

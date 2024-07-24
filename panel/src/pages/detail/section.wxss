@@ -9,6 +9,7 @@
   background: @secondary-bg;
   color: @important-text;
   line-height: 1.5;
+  white-space: nowrap;
 }
 .title-text {
   display: inline-block;

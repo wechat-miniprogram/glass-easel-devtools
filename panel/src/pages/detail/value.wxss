@@ -12,8 +12,17 @@
   color: @attribute-value;
 }
 
-.inspect {
+.var-name {
   display: inline-block;
-  width: 1em;
+  margin-left: 0.25em;
+  height: 1em;
+  line-height: 1em;
+  min-width: 1em;
   text-align: center;
+  font-size: 0.8em;
+  font-style: italic;
+  color: @important-text;
+}
+.var-name_hover {
+  background: @hover-bg;
 }

@@ -299,6 +299,37 @@ export class MountPointsManager {
       }
     })
 
+    this.conn.setRequestHandler('DOM.useGlassEaselElementInConsole', async ({ nodeId }) => {
+      const { node } = this.queryActiveNode(nodeId)
+      const varName = this.useInConsole(node)
+      return { varName }
+    })
+
+    this.conn.setRequestHandler(
+      'DOM.useGlassEaselAttributeInConsole',
+      async ({ nodeId, attribute }) => {
+        const { node } = this.queryActiveNode(nodeId)
+        let attr: unknown
+        const elem = node.asElement()
+        if (!elem) throw new Error('not an element')
+        if (attribute.startsWith('data:')) {
+          attr = elem.dataset[attribute.slice(5)]
+        } else if (attribute.startsWith('mark:')) {
+          const maybeMarks = Reflect.get(elem, '_$marks') as { [key: string]: unknown } | undefined
+          attr = maybeMarks?.[attribute.slice(5)]
+        } else {
+          const comp = elem.asGeneralComponent()
+          if (comp) {
+            attr = comp.data[attribute]
+          } else {
+            attr = elem.attributes.find(({ name }) => name === attribute)?.value
+          }
+        }
+        const varName = this.useInConsole(attr)
+        return { varName }
+      },
+    )
+
     this.conn.setRequestHandler('CSS.getComputedStyleForNode', async ({ nodeId }) => {
       const { node } = this.queryActiveNode(nodeId)
       const ctx = node?.getBackendContext()
@@ -435,6 +466,23 @@ export class MountPointsManager {
       ret.push(comp)
     })
     return ret
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  private useInConsole(v: unknown): string {
+    let i = 0
+    while (i <= 0xffffffff) {
+      const varName = `temp${i}`
+      if (!Object.prototype.hasOwnProperty.call(globalThis, varName)) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        ;(globalThis as any)[varName] = v
+        // eslint-disable-next-line no-console
+        console.log(varName, v)
+        return varName
+      }
+      i += 1
+    }
+    return ''
   }
 
   generateNodeId(): NodeId {
@@ -584,12 +632,44 @@ export class MountPointsManager {
     let slotName: string | undefined
     if (ty !== GlassEaselNodeType.TextNode) {
       const activeAttrs = tmplDevAttrs?.A
+      const elem = node.asElement()!
       if (activeAttrs) {
         // show active attributes based on template information
-        // TODO
+        activeAttrs.forEach((name) => {
+          if (name[0] === ':') {
+            if (name === ':slot') attributes.push('slot', elem.slot)
+            if (name === ':id') attributes.push('id', elem.id)
+            if (name === ':class') attributes.push('class', elem.class)
+            if (name === ':style') attributes.push('style', elem.style)
+            if (name === ':name') attributes.push('style', Reflect.get(elem, '_$slotName'))
+          } else if (name.startsWith('data:')) {
+            const value = elem.dataset?.[name.slice(5)]
+            attributes.push(name, glassEaselVarToString(toGlassEaselVar(value)))
+          } else if (name.startsWith('mark:')) {
+            const marks = Reflect.get(elem, '_$marks') as { [key: string]: unknown } | undefined
+            const value = marks?.[name.slice(5)]
+            attributes.push(name, glassEaselVarToString(toGlassEaselVar(value)))
+          } else if (name.indexOf(':') < 0) {
+            if (elem.asNativeNode()) {
+              const value = elem.attributes.find(({ name: n }) => name === n)?.value
+              attributes.push(name, glassEaselVarToString(toGlassEaselVar(value)))
+            } else if (elem.asGeneralComponent()) {
+              const comp = elem.asGeneralComponent()!
+              if (comp.getComponentDefinition().behavior.getPropertyType(name) !== undefined) {
+                const value = comp.data[name] as unknown
+                attributes.push(name, glassEaselVarToString(toGlassEaselVar(value)))
+              }
+            } else if (typeof Reflect.get(elem, '_$slotName') === 'string') {
+              const maybeSlotValues = Reflect.get(elem, '_$slotValues') as unknown
+              if (typeof maybeSlotValues === 'object' && maybeSlotValues !== null) {
+                const value = (maybeSlotValues as { [name: string]: unknown })[name]
+                attributes.push(name, glassEaselVarToString(toGlassEaselVar(value)))
+              }
+            }
+          }
+        })
       } else {
         // detect changed attributes
-        const elem = node.asElement()!
         if (elem.slot) attributes.push('slot', elem.slot)
         if (elem.id) attributes.push('id', elem.id)
         if (elem.class) attributes.push('class', elem.class)

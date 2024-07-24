@@ -52,7 +52,7 @@
   <detail-section class="section" title="attributes">
     <block wx:if="{{ info.normalAttributes.length }}">
       <view wx:for="{{ info.normalAttributes }}" class="section-item">
-        <view class="section-key">{{ item.name }}</view> = <value value="{{ item.value }}" />
+        <view class="section-key">{{ item.name }}</view> = <value value="{{ item.value }}" node-id="{{ nodeId }}" attribute="{{ item.name }}" />
       </view>
     </block>
     <view wx:else class="section-empty">empty</view>
@@ -63,7 +63,7 @@
   <detail-section class="section" title="properties">
     <block wx:if="{{ info.properties.length }}">
       <view wx:for="{{ info.properties }}" class="section-item">
-        <view class="section-key">{{ item.name }}</view> = <value value="{{ item.value }}" />
+        <view class="section-key">{{ item.name }}</view> = <value value="{{ item.value }}" node-id="{{ nodeId }}" attribute="{{ item.name }}" />
       </view>
     </block>
     <view wx:else class="section-empty">empty</view>
@@ -73,7 +73,7 @@
 <detail-section class="section" title="dataset">
   <block wx:if="{{ info.dataset.length }}">
     <view wx:for="{{ info.dataset }}" class="section-item">
-      <view class="section-key">{{ item.name }}</view> = <value value="{{ item.value }}" />
+      <view class="section-key">{{ item.name }}</view> = <value value="{{ item.value }}" node-id="{{ nodeId }}" attribute="data:{{ item.name }}" />
     </view>
   </block>
   <view wx:else class="section-empty">empty</view>
@@ -82,7 +82,7 @@
 <detail-section class="section" title="marks">
   <block wx:if="{{ info.marks.length }}">
     <view wx:for="{{ info.marks }}" class="section-item">
-      <view class="section-key">{{ item.name }}</view> = <value value="{{ item.value }}" />
+      <view class="section-key">{{ item.name }}</view> = <value value="{{ item.value }}" node-id="{{ nodeId }}" attribute="mark:{{ item.name }}" />
     </view>
   </block>
   <view wx:else class="section-empty">empty</view>

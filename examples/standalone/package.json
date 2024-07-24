@@ -1,13 +1,13 @@
 {
   "name": "glass-easel-devtools-examples-miniprogram",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "main": "src/index.ts",
   "scripts": {
     "build": "webpack --config webpack.config.js",
     "dev": "webpack --config webpack.config.js --watch --dev"
   },
   "dependencies": {
-    "glass-easel": "*",
+    "glass-easel": "^0.8.2",
     "glass-easel-devtools-agent": "workspace:*",
     "glass-easel-devtools-panel": "workspace:*"
   },

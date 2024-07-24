@@ -60,6 +60,10 @@ module.exports = {
     'import/prefer-default-export': 'off',
     'import/no-unresolved': 'off',
     'import/extensions': 'off',
+    'import/no-extraneous-dependencies': [
+      'error',
+      { devDependencies: ['**/*.test.js', '**/*.ts'] },
+    ],
     'no-shadow': 'off',
     'prefer-destructuring': 'off',
     'no-continue': 'off',

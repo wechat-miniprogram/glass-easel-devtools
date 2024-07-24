@@ -1,16 +1,21 @@
 import { type protocol } from 'glass-easel-devtools-agent'
+import { sendRequest } from '../../message_channel'
 
 Component()
   .property('value', {
     type: Object,
     value: null as null | protocol.GlassEaselVar,
   })
+  .property('varName', String)
+  .property('nodeId', Number)
+  .property('attribute', String)
   .data(() => ({
     slices: [] as { dynamic: boolean; str: string }[],
     allowInspect: false,
   }))
-  .init(({ setData, observer }) => {
-    observer('value', (v) => {
+  .init(({ self, data, setData, observer, method }) => {
+    observer(['value', 'nodeId', 'attribute'], () => {
+      const v = data.value
       if (!v) {
         setData({ slices: [], allowInspect: false })
         return
@@ -42,12 +47,23 @@ Component()
           allowInspect: false,
         })
       } else if (v.type === 'function') {
-        setData({ slices: [{ dynamic: true, str: 'Function' }], allowInspect: true })
+        setData({ slices: [{ dynamic: true, str: 'Function' }], allowInspect: data.nodeId > 0 })
       } else if (v.type === 'object') {
-        setData({ slices: [{ dynamic: true, str: 'Object' }], allowInspect: true })
+        setData({ slices: [{ dynamic: true, str: 'Object' }], allowInspect: data.nodeId > 0 })
       } else if (v.type === 'array') {
-        setData({ slices: [{ dynamic: true, str: 'Array' }], allowInspect: true })
+        setData({ slices: [{ dynamic: true, str: 'Array' }], allowInspect: data.nodeId > 0 })
       }
     })
+
+    const useInConsole = method(async () => {
+      const { nodeId, attribute } = data
+      const { varName } = await sendRequest('DOM.useGlassEaselAttributeInConsole', {
+        nodeId,
+        attribute,
+      })
+      self.setData({ varName })
+    })
+
+    return { useInConsole }
   })
   .register()

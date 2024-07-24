@@ -3,6 +3,12 @@
   style="{{ hidden ? 'display: none;' : '' }}{{ style }}"
   bind:mouseenter="hoverStart"
   bind:mouseleave="hoverEnd"
+  bind:mousedown="mousedown"
+  bind:mousemove="mousemove"
+  bind:mouseup="mouseup"
+  bind:touchstart="touchstart"
+  bind:touchmove="touchmove"
+  bind:touchend="touchend"
 >
   <slot/>
 </div>

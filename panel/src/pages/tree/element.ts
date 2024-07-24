@@ -35,8 +35,10 @@ export const compDef = Component()
     hasSlotContent: false,
     showChildNodes: false,
     children: [] as protocol.dom.Node[],
+    tagVarName: '',
   }))
   .init((ctx) => {
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     const { self, data, setData, observer, listener, method } = ctx
     let nodeId = 0
     const initNodeId = (n: protocol.NodeId) => {
@@ -189,7 +191,18 @@ export const compDef = Component()
     const endHoverTag = listener(() => {
       if (store.highlightNodeId === nodeId) store.setHighlightNode(0)
     })
+    const useElementInConsole = method(async () => {
+      const { varName } = await sendRequest('DOM.useGlassEaselElementInConsole', { nodeId })
+      setData({ tagVarName: varName })
+    })
 
-    return { toggleChildren, visitChildNodePath, selectTag, startHoverTag, endHoverTag }
+    return {
+      toggleChildren,
+      visitChildNodePath,
+      selectTag,
+      startHoverTag,
+      endHoverTag,
+      useElementInConsole,
+    }
   })
   .register()

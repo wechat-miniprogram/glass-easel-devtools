@@ -23,6 +23,7 @@ Component()
     propertyPassingDeepCopy: DeepCopyKind.None,
   })
   .data(() => ({
+    nodeId: 0 as protocol.NodeId,
     nodeTypeName: '',
     info: DEFAULT_NODE_DATA as protocol.dom.GetGlassEaselAttributes['response'],
     boxModel: null as null | protocol.dom.GetBoxModel['response'],
@@ -54,7 +55,7 @@ Component()
         } else if (info.glassEaselNodeType === protocol.dom.GlassEaselNodeType.TextNode) {
           nodeTypeName = 'Text Node'
         }
-        setData({ nodeTypeName, info })
+        setData({ nodeId, nodeTypeName, info })
 
         // fetch box model
         if (!data.boxModelCollapsed) {

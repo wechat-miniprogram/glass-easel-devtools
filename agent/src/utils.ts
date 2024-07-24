@@ -8,9 +8,10 @@ export const warn = (msg: string, ...args: unknown[]) => {
   console.warn(`[glass-easel-miniprogram-agent] ${msg}`, ...args)
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const debug = (msg: string, ...args: unknown[]) => {
   // eslint-disable-next-line no-console
-  console.debug(`[glass-easel-miniprogram-agent] ${msg}`, ...args)
+  // console.debug(`[glass-easel-miniprogram-agent] ${msg}`, ...args)
 }
 
 export const backendUnsupported = (apiName: string) => {

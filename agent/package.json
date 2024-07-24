@@ -7,12 +7,15 @@
     "dev": "webpack --config webpack.config.js --mode development --watch"
   },
   "peerDependencies": {
-    "glass-easel": "^0.8.0"
+    "glass-easel": "^0.8.2"
   },
   "devDependencies": {
+    "@csstools/css-tokenizer": "^2.4.1",
+    "@csstools/selector-specificity": "^3.1.1",
     "@types/node": "^20.14.9",
     "devtools-protocol": "^0.0.1319565",
-    "glass-easel": "^0.8.0",
-    "glass-easel-template-compiler": "^0.8.0"
+    "glass-easel": "^0.8.2",
+    "glass-easel-template-compiler": "^0.8.2",
+    "postcss-selector-parser": "^6.1.1"
   }
 }
