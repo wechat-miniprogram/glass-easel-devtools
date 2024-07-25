@@ -4,6 +4,7 @@
 @secondary-bg: #ccc;
 @selected-bg: #add;
 @hover-bg: #ace;
+@update-bg: #dd8;
 
 @tag-name: #408;
 @core-attribute-name: #084;

@@ -1,6 +1,22 @@
 @import url('../common.wxss');
 
-:host {
+@keyframes value-update-ani {
+  from {
+    background: @update-bg;
+  }
+  to {
+    background: transparent;
+  }
+}
+.updated {
+  background: @update-bg;
+  animation-duration: 1s;
+  animation-fill-mode: both;
+  animation-name: value-update-ani;
+  animation-timing-function: ease;
+}
+
+.wrapper {
   display: inline-block;
 }
 

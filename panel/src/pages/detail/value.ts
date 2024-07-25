@@ -1,7 +1,14 @@
+import * as glassEasel from 'glass-easel'
 import { type protocol } from 'glass-easel-devtools-agent'
 import { sendRequest } from '../../message_channel'
 
 Component()
+  .options({
+    virtualHost: true,
+    dataDeepCopy: glassEasel.DeepCopyKind.None,
+    propertyPassingDeepCopy: glassEasel.DeepCopyKind.None,
+  })
+  .property('primitiveValue', null)
   .property('value', {
     type: Object,
     value: null as null | protocol.GlassEaselVar,
@@ -12,13 +19,24 @@ Component()
   .data(() => ({
     slices: [] as { dynamic: boolean; str: string }[],
     allowInspect: false,
+    updateHighlight: false,
   }))
   .init(({ self, data, setData, observer, method }) => {
-    observer(['value', 'nodeId', 'attribute'], () => {
-      const v = data.value
+    let prevNodeId = 0
+    observer(['value', 'primitiveValue'], () => {
+      const v: protocol.GlassEaselVar = data.value ?? {
+        type: 'primitive',
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        value: data.primitiveValue,
+      }
       if (!v) {
         setData({ slices: [], allowInspect: false })
         return
+      }
+      if (data.nodeId === prevNodeId) {
+        updatedAni()
+      } else {
+        prevNodeId = data.nodeId
       }
       if (v.type === 'primitive') {
         if (v.value === null) {
@@ -53,6 +71,26 @@ Component()
       } else if (v.type === 'array') {
         setData({ slices: [{ dynamic: true, str: 'Array' }], allowInspect: data.nodeId > 0 })
       }
+    })
+
+    let updateAniEndTimeout = 0
+    const updatedAni = method(() => {
+      setTimeout(() => {
+        if (data.updateHighlight) {
+          setData({ updateHighlight: false })
+          updatedAni()
+          return
+        }
+        if (updateAniEndTimeout) {
+          clearTimeout(updateAniEndTimeout)
+          updateAniEndTimeout = 0
+        }
+        self.setData({ updateHighlight: true, varName: '' })
+        updateAniEndTimeout = setTimeout(() => {
+          updateAniEndTimeout = 0
+          setData({ updateHighlight: false })
+        }, 1000)
+      }, 200)
     })
 
     const useInConsole = method(async () => {

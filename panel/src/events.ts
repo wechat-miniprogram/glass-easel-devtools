@@ -68,3 +68,30 @@ export const childNodeInserted = new EventDispatcher<
 setEventHandler('DOM.childNodeInserted', (args) => {
   childNodeInserted.dispatch(args)
 })
+
+export const childNodeRemoved = new EventDispatcher<
+  'parentNodeId',
+  protocol.NodeId,
+  protocol.dom.ChildNodeRemoved['detail']
+>('parentNodeId')
+setEventHandler('DOM.childNodeRemoved', (args) => {
+  childNodeRemoved.dispatch(args)
+})
+
+export const characterDataModified = new EventDispatcher<
+  'nodeId',
+  protocol.NodeId,
+  protocol.dom.CharacterDataModified['detail']
+>('nodeId')
+setEventHandler('DOM.characterDataModified', (args) => {
+  characterDataModified.dispatch(args)
+})
+
+export const attributeModified = new EventDispatcher<
+  'nodeId',
+  protocol.NodeId,
+  protocol.dom.AttributeModified['detail']
+>('nodeId')
+setEventHandler('DOM.attributeModified', (args) => {
+  attributeModified.dispatch(args)
+})

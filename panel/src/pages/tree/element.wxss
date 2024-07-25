@@ -1,5 +1,21 @@
 @import url('../common.wxss');
 
+@keyframes update-ani {
+  from {
+    background: @update-bg;
+  }
+  to {
+    background: transparent;
+  }
+}
+.updated {
+  background: @update-bg;
+  animation-duration: 1s;
+  animation-fill-mode: both;
+  animation-name: update-ani;
+  animation-timing-function: ease;
+}
+
 :host {
   display: block;
 }

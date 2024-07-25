@@ -1,4 +1,4 @@
-<view wx:if="{{ kind === 1 || kind === 2 }}" class="tag">
+<view wx:if="{{ kind === 1 || kind === 2 }}" class="tag {{ tagUpdateHighlight ? 'updated' : '' }}">
   <view class="fold-arrow">
     <view wx:if="{{ hasChildNodes || hasSlotContent || hasShadowRoot }}" class="fold-arrow-icon {{ showChildNodes ? 'fold-arrow-icon_open' : '' }}" catch:tap="toggleChildren">▶</view>
   </view>
@@ -18,7 +18,7 @@
           <block>{{ ' ' }}</block>
           <view class="attribute-name {{ item.isProperty ? 'attribute-name_property' : '' }}">{{ item.name }}</view>
           <block>{{ '="' }}</block>
-          <view class="attribute-value">{{ item.value }}</view>
+          <view class="attribute-value {{ item.updateAniTs ? 'updated' : '' }}">{{ item.value }}</view>
           <block>{{ '"' }}</block>
         </view>
       </block>
@@ -42,6 +42,6 @@
   </view>
 </view>
 
-<view wx:elif="{{ kind === 0 }}" class="text-content">
+<view wx:elif="{{ kind === 0 }}" class="text-content {{ tagUpdateHighlight ? 'updated' : '' }}">
   <view>{{ textContent }}</view>
 </view>

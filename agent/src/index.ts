@@ -96,11 +96,13 @@ class InspectorDevToolsImpl implements glassEasel.InspectorDevTools {
 
   // eslint-disable-next-line class-methods-use-this
   addMountPoint(root: glassEasel.Element, env: glassEasel.MountPointEnv): void {
+    debug('attach mount point', root)
     this.mountPoints.attach(root, env)
   }
 
   // eslint-disable-next-line class-methods-use-this
   removeMountPoint(root: glassEasel.GeneralComponent): void {
+    debug('detach mount point', root)
     this.mountPoints.detach(root)
   }
 }

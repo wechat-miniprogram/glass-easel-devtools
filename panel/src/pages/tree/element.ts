@@ -1,12 +1,19 @@
 import { DeepCopyKind } from 'glass-easel'
 import { initStoreBindings } from 'mobx-miniprogram-bindings'
 import { protocol } from 'glass-easel-devtools-agent'
-import { childNodeCountUpdated, childNodeInserted, setChildNodes } from '../../events'
+import {
+  childNodeCountUpdated,
+  childNodeInserted,
+  childNodeRemoved,
+  setChildNodes,
+  characterDataModified,
+  attributeModified,
+} from '../../events'
 import { sendRequest } from '../../message_channel'
 import { error, warn } from '../../utils'
 import { store } from '../store'
 
-type AttributeMeta = { name: string; value: string; isProperty: boolean }
+type AttributeMeta = { name: string; value: string; isProperty: boolean; updateAniTs: number }
 
 const enum DisplayKind {
   Text = 0,
@@ -36,6 +43,7 @@ export const compDef = Component()
     showChildNodes: false,
     children: [] as protocol.dom.Node[],
     tagVarName: '',
+    tagUpdateHighlight: false,
   }))
   .init((ctx) => {
     // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -82,8 +90,86 @@ export const compDef = Component()
         self.groupUpdates(() => {
           self.spliceArrayDataOnPath(['children'], before, 0, [node])
         })
+        const childComp = self.selectComponent(`#child-${node.nodeId}`, compDef)
+        childComp?.tagUpdatedAni()
       },
     )
+    childNodeRemoved.bindComponentLifetimes(
+      ctx,
+      () => nodeId,
+      ({ nodeId: childNodeId }) => {
+        const index = data.children.map((x) => x.nodeId).indexOf(childNodeId)
+        if (index < 0) return
+        self.groupUpdates(() => {
+          self.spliceArrayDataOnPath(['children'], index, 1, [])
+        })
+        tagUpdatedAni()
+      },
+    )
+    characterDataModified.bindComponentLifetimes(
+      ctx,
+      () => nodeId,
+      ({ characterData }) => {
+        setData({ textContent: characterData })
+        tagUpdatedAni()
+      },
+    )
+    let updateAniEndTimeout = 0
+    const tagUpdatedAni = method(() => {
+      setTimeout(() => {
+        if (data.tagUpdateHighlight) {
+          setData({ tagUpdateHighlight: false })
+          tagUpdatedAni()
+          return
+        }
+        if (updateAniEndTimeout) {
+          clearTimeout(updateAniEndTimeout)
+          updateAniEndTimeout = 0
+        }
+        self.setData({ tagUpdateHighlight: true })
+        updateAniEndTimeout = setTimeout(() => {
+          updateAniEndTimeout = 0
+          setData({ tagUpdateHighlight: false })
+        }, 1000)
+      }, 200)
+    })
+
+    // attribute listeners
+    attributeModified.bindComponentLifetimes(
+      ctx,
+      () => nodeId,
+      ({ name, value }) => {
+        data.attributes.forEach((attr, index) => {
+          if (attr.name === name) {
+            self.groupUpdates(() => {
+              self.replaceDataOnPath(['attributes', index, 'value'], value)
+            })
+            attrUpdatedAni(index)
+          }
+        })
+      },
+    )
+    const attrUpdatedAni = (index: number) => {
+      setTimeout(() => {
+        if (data.attributes[index].updateAniTs) {
+          self.groupUpdates(() => {
+            self.replaceDataOnPath(['attributes', index, 'updateAniTs'], 0)
+          })
+          attrUpdatedAni(index)
+          return
+        }
+        const now = Date.now()
+        self.groupUpdates(() => {
+          self.replaceDataOnPath(['attributes', index, 'updateAniTs'], now)
+        })
+        updateAniEndTimeout = setTimeout(() => {
+          if (data.attributes[index].updateAniTs !== now) return
+          self.groupUpdates(() => {
+            self.replaceDataOnPath(['attributes', index, 'updateAniTs'], 0)
+          })
+        }, 1000)
+      }, 200)
+    }
 
     // init node info
     observer('nodeInfo', (nodeInfo) => {
@@ -101,7 +187,7 @@ export const compDef = Component()
           const name = nv[i]
           const value = nv[i + 1] ?? ''
           const isProperty = i / 2 >= coreAttrCount
-          attributes.push({ name, value, isProperty })
+          attributes.push({ name, value, isProperty, updateAniTs: 0 })
         }
         const hasShadowRoot = nodeInfo?.shadowRootType === 'open'
         const shadowRoots = nodeInfo?.shadowRoots ?? []
@@ -203,6 +289,7 @@ export const compDef = Component()
       startHoverTag,
       endHoverTag,
       useElementInConsole,
+      tagUpdatedAni,
     }
   })
   .register()

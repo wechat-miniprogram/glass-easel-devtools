@@ -1,4 +1,6 @@
-<view wx:for="{{ slices }}" class="slice {{ item.dynamic ? 'slice_dynamic' : '' }}">{{ item.str }}</view>
+<view class="wrapper {{ updateHighlight ? 'updated' : '' }}">
+  <view wx:for="{{ slices }}" class="slice {{ item.dynamic ? 'slice_dynamic' : '' }}">{{ item.str }}</view>
+</view>
 <block wx:if="{{ allowInspect }}">
   <view wx:if="{{ varName }}" class="var-name">={{ varName }}</view>
   <view wx:else class="var-name" hover-class="var-name_hover" catch:tap="useInConsole">↖</view>

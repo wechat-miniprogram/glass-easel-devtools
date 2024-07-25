@@ -1,6 +1,8 @@
+/* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable @typescript-eslint/no-var-requires */
 
 const path = require('path')
+const { DefinePlugin } = require('webpack')
 const {
   GlassEaselMiniprogramWebpackPlugin,
   GlassEaselMiniprogramWxmlLoader,
@@ -56,6 +58,9 @@ module.exports = [
       ],
     },
     plugins: [
+      new DefinePlugin({
+        DEV: 'false',
+      }),
       new MiniCssExtractPlugin({
         filename: 'index.css',
       }),

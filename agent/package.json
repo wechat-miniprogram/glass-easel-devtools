@@ -3,8 +3,8 @@
   "version": "0.7.0",
   "main": "dist/index.js",
   "scripts": {
-    "build": "webpack --config webpack.config.js --no-devtool",
-    "dev": "webpack --config webpack.config.js --mode development --watch"
+    "build": "webpack --config webpack.config.js",
+    "dev": "webpack --config webpack.dev.config.js --watch"
   },
   "peerDependencies": {
     "glass-easel": "^0.8.2"

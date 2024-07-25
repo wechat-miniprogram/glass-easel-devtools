@@ -2,6 +2,7 @@ import { DeepCopyKind } from 'glass-easel'
 import { autorun } from 'mobx-miniprogram'
 import { protocol, sendRequest } from '../../message_channel'
 import { store } from '../store'
+import { attributeModified } from '../../events'
 
 const DEFAULT_NODE_DATA = {
   glassEaselNodeType: 0,
@@ -33,7 +34,7 @@ Component()
     computedStyles: null as null | { name: string; value: string }[],
     computedStyleCollapsed: true,
   }))
-  .init(({ data, setData, lifetime, method }) => {
+  .init(({ self, data, setData, lifetime, method }) => {
     lifetime('attached', () => {
       autorun(async () => {
         const nodeId = store.selectedNodeId
@@ -41,6 +42,9 @@ Component()
           setData({ info: DEFAULT_NODE_DATA })
           return
         }
+
+        // register attributes listeners
+        updateListener(nodeId)
 
         // fetch normal attributes
         const info = await sendRequest('DOM.getGlassEaselAttributes', { nodeId })
@@ -73,6 +77,91 @@ Component()
         }
       })
     })
+
+    let listeningNodeId = 0
+    const updateListenerFunc = (args: protocol.dom.AttributeModified['detail']) => {
+      const { name, value, detail, nameType } = args
+      if (nameType === 'attribute') {
+        const index = data.info.normalAttributes?.map((x) => x.name).indexOf(name) ?? -1
+        if (index >= 0) {
+          self.groupUpdates(() => {
+            self.replaceDataOnPath(
+              ['info', 'normalAttributes', index, 'value'],
+              detail as unknown as never,
+            )
+          })
+        }
+      } else if (nameType === 'component-property') {
+        const index = data.info.properties?.map((x) => x.name).indexOf(name) ?? -1
+        if (index >= 0) {
+          self.groupUpdates(() => {
+            self.replaceDataOnPath(
+              ['info', 'properties', index, 'value'],
+              detail as unknown as never,
+            )
+          })
+        }
+      } else if (nameType === 'slot-value') {
+        const index = data.info.slotValues?.map((x) => x.name).indexOf(name) ?? -1
+        if (index >= 0) {
+          self.groupUpdates(() => {
+            self.replaceDataOnPath(
+              ['info', 'slotValues', index, 'value'],
+              detail as unknown as never,
+            )
+          })
+        }
+      } else if (nameType === 'dataset' && name.startsWith('data:')) {
+        const index = data.info.dataset.map((x) => x.name).indexOf(name.slice(5)) ?? -1
+        if (index >= 0) {
+          self.groupUpdates(() => {
+            self.replaceDataOnPath(['info', 'dataset', index, 'value'], detail)
+          })
+        }
+      } else if (nameType === 'mark' && name.startsWith('mark:')) {
+        const index = data.info.marks.map((x) => x.name).indexOf(name.slice(5)) ?? -1
+        if (index >= 0) {
+          self.groupUpdates(() => {
+            self.replaceDataOnPath(['info', 'marks', index, 'value'], detail)
+          })
+        }
+      } else if (nameType === 'external-class') {
+        const index = data.info.externalClasses?.map((x) => x.name).indexOf(name) ?? -1
+        if (index >= 0) {
+          self.groupUpdates(() => {
+            self.replaceDataOnPath(
+              ['info', 'externalClasses', index, 'value'],
+              value as unknown as never,
+            )
+          })
+        }
+      } else if (name === 'slot') {
+        self.groupUpdates(() => {
+          self.replaceDataOnPath(['info', 'slot'], value)
+        })
+      } else if (name === 'id') {
+        self.groupUpdates(() => {
+          self.replaceDataOnPath(['info', 'id'], value)
+        })
+      } else if (name === 'class') {
+        self.groupUpdates(() => {
+          self.replaceDataOnPath(['info', 'class'], value)
+        })
+      } else if (name === 'name') {
+        self.groupUpdates(() => {
+          self.replaceDataOnPath(['info', 'slotName'], value)
+        })
+      }
+    }
+    const updateListener = (nodeId: protocol.NodeId) => {
+      if (listeningNodeId) {
+        attributeModified.removeListener(listeningNodeId, updateListenerFunc)
+      }
+      if (nodeId) {
+        attributeModified.addListener(nodeId, updateListenerFunc)
+      }
+      listeningNodeId = nodeId
+    }
 
     const refreshBoxModel = method(async () => {
       const nodeId = store.selectedNodeId

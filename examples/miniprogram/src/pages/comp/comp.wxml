@@ -1,0 +1,7 @@
+<div class="hello-class hover-class" custom-attr="custom-value">
+  This component has external classes.
+  <div catch:tap="updateRandom">
+    Tap here to update slot values.
+    <slot hello="{{ hello: 'component' }}" random="{{ random }}" />
+  </div>
+</div>

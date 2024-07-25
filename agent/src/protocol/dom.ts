@@ -210,6 +210,7 @@ export interface GetGlassEaselAttributes extends RequestResponse {
     }[]
     normalAttributes?: { name: string; value: GlassEaselVar }[]
     properties?: { name: string; value: GlassEaselVar }[]
+    externalClasses?: { name: string; value: string }[]
     dataset: { name: string; value: GlassEaselVar }[]
     marks: { name: string; value: GlassEaselVar }[]
   }
@@ -363,12 +364,25 @@ export interface ChildNodeCountUpdated extends EventDetail {
 }
 
 export interface AttributeRemoved extends EventDetail {
-  detail: { nodeId: NodeId; name: string }
+  detail: { nodeId: NodeId; name: string; nameType: 'attribute' }
   cdpEventDetail: Protocol.DOM.AttributeRemovedEvent
 }
 
 export interface AttributeModified extends EventDetail {
-  detail: { nodeId: NodeId; name: string; value: string; detail: GlassEaselVar }
+  detail: {
+    nodeId: NodeId
+    name: string
+    value: string
+    detail: GlassEaselVar
+    nameType:
+      | 'basic'
+      | 'attribute'
+      | 'component-property'
+      | 'slot-value'
+      | 'dataset'
+      | 'mark'
+      | 'external-class'
+  }
   cdpEventDetail: Protocol.DOM.AttributeModifiedEvent
 }
 

@@ -1,6 +1,8 @@
+/* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable @typescript-eslint/no-var-requires */
 
 const path = require('path')
+const { DefinePlugin } = require('webpack')
 
 module.exports = [
   {
@@ -13,7 +15,6 @@ module.exports = [
         type: 'commonjs2',
       },
     },
-    devtool: 'inline-source-map',
     resolve: {
       extensions: ['.ts', '.js'],
       alias: {
@@ -34,5 +35,10 @@ module.exports = [
         },
       ],
     },
+    plugins: [
+      new DefinePlugin({
+        DEV: 'false',
+      }),
+    ],
   },
 ]

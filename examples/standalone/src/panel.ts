@@ -44,16 +44,22 @@ iframe.onload = () => {
   agentTag.src = 'dist/agent.js'
   iframeWindow.document.body.appendChild(agentTag)
   iframeWindow.history.replaceState(null, '', '../miniprogram/dist/index.html')
-  setTimeout(() => {
-    const styleTag = iframeWindow.document.createElement('link')
-    styleTag.setAttribute('rel', 'stylesheet')
-    styleTag.setAttribute('href', 'index.css')
-    iframeWindow.document.head.appendChild(styleTag)
-    const scriptTag = iframeWindow.document.createElement('script')
-    scriptTag.src = 'index.js'
-    iframeWindow.document.body.appendChild(scriptTag)
-    panel.restart()
-  }, 100)
+  const onAgentReady = () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    if (typeof (iframeWindow as any).__glassEaselDevTools__ !== 'undefined') {
+      const styleTag = iframeWindow.document.createElement('link')
+      styleTag.setAttribute('rel', 'stylesheet')
+      styleTag.setAttribute('href', 'index.css')
+      iframeWindow.document.head.appendChild(styleTag)
+      const scriptTag = iframeWindow.document.createElement('script')
+      scriptTag.src = 'index.js'
+      iframeWindow.document.body.appendChild(scriptTag)
+      panel.restart()
+    } else {
+      setTimeout(onAgentReady, 50)
+    }
+  }
+  onAgentReady()
 }
 document.body.appendChild(iframe)
 

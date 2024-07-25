@@ -8,11 +8,20 @@
 
   <view class="right">
     <view hidden>This element is hidden.</view>
-    <view data-num-data="{{ 1 }}" data:arrayData="{{ ['a', 'b', 'c'] }}">This element has dataset.</view>
-    <view mark:objectData="{{ field1: false, field2: 'test' }}">This element has some marks.</view>
+
     <view style="padding: 1px 2px 3px 4px">This element has paddings.</view>
     <view style="border: 0 solid #808080; border-width: 1px 2px 3px 4px">This element has borders.</view>
     <view style="margin: 1px 2px 3px 4px">This element has margins.</view>
     <view class="my-class">This element has media query styles.</view>
+
+    <view class="{{ class }}" catch:tap="modifyClass">Tap here to change classes.</view>
+    <view style="padding-left: {{ paddingLeft }}px" catch:tap="modifyStyle">Tap here to change styles.</view>
+    <view data-num-data="{{ 1 }}" data:arrayData="{{ arrayData }}" catch:tap="modifyArrayData">Tap here to change dataset.</view>
+    <view mark:objectData="{{ objectData }}" catch:tap="modifyObjectData">Tap here to change marks.</view>
+    <view class="child-list" catch:tap="modifyChildList">Tap here to switch some child nodes. ({{ childList.length }} nodes)
+      <view wx:for="{{ childList }}" wx:key="*this">child: {{ item }}</view>
+    </view>
+
+    <comp hello-class="my-hello-class-impl" hover-class=" my-class  {{ class }} " catch:tap="modifyClass"></comp>
   </view>
 </view>

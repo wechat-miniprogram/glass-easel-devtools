@@ -1,4 +1,4 @@
-import type * as glassEasel from 'glass-easel'
+import * as glassEasel from 'glass-easel'
 import { type protocol, type Connection } from '.'
 import {
   type GlassEaselVar,
@@ -14,6 +14,8 @@ import { warn } from './utils'
 export type NodeMeta = {
   node: glassEasel.Node
   nodeId: NodeId
+  childNodesSent: boolean
+  observer: glassEasel.MutationObserver
 }
 
 export const enum StaticNodeName {
@@ -201,9 +203,10 @@ export class MountPointsManager {
         processListeners(false, maybeEventTarget.listeners)
       }
 
-      // collect attributes or properties
+      // collect attributes, properties, and external classes
       let normalAttributes: { name: string; value: GlassEaselVar }[] | undefined
       let properties: { name: string; value: GlassEaselVar }[] | undefined
+      let externalClasses: { name: string; value: string }[] | undefined
       if (nativeNode) {
         normalAttributes = []
         elem.attributes.forEach(({ name, value }) => {
@@ -217,6 +220,13 @@ export class MountPointsManager {
         names.forEach((name) => {
           properties!.push({ name, value: toGlassEaselVar(comp.data[name]) })
         })
+        const ec = comp.getExternalClasses()
+        if (ec) {
+          externalClasses = Object.entries(ec).map(([name, value]) => ({
+            name,
+            value: value?.join(' ') ?? '',
+          }))
+        }
       }
 
       // collect dataset
@@ -242,6 +252,7 @@ export class MountPointsManager {
         eventBindings,
         normalAttributes,
         properties,
+        externalClasses,
         dataset,
         marks,
       }
@@ -515,12 +526,123 @@ export class MountPointsManager {
 
   // eslint-disable-next-line class-methods-use-this
   private startWatch(node: glassEasel.Node) {
-    // TODO
+    const observer = glassEasel.MutationObserver.create((ev) => {
+      const node = ev.target
+      const nodeId = this.getNodeId(node)
+      const nodeMeta = this.activeNodes[nodeId]
+      if (!nodeMeta) return
+      if (ev.type === 'properties') {
+        const elem = node.asElement()!
+        const nameType = ev.nameType
+        if (nameType === 'attribute') {
+          const name = ev.attributeName ?? ''
+          const v = elem.getAttribute(name)
+          if (v === null || v === 'undefined') {
+            this.conn.sendEvent('DOM.attributeRemoved', { nodeId, name, nameType })
+          } else {
+            const detail = toGlassEaselVar(v)
+            const value = glassEaselVarToString(detail)
+            this.conn.sendEvent('DOM.attributeModified', {
+              nodeId,
+              name,
+              value,
+              detail,
+              nameType,
+            })
+          }
+        } else {
+          let name: string | undefined
+          let v: unknown
+          if (nameType === 'component-property') {
+            name = ev.propertyName ?? ''
+            v = elem.asGeneralComponent()?.data[name]
+          } else if (nameType === 'slot-value') {
+            name = ev.propertyName ?? ''
+            const maybeSlotValues = Reflect.get(elem, '_$slotValues') as unknown
+            if (typeof maybeSlotValues === 'object' && maybeSlotValues !== null) {
+              v = (maybeSlotValues as { [name: string]: unknown })[name]
+            }
+          } else if (nameType === 'dataset' && ev.attributeName?.startsWith('data:')) {
+            name = ev.attributeName ?? ''
+            v = elem.dataset[name.slice(5)]
+          } else if (nameType === 'mark' && ev.attributeName?.startsWith('mark:')) {
+            name = ev.attributeName ?? ''
+            const marks = Reflect.get(elem, '_$marks') as { [key: string]: unknown } | undefined
+            v = marks?.[name.slice(5)]
+          } else if (nameType === 'external-class') {
+            name = ev.attributeName ?? ''
+            v = elem.asGeneralComponent()?.getExternalClasses()?.[name]?.join(' ') ?? ''
+          } else if (ev.attributeName === 'slot') {
+            name = ev.attributeName
+            v = elem.slot
+          } else if (ev.attributeName === 'id') {
+            name = ev.attributeName
+            v = elem.id
+          } else if (ev.attributeName === 'class') {
+            name = ev.attributeName
+            v = elem.class
+          } else if (ev.attributeName === 'style') {
+            name = ev.attributeName
+            v = elem.style
+          } else if (ev.attributeName === 'name') {
+            name = ev.attributeName
+            v = Reflect.get(elem, '_$slotName')
+          }
+          if (name) {
+            const detail = toGlassEaselVar(v)
+            const value = glassEaselVarToString(detail)
+            this.conn.sendEvent('DOM.attributeModified', {
+              nodeId,
+              name,
+              value,
+              detail,
+              nameType,
+            })
+          } else {
+            warn('unknown mutation observer event')
+          }
+        }
+        return
+      }
+      if (ev.type === 'childList') {
+        if (!nodeMeta.childNodesSent) return
+        const parent = node.asElement()!
+        ev.addedNodes?.forEach((child) => {
+          const index = parent.childNodes.indexOf(child)
+          if (index < 0) return
+          const previousNodeId = index === 0 ? 0 : this.getNodeId(parent.childNodes[index - 1])
+          const childMeta = this.activateNode(child)
+          this.conn.sendEvent('DOM.childNodeInserted', {
+            parentNodeId: nodeId,
+            previousNodeId,
+            node: this.collectNodeDetails(childMeta, 0, false),
+          })
+        })
+        ev.removedNodes?.forEach((child) => {
+          this.deactivateNodeTree(child)
+          this.conn.sendEvent('DOM.childNodeRemoved', {
+            parentNodeId: nodeId,
+            nodeId: this.getNodeId(child),
+          })
+        })
+        return
+      }
+      if (ev.type === 'characterData') {
+        this.conn.sendEvent('DOM.characterDataModified', {
+          nodeId,
+          characterData: node.asTextNode()!.textContent,
+        })
+        return
+      }
+      warn('unknown mutation observer event')
+    })
+    observer.observe(node, { properties: 'all', characterData: true, childList: true })
+    return observer
   }
 
   // eslint-disable-next-line class-methods-use-this
-  private endWatch(node: glassEasel.Node) {
-    // TODO
+  private endWatch(observer: glassEasel.MutationObserver) {
+    observer.disconnect()
   }
 
   /**
@@ -543,9 +665,9 @@ export class MountPointsManager {
       else p = undefined
       if (p) this.activateNode(p)
     }
-    const nodeMeta = { node, nodeId }
+    const observer = this.startWatch(node)
+    const nodeMeta = { node, nodeId, observer, childNodesSent: false }
     this.activeNodes[nodeId] = nodeMeta
-    this.startWatch(node)
     return nodeMeta
   }
 
@@ -558,14 +680,15 @@ export class MountPointsManager {
     if (!this.activeNodes[nodeId]) {
       return nodeId
     }
-    delete this.activeNodes[nodeId]
-    this.endWatch(node)
-    const shadowRoot = (node as glassEasel.GeneralComponent).getShadowRoot?.()
+    const { observer } = this.activeNodes[nodeId]
+    this.endWatch(observer)
+    const shadowRoot = node.asGeneralComponent()?.getShadowRoot?.()
     if (shadowRoot) this.deactivateNodeTree(shadowRoot)
     const childNodes: glassEasel.Node[] | undefined = (node as glassEasel.Element).childNodes
     if (childNodes) {
       childNodes.forEach((node) => this.deactivateNodeTree(node))
     }
+    delete this.activeNodes[nodeId]
     return nodeId
   }
 
@@ -658,6 +781,9 @@ export class MountPointsManager {
               if (comp.getComponentDefinition().behavior.getPropertyType(name) !== undefined) {
                 const value = comp.data[name] as unknown
                 attributes.push(name, glassEaselVarToString(toGlassEaselVar(value)))
+              } else if (comp.hasExternalClass(name)) {
+                const value = comp.getExternalClasses()[name]?.join(' ')
+                attributes.push(name, glassEaselVarToString(toGlassEaselVar(value)))
               }
             } else if (typeof Reflect.get(elem, '_$slotName') === 'string') {
               const maybeSlotValues = Reflect.get(elem, '_$slotValues') as unknown
@@ -713,6 +839,7 @@ export class MountPointsManager {
     if (depth > 1 && ty !== GlassEaselNodeType.TextNode) {
       const elem = node.asElement()!
       children = []
+      nodeMeta.childNodesSent = true
       elem.childNodes.forEach((child) => {
         const nodeMeta = this.activateNode(child)
         const n = this.collectNodeDetails(nodeMeta, depth - 1, false)
@@ -756,6 +883,7 @@ export class MountPointsManager {
     const { node, nodeId } = nodeMeta
     const elem = node.asElement()
     if (!elem) return
+    nodeMeta.childNodesSent = true
     const nodes: dom.Node[] = []
     elem.childNodes.forEach((child) => {
       const nodeMeta = this.activateNode(child)
