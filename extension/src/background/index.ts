@@ -21,7 +21,7 @@ const injectContentScript = (tabId: number) => {
   chrome.scripting.executeScript({
     target: {
       tabId,
-      allFrames: true,
+      allFrames: false,
     },
     files: ['dist/content.js'],
   })
@@ -106,6 +106,7 @@ const newContentScriptConnection = (port: chrome.runtime.Port) => {
 // inject agent when reloaded
 chrome.webNavigation.onDOMContentLoaded.addListener((ev) => {
   const tabId = ev.tabId
+  if (ev.frameId !== 0) return
   const tabMeta = tabMetaMap[tabId]
   if (!tabMeta) return
   injectContentScript(tabId)

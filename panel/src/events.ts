@@ -19,7 +19,7 @@ export class EventDispatcher<
   }
 
   removeListener(key: K, func: (args: T) => void) {
-    if (this.listeners[key]) this.listeners[key].filter((x) => x !== func)
+    if (this.listeners[key]) this.listeners[key] = this.listeners[key].filter((x) => x !== func)
   }
 
   bindComponentLifetimes(

@@ -103,6 +103,7 @@ export const componentDefinition = Component()
 
     // reconnect, clear elements, and fetch all elements
     const restart = method(() => {
+      store.selectNode(0)
       setData({ mountPoints: [] })
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       initDocument()

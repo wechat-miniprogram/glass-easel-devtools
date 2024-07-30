@@ -27,6 +27,18 @@ export const overlayCompDef = space
   .init((ctx) => {
     const { self, data, setData, method, listener } = ctx
 
+    // set host styles
+    self.setNodeStyle(`
+      display: block;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 0;
+      height: 0;
+      background: red;
+      z-index: 2147483647;
+    `)
+
     // selection
     let nodeSelectUpdateCallback:
       | null
@@ -164,17 +176,17 @@ export class OverlayManager {
     let placeholder: glassEasel.GeneralBackendElement
     if (ctx.mode === glassEasel.BackendMode.Composed) {
       parentElement = ctx.getRootNode()
-      placeholder = ctx.createElement('glass-easel-devtools-panel', 'glass-easel-devtools-panel')
+      placeholder = ctx.createElement('glass-easel-devtools-agent', 'glass-easel-devtools-agent')
       parentElement.appendChild(placeholder)
     } else if (ctx.mode === glassEasel.BackendMode.Domlike) {
       parentElement = ctx.getRootNode()
-      placeholder = ctx.document.createElement('glass-easel-devtools-panel')
+      placeholder = ctx.document.createElement('glass-easel-devtools-agent')
       parentElement.appendChild(placeholder)
     } else if (ctx.mode === glassEasel.BackendMode.Shadow) {
       const sr = ctx.getRootNode()
       parentElement = sr
       if (!sr) throw new Error('the host element should be inside of a shadow tree')
-      placeholder = sr.createElement('glass-easel-devtools-panel', 'glass-easel-devtools-panel')
+      placeholder = sr.createElement('glass-easel-devtools-agent', 'glass-easel-devtools-agent')
       sr.appendChild(placeholder)
     } else {
       throw new Error('unrecognized host backend mode')

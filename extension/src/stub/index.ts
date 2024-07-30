@@ -21,11 +21,17 @@ class Inspector implements InspectorDevTools {
 const glassEaselDevTools = {
   inspector: new Inspector(),
   _devToolsConnect(target: DevTools) {
+    if (devToolsTarget) {
+      this._devToolsDisconnect()
+    }
     devToolsTarget = target
     mountPoints.forEach((env, elem) => target.inspector?.addMountPoint(elem, env))
   },
   _devToolsDisconnect() {
+    if (!devToolsTarget) return
+    const target = devToolsTarget
     devToolsTarget = null
+    mountPoints.forEach((_, elem) => target.inspector?.removeMountPoint(elem))
   },
 }
 

@@ -1,44 +1,20 @@
+<!-- node select -->
 <div
-  wx:if="{{ state !== 0 }}"
+  wx:if="{{ state === 1 }}"
   style="
     position: absolute;
-    top: 0;
-    height: 0;
     left: 0;
-    width: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    {{ selectMoveDetecting ? 'transform: translateY(-200vh)' : '' }}
   "
+  bind:mousemove="nodeSelectMove"
+  bind:tap="nodeSelectDone"
 >
-  <!-- node select -->
   <div
-    wx:if="{{ state === 1 }}"
-    style="
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-      {{ selectMoveDetecting ? 'transform: translateY(-200vh)' : '' }}
-    "
-    bind:mousemove="nodeSelectMove"
-    bind:tap="nodeSelectDone"
-  >
-    <div
-      wx:if="{{ highlightRect }}"
-      style="
-        position: absolute;
-        left: {{ highlightRect.left }}px;
-        top: {{ highlightRect.top }}px;
-        width: {{ highlightRect.width }}px;
-        height: {{ highlightRect.height }}px;
-        background: rgba(0, 128, 192, 0.25);
-      "
-    />
-  </div>
-
-  <!-- temporary highlight -->
-  <div
-    wx:if="{{ state === 2 && highlightRect }}"
+    wx:if="{{ highlightRect }}"
     style="
       position: absolute;
       left: {{ highlightRect.left }}px;
@@ -49,3 +25,16 @@
     "
   />
 </div>
+
+<!-- temporary highlight -->
+<div
+  wx:if="{{ state === 2 && highlightRect }}"
+  style="
+    position: absolute;
+    left: {{ highlightRect.left }}px;
+    top: {{ highlightRect.top }}px;
+    width: {{ highlightRect.width }}px;
+    height: {{ highlightRect.height }}px;
+    background: rgba(0, 128, 192, 0.25);
+  "
+/>

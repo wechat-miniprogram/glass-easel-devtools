@@ -396,6 +396,8 @@ export class MountPointsManager {
             }
           }),
         )
+      } else {
+        this.listOverlayComponents().forEach((x) => x.endNodeSelect())
       }
     })
 
