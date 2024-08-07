@@ -10,10 +10,10 @@
   },
   "devDependencies": {
     "css-loader": "^7.1.2",
-    "glass-easel": "^0.8.2",
+    "glass-easel": "^0.9.0",
     "glass-easel-devtools-agent": "workspace:*",
-    "glass-easel-miniprogram-adapter": "^0.8.2",
-    "glass-easel-miniprogram-webpack-plugin": "^0.8.2",
+    "glass-easel-miniprogram-adapter": "^0.9.0",
+    "glass-easel-miniprogram-webpack-plugin": "^0.9.0",
     "less-loader": "^12.2.0",
     "mini-css-extract-plugin": "^2.9.0",
     "mobx-miniprogram": "^6.12.3",
