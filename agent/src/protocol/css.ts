@@ -91,6 +91,7 @@ export interface GetMatchedStylesForNode extends RequestResponse {
     inlineStyle: CSSStyle
     matchedCSSRules: CSSMatchedRule[]
     inherited: { inlineStyle?: CSSStyle; matchedCSSRules: CSSMatchedRule[] }[]
+    crossOriginFailing?: boolean
   }
   cdpRequestResponse: [
     Protocol.CSS.GetMatchedStylesForNodeRequest,

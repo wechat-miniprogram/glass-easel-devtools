@@ -359,7 +359,10 @@ export class MountPointsManager {
       if (!ctx || !elem) {
         throw new Error('no such backend node found')
       }
-      const { inline, inlineText, rules } = await backendUtils.getMatchedRules(ctx, elem)
+      const { inline, inlineText, rules, crossOriginFailing } = await backendUtils.getMatchedRules(
+        ctx,
+        elem,
+      )
       const inlineStyle = { cssProperties: inline, cssText: inlineText }
       const matchedCSSRules = rules.map((rule) => ({
         rule: {
@@ -369,7 +372,7 @@ export class MountPointsManager {
           inactive: rule.inactive || false,
         },
       }))
-      return { inlineStyle, matchedCSSRules, inherited: [] }
+      return { inlineStyle, matchedCSSRules, inherited: [], crossOriginFailing }
     })
 
     this.conn.setRequestHandler('Overlay.setInspectMode', async ({ mode }) => {

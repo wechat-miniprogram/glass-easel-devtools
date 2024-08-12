@@ -148,6 +148,7 @@ export const getMatchedRules = (
   inline: glassEasel.CSSProperty[]
   inlineText?: string
   rules: glassEasel.CSSRule[]
+  crossOriginFailing?: boolean
 }> => {
   const parseNameValueStr = (cssText: string) => {
     const ret: { name: string; value: string }[] = []
@@ -199,13 +200,22 @@ export const getMatchedRules = (
   return new Promise((resolve) => {
     if (ctx.mode === glassEasel.BackendMode.Domlike) {
       if (typeof ctx.getMatchedRules === 'function') {
-        ctx.getMatchedRules(elem as glassEasel.domlikeBackend.Element, (ret) => {
-          ret.rules = calcRuleWeight(ret.rules)
-          if (ret.inlineText) {
-            ret.inline = parseNameValueStr(ret.inlineText) ?? ret.inline
-          }
-          resolve(ret)
-        })
+        try {
+          ctx.getMatchedRules(elem as glassEasel.domlikeBackend.Element, (ret) => {
+            ret.rules = calcRuleWeight(ret.rules)
+            if (ret.inlineText) {
+              ret.inline = parseNameValueStr(ret.inlineText) ?? ret.inline
+            }
+            resolve(ret)
+          })
+        } catch (err) {
+          // this may throw when reading cross-origin stylesheets
+          resolve({
+            inline: [],
+            rules: [],
+            crossOriginFailing: true,
+          })
+        }
       } else {
         backendUnsupported('Context#getMatchedRules')
       }

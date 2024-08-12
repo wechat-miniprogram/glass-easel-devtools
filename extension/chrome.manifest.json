@@ -1,0 +1,28 @@
+{
+  "description": "DevTools extension for developing glass-easel applications",
+  "manifest_version": 3,
+  "name": "glass-easel DevTools",
+  "version": "0.9.0",
+  "homepage_url": "https://github.com/wechat-miniprogram/glass-easel",
+  "icons": {
+    "16": "icons/glass-easel-16.png",
+    "32": "icons/glass-easel-32.png",
+    "48": "icons/glass-easel-48.png",
+    "64": "icons/glass-easel-64.png",
+    "128": "icons/glass-easel-128.png",
+    "256": "icons/glass-easel-256.png",
+    "512": "icons/glass-easel-512.png"
+  },
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "webNavigation"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "dist/background.js"
+  },
+  "devtools_page": "dist/devtools.html"
+}

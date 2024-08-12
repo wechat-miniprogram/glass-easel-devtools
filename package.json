@@ -1,7 +1,8 @@
 {
   "scripts": {
     "init-dev": "pnpm i && npm run build",
-    "build": "pnpm -r run build"
+    "build": "pnpm -r run build",
+    "pack-extension": "npm run build && cd extension && node pack.js"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.268",

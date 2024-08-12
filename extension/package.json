@@ -4,7 +4,9 @@
   "main": "src/utils.ts",
   "scripts": {
     "build": "webpack --config webpack.config.js --no-devtool",
-    "dev": "webpack --config webpack.config.js --mode development --watch"
+    "dev": "webpack --config webpack.config.js --mode development --watch",
+    "debug-chrome": "ln -s -f chrome.manifest.json manifest.json",
+    "debug-firefox": "ln -s -f firefox.manifest.json manifest.json"
   },
   "dependencies": {
     "glass-easel": "^0.9.0",
@@ -12,6 +14,7 @@
     "glass-easel-devtools-panel": "workspace:*"
   },
   "devDependencies": {
+    "archiver": "^7.0.1",
     "copy-webpack-plugin": "^12.0.2"
   }
 }

@@ -147,6 +147,7 @@
   catch:refresh="refreshStyles"
 >
   <block wx:if="{{ !styleCollapsed && styles }}">
+    <view wx:if="{{ styles.crossOriginFailing }}">Failed to display styles due to inaccessable style sheets. This happens when style sheets are cross-origin served, or the page is visited as a local file.</view>
     <view wx:if="{{ styles.inlineStyle.cssProperties.length }}" class="style-rule">
       <view class="style-rule-prefix">Inline Style</view>
       <view wx:for="{{ styles.inlineStyle.cssProperties }}" class="section-item">
