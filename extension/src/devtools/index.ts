@@ -1,4 +1,4 @@
-import { inFirefox } from "../utils"
+import { inFirefox } from '../utils'
 
 chrome.devtools.panels.create(
   'glass-easel',

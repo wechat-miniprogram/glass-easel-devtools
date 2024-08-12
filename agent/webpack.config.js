@@ -35,6 +35,11 @@ module.exports = [
         },
       ],
     },
+    performance: {
+      hints: false,
+      maxEntrypointSize: 4 * 1024 * 1024,
+      maxAssetSize: 4 * 1024 * 1024,
+    },
     plugins: [
       new DefinePlugin({
         DEV: 'false',

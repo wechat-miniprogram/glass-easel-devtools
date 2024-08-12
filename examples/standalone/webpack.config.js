@@ -1,3 +1,4 @@
+/* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable @typescript-eslint/no-var-requires */
 
 const path = require('path')
@@ -26,6 +27,11 @@ module.exports = [
         },
       ],
     },
+    performance: {
+      hints: false,
+      maxEntrypointSize: 4 * 1024 * 1024,
+      maxAssetSize: 4 * 1024 * 1024,
+    },
   },
   {
     mode: 'production',
@@ -48,6 +54,11 @@ module.exports = [
           exclude: /node_modules/,
         },
       ],
+    },
+    performance: {
+      hints: false,
+      maxEntrypointSize: 4 * 1024 * 1024,
+      maxAssetSize: 4 * 1024 * 1024,
     },
   },
 ]

@@ -1,6 +1,6 @@
 {
   "name": "glass-easel-devtools-panel",
-  "version": "0.9.0-alpha.1",
+  "version": "0.0.1",
   "main": "dist/bootstrap.js",
   "scripts": {
     "build": "webpack --config webpack.config.js",
