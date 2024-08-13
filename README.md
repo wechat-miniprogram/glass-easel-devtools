@@ -34,7 +34,7 @@ For Firefox:
 
 ### Use Dev Builds of glass-easel
 
-Firstly, the dev builds of glass-easel should be used. By default, the glass-easel is built in production mode, which does not contain debug interfaces.
+Firstly, the dev builds of glass-easel (version >= 0.9.0) should be used. By default, the glass-easel is built in production mode, which does not contain debug interfaces.
 
 If you are using webpack, the best way to use the dev builds is adding following configuration into your `webpack.config.js` :
 
@@ -55,6 +55,8 @@ If you are not using webpack, you can manually modify the code - `import "glass-
 ### Open the Browser DevTools
 
 In the browser DevTools (F12), there should be a *glass-easel* panel.
+
+If there is any mount point created by dev builds of glass-easel, it will be shown in the tree view.
 
 
 ## Development Guide
