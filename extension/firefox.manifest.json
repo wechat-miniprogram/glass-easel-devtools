@@ -3,7 +3,7 @@
   "manifest_version": 3,
   "name": "glass-easel DevTools",
   "version": "0.9.0",
-  "homepage_url": "https://github.com/wechat-miniprogram/glass-easel",
+  "homepage_url": "https://github.com/wechat-miniprogram/glass-easel-devtools",
   "icons": {
     "16": "icons/glass-easel-16.png",
     "32": "icons/glass-easel-32.png",
@@ -24,5 +24,11 @@
   "background": {
     "scripts": ["dist/background.js"]
   },
-  "devtools_page": "dist/devtools.html"
+  "devtools_page": "dist/devtools.html",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "{24584dbe-1474-444a-8c08-24b8fae8d93d}",
+      "strict_min_version": "129.0"
+    }
+  }
 }
