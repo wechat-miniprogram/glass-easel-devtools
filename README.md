@@ -15,15 +15,15 @@ Still in rapid development.
 
 ## Installation
 
-### Easy Install
+### Easy Installation
 
-For Firefox, [install from add-ons center](https://addons.mozilla.org/zh-CN/firefox/addon/glass-easel-devtools/).
+For Chrome, [install from the Chrome web store](https://chromewebstore.google.com/detail/glass-easel-devtools/oojokbffoladmkgochnnchnngjefidfd).
 
-The Chrome Web Store version is still under review.
+For Firefox, [install from the add-ons center](https://addons.mozilla.org/zh-CN/firefox/addon/glass-easel-devtools/).
 
 ### Manual Installation
 
-See [releases](https://github.com/wechat-miniprogram/glass-easel-devtools/releases) for the latest builds.
+If you want a pre-release build, see [releases](https://github.com/wechat-miniprogram/glass-easel-devtools/releases) for the latest builds.
 
 For Chrome:
 
