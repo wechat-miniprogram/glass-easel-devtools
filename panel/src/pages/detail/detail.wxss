@@ -5,12 +5,12 @@
 }
 
 .section {
-  margin-bottom: 5px;
+  margin-bottom: 2px;
   color: @common-text;
+  user-select: text;
 }
 .section-item {
   white-space: nowrap;
-  user-select: text;
 }
 .section-key {
   display: inline;
@@ -68,17 +68,31 @@
 }
 
 .style-rule {
-  padding-left: 1em;
   margin: 5px 0;
 }
 .style-rule_inactive {
   text-decoration: line-through @important-text;
 }
 .style-rule-prefix {
-  margin-left: -1em;
   font-style: italic;
 }
 .style-rule-title {
-  margin-left: -1em;
+  display: inline;
   color: @important-text;
+}
+.style-rule-body {
+  padding-left: 1em;
+}
+.style-rule-item-add {
+  display: inline-block;
+  margin-left: 0.25em;
+  height: 1em;
+  line-height: 1em;
+  min-width: 1em;
+  text-align: center;
+  font-size: 0.8em;
+  color: @important-text;
+}
+.style-rule-item-add_hover {
+  background: @hover-bg;
 }
