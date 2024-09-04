@@ -6,7 +6,7 @@
 
 .section {
   margin-bottom: 2px;
-  color: @common-text;
+  .color-mode(color, @common-text);
   user-select: text;
 }
 .section-item {
@@ -14,18 +14,18 @@
 }
 .section-key {
   display: inline;
-  color: @property-name;
+  .color-mode(color, @property-name);
 }
 .section-key-core {
   display: inline;
-  color: @core-attribute-name;
+  .color-mode(color, @core-attribute-name);
 }
 .section-value {
   display: inline;
-  color: @attribute-value;
+  .color-mode(color, @attribute-value);
 }
 .section-value-extra {
-  color: @important-text;
+  .color-mode(color, @important-text);
 }
 
 .section-empty {
@@ -40,7 +40,7 @@
   flex: none;
   text-align: center;
   white-space: nowrap;
-  color: @important-text;
+  .color-mode(color, @important-text);
   margin: 1px;
 }
 .box-model-content {
@@ -51,12 +51,12 @@
 .box-model-padding {
   border: 1px solid #888;
   padding: 1px;
-  background: @primary-bg;
+  .color-mode(background-color, @primary-bg);
 }
 .box-model-border {
   border: 1px solid #888;
   padding: 1px;
-  background: @secondary-bg;
+  .color-mode(background-color, @secondary-bg);
 }
 .box-model-margin {
   padding: 1px;
@@ -71,14 +71,14 @@
   margin: 5px 0;
 }
 .style-rule_inactive {
-  text-decoration: line-through @important-text;
+  .color-mode(text-decoration-color, @important-text);
 }
 .style-rule-prefix {
   font-style: italic;
 }
 .style-rule-title {
   display: inline;
-  color: @important-text;
+  .color-mode(color, @important-text);
 }
 .style-rule-body {
   padding-left: 1em;
@@ -91,8 +91,8 @@
   min-width: 1em;
   text-align: center;
   font-size: 0.8em;
-  color: @important-text;
+  .color-mode(color, @important-text);
 }
 .style-rule-item-add_hover {
-  background: @hover-bg;
+  .color-mode(background-color, @hover-bg);
 }

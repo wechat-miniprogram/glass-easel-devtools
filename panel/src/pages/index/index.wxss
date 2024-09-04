@@ -8,13 +8,13 @@ body {
 .wrapper {
   font-family: monospace;
   font-size: 12px;
-  background: @primary-bg;
+  .color-mode(background-color, @primary-bg);
   height: 100%;
   cursor: default;
   user-select: none;
 }
 .empty {
-  color: @common-text;
+  .color-mode(color, @common-text);
   font-style: italic;
   padding: 5px;
 }
@@ -41,8 +41,8 @@ body {
 
 .toolbar {
   flex: none;
-  background: @secondary-bg;
-  color: @important-text;
+  .color-mode(background-color, @secondary-bg);
+  .color-mode(color, @important-text);
   border-bottom: 2px solid #888;
   display: flex;
 }
@@ -55,10 +55,10 @@ body {
   padding: 5px 10px;
 }
 .tool_hover {
-  background: @hover-bg;
+  .color-mode(background-color, @hover-bg);
 }
 .tool_active {
-  background: @selected-bg;
+  .color-mode(background-color, @selected-bg);
 }
 
 .tree {

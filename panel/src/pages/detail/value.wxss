@@ -2,14 +2,13 @@
 
 @keyframes value-update-ani {
   from {
-    background: @update-bg;
   }
   to {
-    background: transparent;
+    background-color: transparent;
   }
 }
 .updated {
-  background: @update-bg;
+  .color-mode(background-color, @update-bg);
   animation-duration: 1s;
   animation-fill-mode: both;
   animation-name: value-update-ani;
@@ -22,10 +21,10 @@
 
 .slice {
   display: inline;
-  color: @common-text;
+  .color-mode(color, @common-text);
 }
 .slice_dynamic {
-  color: @attribute-value;
+  .color-mode(color, @attribute-value);
 }
 
 .var-name {
@@ -37,8 +36,8 @@
   text-align: center;
   font-size: 0.8em;
   font-style: italic;
-  color: @important-text;
+  .color-mode(color, @important-text);
 }
 .var-name_hover {
-  background: @hover-bg;
+  .color-mode(background-color, @hover-bg);
 }

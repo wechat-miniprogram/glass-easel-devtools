@@ -2,14 +2,13 @@
 
 @keyframes update-ani {
   from {
-    background: @update-bg;
   }
   to {
     background: transparent;
   }
 }
 .updated {
-  background: @update-bg;
+  .color-mode(background-color, @update-bg);
   animation-duration: 1s;
   animation-fill-mode: both;
   animation-name: update-ani;
@@ -21,7 +20,7 @@
 }
 
 .tag {
-  color: @common-text;
+  .color-mode(color,  @common-text);
   white-space: nowrap;
 }
 
@@ -45,20 +44,20 @@
   display: inline-block;
 }
 .tag-body_hover {
-  background: @hover-bg;
+  .color-mode(background-color, @hover-bg);
 }
 .tag-body_selected {
-  background: @selected-bg;
+  .color-mode(background-color, @selected-bg);
 }
 .tag-body_highlight {
-  background-color: rgba(0, 128, 192, 0.25);
+  .color-mode(background-color, @highlight-bg);
 }
 .tag-text {
   display: inline;
 }
 .tag-name {
   display: inline-block;
-  color: @tag-name;
+  .color-mode(color, @tag-name);
 }
 
 .tag-var-name-wrapper {
@@ -73,10 +72,10 @@
   text-align: center;
   font-size: 0.8em;
   font-style: italic;
-  color: @important-text;
+  .color-mode(color, @important-text);
 }
 .tag-var-name_hover {
-  background: @hover-bg;
+  .color-mode(background-color, @hover-bg);
 }
 
 .attribute {
@@ -85,14 +84,14 @@
 }
 .attribute-name {
   display: inline-block;
-  color: @core-attribute-name;
+  .color-mode(color, @core-attribute-name);
 }
 .attribute-name_property {
-  color: @property-name;
+  .color-mode(color, @property-name);
 }
 .attribute-value {
   display: inline-block;
-  color: @attribute-value;
+  .color-mode(color, @attribute-value);
 }
 
 .children {
@@ -104,10 +103,10 @@
   font-style: italic;
 }
 .virtual-tag-name_hover {
-  background: @selected-bg;
+  .color-mode(background-color, @selected-bg);
 }
 
 .text-content {
-  color: @important-text;
+  .color-mode(color, @important-text);
   padding: 1px 0;
 }

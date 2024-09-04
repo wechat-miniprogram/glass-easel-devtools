@@ -1,12 +1,20 @@
-@common-text: #888;
-@important-text: #222;
-@primary-bg: #eee;
-@secondary-bg: #ccc;
-@selected-bg: #add;
-@hover-bg: #ace;
-@update-bg: #dd8;
+@common-text: { default: #808080; dark: #808080; };
+@important-text: { default: #222; dark: #ddd; };
+@primary-bg: { default: #eee; dark: #222; };
+@secondary-bg: { default: #ccc; dark: #444; };
+@selected-bg: { default: #add; dark: #255; };
+@hover-bg: { default: #ace; dark: #246; };
+@update-bg: { default: #dd8; dark: #772; };
+@highlight-bg: { default: rgba(0, 128, 192, 0.25); dark: rgba(128, 192, 255, 0.25); };
 
-@tag-name: #408;
-@core-attribute-name: #084;
-@property-name: #06a;
-@attribute-value: #840;
+@tag-name: { default: #408; dark: #c8e; };
+@core-attribute-name: { default: #084; dark: #6ea; };
+@property-name: { default: #06a; dark: #6ce; };
+@attribute-value: { default: #840; dark: #ea6; };
+
+.color-mode(@p, @v) {
+  @{p}: @v[default];
+  @media (prefers-color-scheme: dark) {
+    @{p}: @v[dark];
+  }
+}
