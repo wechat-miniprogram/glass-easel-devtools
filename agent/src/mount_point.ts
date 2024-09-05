@@ -370,10 +370,25 @@ export class MountPointsManager {
           style: { cssProperties: rule.properties, cssText: rule.propertyText },
           media: rule.mediaQueries.map((x) => ({ text: x })),
           inactive: rule.inactive || false,
+          styleSheetId: rule.sheetIndex.toString(),
+          ruleIndex: rule.ruleIndex,
         },
       }))
       return { inlineStyle, matchedCSSRules, inherited: [], crossOriginFailing }
     })
+
+    this.conn.setRequestHandler(
+      'CSS.replaceGlassEaselStyleSheetProperty',
+      ({ nodeId, styleSheetId, ruleIndex, propertyIndex, styleText }) => {
+        const { node } = this.queryActiveNode(nodeId)
+        return new Promise((resolve) => {
+          const ctx = node?.getBackendContext()
+          if (!ctx) throw new Error('no related backend found')
+          const sheetIndex = Number(styleSheetId)
+          ctx.replaceStyleSheetProperty?.(sheetIndex, ruleIndex, propertyIndex, styleText, resolve)
+        })
+      },
+    )
 
     this.conn.setRequestHandler('Overlay.setInspectMode', async ({ mode }) => {
       if (mode === 'searchForNode') {

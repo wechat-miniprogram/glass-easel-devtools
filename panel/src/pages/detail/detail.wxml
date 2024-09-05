@@ -160,19 +160,21 @@
         </view>
       </view>
     </view>
-    <view wx:for="{{ styles.matchedCSSRules }}" class="style-rule {{ item.rule.inactive ? 'style-rule_inactive' : '' }}">
+    <view wx:for="{{ styles.matchedCSSRules }}" class="style-rule {{ item.rule.inactive ? 'style-rule_inactive' : '' }}" mark:matchedRuleIndex="{{ index }}">
       <view wx:for="{{ item.rule.media ?? [] }}" class="style-rule-prefix">{{ item.text }}</view>
       <view class="style-rule-title">{{ item.rule.selectorList.text }}</view>
       <block> {</block>
       <view class="style-rule-body">
-        <view wx:for="{{ item.rule.style.cssProperties }}" class="section-item">
-          <view class="section-key">{{ item.name }}</view>
-          <block>: </block>
-          <view class="section-value">{{ item.value }}</view>
-          <view wx:if="{{ item.important }}" class="section-value-extra">
-            <block>{{ item.important ? ' !important' : '' }}</block>
-          </view>
-          <block>;</block>
+        <view wx:for="{{ item.rule.style.cssProperties }}" class="section-item" mark:propertyIndex="{{ index }}">
+          <editable model:value="{{ item.name + ':' + item.value + ';' }}" bind:change="styleChange">
+            <view class="section-key">{{ item.name }}</view>
+            <block>:</block>
+            <view class="section-value">{{ item.value }}</view>
+            <view wx:if="{{ item.important }}" class="section-value-extra">
+              <block>{{ item.important ? ' !important' : '' }}</block>
+            </view>
+            <block>;</block>
+          </editable>
         </view>
       </view>
       <block>}</block>

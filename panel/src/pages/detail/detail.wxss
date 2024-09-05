@@ -7,10 +7,10 @@
 .section {
   margin-bottom: 2px;
   .color-mode(color, @common-text);
-  user-select: text;
 }
 .section-item {
   white-space: nowrap;
+  user-select: text;
 }
 .section-key {
   display: inline;
@@ -69,6 +69,7 @@
 
 .style-rule {
   margin: 5px 0;
+  user-select: text;
 }
 .style-rule_inactive {
   .color-mode(text-decoration-color, @important-text);

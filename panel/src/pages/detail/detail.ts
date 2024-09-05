@@ -34,7 +34,7 @@ Component()
     computedStyles: null as null | { name: string; value: string }[],
     computedStyleCollapsed: true,
   }))
-  .init(({ self, data, setData, lifetime, method }) => {
+  .init(({ self, data, setData, lifetime, method, listener }) => {
     lifetime('attached', () => {
       autorun(async () => {
         const nodeId = store.selectedNodeId
@@ -185,6 +185,30 @@ Component()
       setData({ computedStyles })
     })
 
-    return { refreshBoxModel, refreshStyles, refreshComputedStyles }
+    const styleChange = listener<{ value: string }>((ev) => {
+      const nodeId = store.selectedNodeId
+      const { matchedRuleIndex, propertyIndex } = ev.mark as {
+        matchedRuleIndex: number
+        propertyIndex: number
+      }
+      const rule = data.styles?.matchedCSSRules[matchedRuleIndex]?.rule
+      if (!rule) return
+      const { styleSheetId, ruleIndex } = rule
+      const styleText = ev.detail.value
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises, promise/catch-or-return
+      Promise.resolve().then(async () => {
+        await sendRequest('CSS.replaceGlassEaselStyleSheetProperty', {
+          nodeId,
+          styleSheetId,
+          ruleIndex,
+          propertyIndex,
+          styleText,
+        })
+        await refreshStyles()
+        return undefined
+      })
+    })
+
+    return { refreshBoxModel, refreshStyles, refreshComputedStyles, styleChange }
   })
   .register()

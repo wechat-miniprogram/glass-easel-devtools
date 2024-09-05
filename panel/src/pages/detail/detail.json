@@ -2,6 +2,7 @@
   "component": true,
   "usingComponents": {
     "value": "./value",
-    "detail-section": "./section"
+    "detail-section": "./section",
+    "editable": "./editable"
   }
 }
