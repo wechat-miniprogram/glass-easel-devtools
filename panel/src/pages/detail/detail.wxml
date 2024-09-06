@@ -163,12 +163,16 @@
     <view wx:for="{{ styles.matchedCSSRules }}" class="style-rule {{ item.rule.inactive ? 'style-rule_inactive' : '' }}" mark:matchedRuleIndex="{{ index }}">
       <view wx:for="{{ item.rule.media ?? [] }}" class="style-rule-prefix">{{ item.text }}</view>
       <view class="style-rule-title">{{ item.rule.selectorList.text }}</view>
+      <view class="style-rule-scope" wx:if="{{ item.rule.styleScope !== undefined }}"> scoped</view>
+      <view class="style-rule-scope" wx:if="{{ item.rule.inactive }}"> inactive</view>
       <block> {</block>
-      <view class="style-rule-body">
-        <view wx:for="{{ item.rule.style.cssProperties }}" class="section-item" mark:propertyIndex="{{ index }}">
-          <editable model:value="{{ item.name + ':' + item.value + ';' }}" bind:change="styleChange">
+      <view>
+        <view wx:for="{{ item.rule.style.cssProperties }}" class="section-item {{ item.disabled ? 'section-item_disabled' : '' }}" mark:propertyIndex="{{ index }}">
+          <view wx:if="{{ item.disabled }}" class="style-rule-disabled" catch:tap="styleDisable" mark:toDisable="{{ false }}">྾</view>
+          <view wx:else class="style-rule-enabled" hover-class="style-rule-enabled_hover" catch:tap="styleDisable" mark:toDisable="{{ true }}">●</view>
+          <editable class="style-rule-property {{ item.disabled ? 'style-rule-property_disabled' : '' }}" model:value="{{ item.name + ': ' + item.value + ';' }}" bind:change="styleChange">
             <view class="section-key">{{ item.name }}</view>
-            <block>:</block>
+            <block>: </block>
             <view class="section-value">{{ item.value }}</view>
             <view wx:if="{{ item.important }}" class="section-value-extra">
               <block>{{ item.important ? ' !important' : '' }}</block>
@@ -176,8 +180,14 @@
             <block>;</block>
           </editable>
         </view>
+        <view wx:if="{{ index === stylePropertyAddRuleIndex }}">
+          <view class="style-rule-enabled"></view>
+          <editable edit bind:change="styleAddPropertyApply">
+            <view>:</view>
+          </editable>
+        </view>
       </view>
-      <block>}</block>
+      <view class="style-rule-item-add" catch:tap="styleAddProperty">}</block>
     </view>
   </block>
 </detail-section>

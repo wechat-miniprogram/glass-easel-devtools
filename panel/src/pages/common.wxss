@@ -1,5 +1,6 @@
 @common-text: { default: #808080; dark: #808080; };
 @important-text: { default: #222; dark: #ddd; };
+@warn-text: { default: #a40; dark: #e82; };
 @primary-bg: { default: #eee; dark: #222; };
 @secondary-bg: { default: #ccc; dark: #444; };
 @selected-bg: { default: #add; dark: #255; };

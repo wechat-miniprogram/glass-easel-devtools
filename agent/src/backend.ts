@@ -3,7 +3,13 @@
 import * as glassEasel from 'glass-easel'
 import parser from 'postcss-selector-parser'
 import { selectorSpecificity, compare as selectorCompare } from '@csstools/selector-specificity'
-import { tokenize, TokenType, stringify } from '@csstools/css-tokenizer'
+import {
+  tokenize,
+  TokenType,
+  stringify,
+  type CSSToken,
+  type TokenString,
+} from '@csstools/css-tokenizer'
 import { backendUnsupported } from './utils'
 
 export type BoundingClientRect = glassEasel.BoundingClientRect
@@ -150,6 +156,18 @@ export const getMatchedRules = (
   rules: glassEasel.CSSRule[]
   crossOriginFailing?: boolean
 }> => {
+  const expectToken = (
+    token: CSSToken | undefined,
+    type: TokenType,
+    name?: string,
+  ): string | null => {
+    if (token === undefined) return null
+    if (token[0] !== type) return null
+    if (name === undefined) return token[1]
+    if (name === token[1]) return name
+    return null
+  }
+
   const parseNameValueStr = (cssText: string) => {
     const ret: { name: string; value: string }[] = []
     const tokens = tokenize({ css: cssText })
@@ -157,13 +175,13 @@ export const getMatchedRules = (
     let nameStart = 0
     for (let i = 0; i < tokens.length; i += 1) {
       const t = tokens[i]
-      if (t[0] === TokenType.Colon) {
+      if (expectToken(t, TokenType.Colon)) {
         const name = stringify(...tokens.slice(nameStart, i))
         i += 1
         const valueStart = i
         for (; i < tokens.length; i += 1) {
           const t = tokens[i]
-          if (t[0] === TokenType.Semicolon) break
+          if (expectToken(t, TokenType.Semicolon)) break
         }
         const value = stringify(...tokens.slice(valueStart, i))
         ret.push({ name, value })
@@ -172,6 +190,42 @@ export const getMatchedRules = (
     }
     return ret
   }
+
+  const convertAdapterGeneratedRules = (rules: glassEasel.CSSRule[]) => {
+    rules.forEach((rule) => {
+      const tokens = tokenize({ css: rule.selector })
+      if (
+        expectToken(tokens[0], TokenType.OpenSquare) &&
+        expectToken(tokens[1], TokenType.Ident, 'wx-host') &&
+        expectToken(tokens[2], TokenType.Delim, '=') &&
+        expectToken(tokens[3], TokenType.String) &&
+        expectToken(tokens[4], TokenType.CloseSquare) &&
+        expectToken(tokens[5], TokenType.EOF) !== null
+      ) {
+        // convert host rules
+        rule.selector = ':host'
+        rule.styleScope = (tokens[3] as TokenString)[4].value
+        return
+      }
+      for (let i = 0; i < tokens.length; i += 1) {
+        // convert class prefixes
+        const t = tokens[i]
+        if (expectToken(t, TokenType.Delim, '.')) {
+          const peek = expectToken(tokens[i + 1], TokenType.Ident)
+          if (peek) {
+            i += 1
+            const [prefix, name] = peek.split('--', 2)
+            if (name !== undefined) {
+              rule.styleScope = prefix
+              tokens[i][1] = name
+            }
+          }
+        }
+      }
+      rule.selector = stringify(...tokens)
+    })
+  }
+
   const calcRuleWeight = (rules: glassEasel.CSSRule[]): glassEasel.CSSRule[] => {
     const rulesWithSelector = rules.map((rule) => {
       if (rule.propertyText) {
@@ -197,11 +251,13 @@ export const getMatchedRules = (
     })
     return rulesWithSelector.map(([_sel, rule]) => rule).reverse()
   }
+
   return new Promise((resolve) => {
     if (ctx.mode === glassEasel.BackendMode.Domlike) {
       if (typeof ctx.getMatchedRules === 'function') {
         try {
           ctx.getMatchedRules(elem as glassEasel.domlikeBackend.Element, (ret) => {
+            convertAdapterGeneratedRules(ret.rules)
             ret.rules = calcRuleWeight(ret.rules)
             if (ret.inlineText) {
               ret.inline = parseNameValueStr(ret.inlineText) ?? ret.inline

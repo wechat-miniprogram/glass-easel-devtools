@@ -372,6 +372,7 @@ export class MountPointsManager {
           inactive: rule.inactive || false,
           styleSheetId: rule.sheetIndex.toString(),
           ruleIndex: rule.ruleIndex,
+          styleScope: rule.styleScope,
         },
       }))
       return { inlineStyle, matchedCSSRules, inherited: [], crossOriginFailing }
@@ -386,6 +387,38 @@ export class MountPointsManager {
           if (!ctx) throw new Error('no related backend found')
           const sheetIndex = Number(styleSheetId)
           ctx.replaceStyleSheetProperty?.(sheetIndex, ruleIndex, propertyIndex, styleText, resolve)
+        })
+      },
+    )
+
+    this.conn.setRequestHandler(
+      'CSS.addGlassEaselStyleSheetProperty',
+      ({ nodeId, styleSheetId, ruleIndex, styleText }) => {
+        const { node } = this.queryActiveNode(nodeId)
+        return new Promise((resolve) => {
+          const ctx = node?.getBackendContext()
+          if (!ctx) throw new Error('no related backend found')
+          const sheetIndex = Number(styleSheetId)
+          ctx.addStyleSheetProperty?.(sheetIndex, ruleIndex, styleText, resolve)
+        })
+      },
+    )
+
+    this.conn.setRequestHandler(
+      'CSS.setGlassEaselStyleSheetPropertyDisabled',
+      ({ nodeId, styleSheetId, ruleIndex, propertyIndex, disabled }) => {
+        const { node } = this.queryActiveNode(nodeId)
+        return new Promise((resolve) => {
+          const ctx = node?.getBackendContext()
+          if (!ctx) throw new Error('no related backend found')
+          const sheetIndex = Number(styleSheetId)
+          ctx.setStyleSheetPropertyDisabled?.(
+            sheetIndex,
+            ruleIndex,
+            propertyIndex,
+            disabled,
+            resolve,
+          )
         })
       },
     )

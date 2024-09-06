@@ -31,6 +31,7 @@ Component()
     boxModelCollapsed: false,
     styles: null as null | protocol.css.GetMatchedStylesForNode['response'],
     styleCollapsed: false,
+    stylePropertyAddRuleIndex: -1,
     computedStyles: null as null | { name: string; value: string }[],
     computedStyleCollapsed: true,
   }))
@@ -209,6 +210,70 @@ Component()
       })
     })
 
-    return { refreshBoxModel, refreshStyles, refreshComputedStyles, styleChange }
+    const styleDisable = listener((ev) => {
+      const nodeId = store.selectedNodeId
+      const { matchedRuleIndex, propertyIndex, toDisable } = ev.mark as {
+        matchedRuleIndex: number
+        propertyIndex: number
+        toDisable: boolean
+      }
+      const rule = data.styles?.matchedCSSRules[matchedRuleIndex]?.rule
+      if (!rule) return
+      const { styleSheetId, ruleIndex } = rule
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises, promise/catch-or-return
+      Promise.resolve().then(async () => {
+        await sendRequest('CSS.setGlassEaselStyleSheetPropertyDisabled', {
+          nodeId,
+          styleSheetId,
+          ruleIndex,
+          propertyIndex,
+          disabled: toDisable,
+        })
+        await refreshStyles()
+        return undefined
+      })
+    })
+
+    const styleAddProperty = listener((ev) => {
+      const { matchedRuleIndex } = ev.mark as {
+        matchedRuleIndex: number
+      }
+      setData({
+        stylePropertyAddRuleIndex: matchedRuleIndex,
+      })
+    })
+
+    const styleAddPropertyApply = listener<{ value: string }>((ev) => {
+      const nodeId = store.selectedNodeId
+      const { matchedRuleIndex } = ev.mark as {
+        matchedRuleIndex: number
+      }
+      const rule = data.styles?.matchedCSSRules[matchedRuleIndex]?.rule
+      if (!rule) return
+      const { styleSheetId, ruleIndex } = rule
+      const styleText = ev.detail.value
+      setData({ stylePropertyAddRuleIndex: -1 })
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises, promise/catch-or-return
+      Promise.resolve().then(async () => {
+        await sendRequest('CSS.addGlassEaselStyleSheetProperty', {
+          nodeId,
+          styleSheetId,
+          ruleIndex,
+          styleText,
+        })
+        await refreshStyles()
+        return undefined
+      })
+    })
+
+    return {
+      refreshBoxModel,
+      refreshStyles,
+      refreshComputedStyles,
+      styleChange,
+      styleDisable,
+      styleAddProperty,
+      styleAddPropertyApply,
+    }
   })
   .register()
