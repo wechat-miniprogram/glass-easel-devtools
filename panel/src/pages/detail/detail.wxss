@@ -112,5 +112,13 @@
   opacity: 0.5;
 }
 .style-rule-item-add {
+  display: inline-block;
   cursor: text;
+}
+.style-rule-inline-add {
+  font-style: normal;
+  display: inline-block;
+}
+.style-rule-inline-add_hover {
+  .color-mode(background-color, @hover-bg);
 }

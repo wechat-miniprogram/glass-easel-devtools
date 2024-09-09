@@ -354,13 +354,11 @@ export class MountPointsManager {
 
     this.conn.setRequestHandler('CSS.getMatchedStylesForNode', async ({ nodeId }) => {
       const { node } = this.queryActiveNode(nodeId)
-      const ctx = node?.getBackendContext()
-      const elem = node?.getBackendElement()
-      if (!ctx || !elem) {
-        throw new Error('no such backend node found')
+      const elem = node.asElement()
+      if (!elem) {
+        throw new Error('not an element')
       }
       const { inline, inlineText, rules, crossOriginFailing } = await backendUtils.getMatchedRules(
-        ctx,
         elem,
       )
       const inlineStyle = { cssProperties: inline, cssText: inlineText }
@@ -380,46 +378,64 @@ export class MountPointsManager {
 
     this.conn.setRequestHandler(
       'CSS.replaceGlassEaselStyleSheetProperty',
-      ({ nodeId, styleSheetId, ruleIndex, propertyIndex, styleText }) => {
+      async ({ nodeId, styleSheetId, ruleIndex, propertyIndex, styleText }) => {
         const { node } = this.queryActiveNode(nodeId)
-        return new Promise((resolve) => {
-          const ctx = node?.getBackendContext()
-          if (!ctx) throw new Error('no related backend found')
+        const ctx = node?.getBackendContext()
+        const elem = node?.getBackendElement()
+        if (!ctx || !elem) {
+          throw new Error('no such backend node found')
+        }
+        const editFunc = (edit: backendUtils.StyleRuleEdit) => {
+          edit.replace(propertyIndex, styleText)
+        }
+        if (styleSheetId !== undefined) {
           const sheetIndex = Number(styleSheetId)
-          ctx.replaceStyleSheetProperty?.(sheetIndex, ruleIndex, propertyIndex, styleText, resolve)
-        })
+          await backendUtils.styleEditContext.updateRule(ctx, sheetIndex, ruleIndex, editFunc)
+        } else {
+          backendUtils.styleEditContext.updateInline(ctx, elem, editFunc)
+        }
       },
     )
 
     this.conn.setRequestHandler(
       'CSS.addGlassEaselStyleSheetProperty',
-      ({ nodeId, styleSheetId, ruleIndex, styleText }) => {
+      async ({ nodeId, styleSheetId, ruleIndex, styleText }) => {
         const { node } = this.queryActiveNode(nodeId)
-        return new Promise((resolve) => {
-          const ctx = node?.getBackendContext()
-          if (!ctx) throw new Error('no related backend found')
+        const ctx = node?.getBackendContext()
+        const elem = node?.getBackendElement()
+        if (!ctx || !elem) {
+          throw new Error('no such backend node found')
+        }
+        const editFunc = (edit: backendUtils.StyleRuleEdit) => {
+          edit.append(styleText)
+        }
+        if (styleSheetId !== undefined) {
           const sheetIndex = Number(styleSheetId)
-          ctx.addStyleSheetProperty?.(sheetIndex, ruleIndex, styleText, resolve)
-        })
+          await backendUtils.styleEditContext.updateRule(ctx, sheetIndex, ruleIndex, editFunc)
+        } else {
+          backendUtils.styleEditContext.updateInline(ctx, elem, editFunc)
+        }
       },
     )
 
     this.conn.setRequestHandler(
       'CSS.setGlassEaselStyleSheetPropertyDisabled',
-      ({ nodeId, styleSheetId, ruleIndex, propertyIndex, disabled }) => {
+      async ({ nodeId, styleSheetId, ruleIndex, propertyIndex, disabled }) => {
         const { node } = this.queryActiveNode(nodeId)
-        return new Promise((resolve) => {
-          const ctx = node?.getBackendContext()
-          if (!ctx) throw new Error('no related backend found')
+        const ctx = node?.getBackendContext()
+        const elem = node?.getBackendElement()
+        if (!ctx || !elem) {
+          throw new Error('no such backend node found')
+        }
+        const editFunc = (edit: backendUtils.StyleRuleEdit) => {
+          edit.setDisabled(propertyIndex, disabled)
+        }
+        if (styleSheetId !== undefined) {
           const sheetIndex = Number(styleSheetId)
-          ctx.setStyleSheetPropertyDisabled?.(
-            sheetIndex,
-            ruleIndex,
-            propertyIndex,
-            disabled,
-            resolve,
-          )
-        })
+          await backendUtils.styleEditContext.updateRule(ctx, sheetIndex, ruleIndex, editFunc)
+        } else {
+          backendUtils.styleEditContext.updateInline(ctx, elem, editFunc)
+        }
       },
     )
 

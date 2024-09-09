@@ -31,7 +31,7 @@ Component()
     boxModelCollapsed: false,
     styles: null as null | protocol.css.GetMatchedStylesForNode['response'],
     styleCollapsed: false,
-    stylePropertyAddRuleIndex: -1,
+    stylePropertyAddRuleIndex: null as number | null,
     computedStyles: null as null | { name: string; value: string }[],
     computedStyleCollapsed: true,
   }))
@@ -189,12 +189,17 @@ Component()
     const styleChange = listener<{ value: string }>((ev) => {
       const nodeId = store.selectedNodeId
       const { matchedRuleIndex, propertyIndex } = ev.mark as {
-        matchedRuleIndex: number
+        matchedRuleIndex: number | undefined
         propertyIndex: number
       }
-      const rule = data.styles?.matchedCSSRules[matchedRuleIndex]?.rule
-      if (!rule) return
-      const { styleSheetId, ruleIndex } = rule
+      let styleSheetId: string | undefined
+      let ruleIndex = 0
+      if (matchedRuleIndex) {
+        const rule = data.styles?.matchedCSSRules[matchedRuleIndex]?.rule
+        if (!rule) return
+        styleSheetId = rule.styleSheetId
+        ruleIndex = rule.ruleIndex
+      }
       const styleText = ev.detail.value
       // eslint-disable-next-line @typescript-eslint/no-floating-promises, promise/catch-or-return
       Promise.resolve().then(async () => {
@@ -213,13 +218,18 @@ Component()
     const styleDisable = listener((ev) => {
       const nodeId = store.selectedNodeId
       const { matchedRuleIndex, propertyIndex, toDisable } = ev.mark as {
-        matchedRuleIndex: number
+        matchedRuleIndex: number | undefined
         propertyIndex: number
         toDisable: boolean
       }
-      const rule = data.styles?.matchedCSSRules[matchedRuleIndex]?.rule
-      if (!rule) return
-      const { styleSheetId, ruleIndex } = rule
+      let styleSheetId: string | undefined
+      let ruleIndex = 0
+      if (matchedRuleIndex) {
+        const rule = data.styles?.matchedCSSRules[matchedRuleIndex]?.rule
+        if (!rule) return
+        styleSheetId = rule.styleSheetId
+        ruleIndex = rule.ruleIndex
+      }
       // eslint-disable-next-line @typescript-eslint/no-floating-promises, promise/catch-or-return
       Promise.resolve().then(async () => {
         await sendRequest('CSS.setGlassEaselStyleSheetPropertyDisabled', {
@@ -236,23 +246,28 @@ Component()
 
     const styleAddProperty = listener((ev) => {
       const { matchedRuleIndex } = ev.mark as {
-        matchedRuleIndex: number
+        matchedRuleIndex: number | undefined
       }
       setData({
-        stylePropertyAddRuleIndex: matchedRuleIndex,
+        stylePropertyAddRuleIndex: matchedRuleIndex ?? -1,
       })
     })
 
     const styleAddPropertyApply = listener<{ value: string }>((ev) => {
       const nodeId = store.selectedNodeId
       const { matchedRuleIndex } = ev.mark as {
-        matchedRuleIndex: number
+        matchedRuleIndex: number | undefined
       }
-      const rule = data.styles?.matchedCSSRules[matchedRuleIndex]?.rule
-      if (!rule) return
-      const { styleSheetId, ruleIndex } = rule
+      let styleSheetId: string | undefined
+      let ruleIndex = 0
+      if (matchedRuleIndex) {
+        const rule = data.styles?.matchedCSSRules[matchedRuleIndex]?.rule
+        if (!rule) return
+        styleSheetId = rule.styleSheetId
+        ruleIndex = rule.ruleIndex
+      }
       const styleText = ev.detail.value
-      setData({ stylePropertyAddRuleIndex: -1 })
+      setData({ stylePropertyAddRuleIndex: null })
       // eslint-disable-next-line @typescript-eslint/no-floating-promises, promise/catch-or-return
       Promise.resolve().then(async () => {
         await sendRequest('CSS.addGlassEaselStyleSheetProperty', {

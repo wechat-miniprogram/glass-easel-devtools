@@ -22,7 +22,6 @@ export type AgentRequestKind = {
   removeGlassEaselStyleSheetProperty: RemoveGlassEaselStyleSheetProperty
   replaceGlassEaselStyleSheetProperty: ReplaceGlassEaselStyleSheetProperty
   replaceGlassEaselStyleSheetAllProperties: ReplaceGlassEaselStyleSheetAllProperties
-  replaceGlassEaselStyleSheetInlineStyle: ReplaceGlassEaselStyleSheetInlineStyle
 }
 
 export type StyleSheetId = string
@@ -117,9 +116,11 @@ export interface GetGlassEaselStyleSheetIndexForNewRules extends RequestResponse
 
 /**
  * Clear a CSS rule.
+ *
+ * `styleSheetId = undefined` refers to the inline styles.
  */
 export interface ResetGlassEaselStyleSheetRule extends RequestResponse {
-  request: { nodeId: NodeId; styleSheetId: StyleSheetId; ruleIndex: number }
+  request: { nodeId: NodeId; styleSheetId?: StyleSheetId; ruleIndex: number }
 }
 
 /**
@@ -131,18 +132,22 @@ export interface ModifyGlassEaselStyleSheetRuleSelector extends RequestResponse 
 
 /**
  * Add a new CSS property.
+ *
+ * `styleSheetId = undefined` refers to the inline styles.
  */
 export interface AddGlassEaselStyleSheetProperty extends RequestResponse {
-  request: { nodeId: NodeId; styleSheetId: StyleSheetId; ruleIndex: number; styleText: string }
+  request: { nodeId: NodeId; styleSheetId?: StyleSheetId; ruleIndex: number; styleText: string }
 }
 
 /**
  * Set the disabled status of a new CSS property.
+ *
+ * `styleSheetId = undefined` refers to the inline styles.
  */
 export interface SetGlassEaselStyleSheetPropertyDisabled extends RequestResponse {
   request: {
     nodeId: NodeId
-    styleSheetId: StyleSheetId
+    styleSheetId?: StyleSheetId
     ruleIndex: number
     propertyIndex: number
     disabled: boolean
@@ -151,11 +156,13 @@ export interface SetGlassEaselStyleSheetPropertyDisabled extends RequestResponse
 
 /**
  * Remove a CSS property.
+ *
+ * `styleSheetId = undefined` refers to the inline styles.
  */
 export interface RemoveGlassEaselStyleSheetProperty extends RequestResponse {
   request: {
     nodeId: NodeId
-    styleSheetId: StyleSheetId
+    styleSheetId?: StyleSheetId
     ruleIndex: number
     propertyIndex: number
   }
@@ -163,11 +170,13 @@ export interface RemoveGlassEaselStyleSheetProperty extends RequestResponse {
 
 /**
  * Replace a CSS property.
+ *
+ * `styleSheetId = undefined` refers to the inline styles.
  */
 export interface ReplaceGlassEaselStyleSheetProperty extends RequestResponse {
   request: {
     nodeId: NodeId
-    styleSheetId: StyleSheetId
+    styleSheetId?: StyleSheetId
     ruleIndex: number
     propertyIndex: number
     styleText: string
@@ -176,22 +185,14 @@ export interface ReplaceGlassEaselStyleSheetProperty extends RequestResponse {
 
 /**
  * Replace all CSS properties.
+ *
+ * `styleSheetId = undefined` refers to the inline styles.
  */
 export interface ReplaceGlassEaselStyleSheetAllProperties extends RequestResponse {
   request: {
     nodeId: NodeId
-    styleSheetId: StyleSheetId
+    styleSheetId?: StyleSheetId
     ruleIndex: number
-    styleText: string
-  }
-}
-
-/**
- * Replace inline style for a node.
- */
-export interface ReplaceGlassEaselStyleSheetInlineStyle extends RequestResponse {
-  request: {
-    nodeId: NodeId
     styleText: string
   }
 }

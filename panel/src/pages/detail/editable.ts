@@ -1,3 +1,5 @@
+const PRESERVED_RIGHT_WIDTH = 16
+
 Component()
   .property('edit', Boolean)
   .property('value', String)
@@ -30,7 +32,7 @@ Component()
     }
 
     const startEdit = listener(() => {
-      self.setData({ edit: true, width: 24, previewValue: data.value })
+      self.setData({ edit: true, width: PRESERVED_RIGHT_WIDTH, previewValue: data.value })
     })
 
     const inputBlur = listener(() => {
@@ -46,7 +48,7 @@ Component()
           .select('#measure')
           .boundingClientRect((rect) => {
             if (!rect) return
-            const width = rect.width > 24 ? rect.width + 12 : 24
+            const width = rect.width > PRESERVED_RIGHT_WIDTH ? rect.width + PRESERVED_RIGHT_WIDTH : PRESERVED_RIGHT_WIDTH
             self.setData({ width })
           })
           .exec()

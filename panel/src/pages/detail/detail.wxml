@@ -147,16 +147,33 @@
   catch:refresh="refreshStyles"
 >
   <block wx:if="{{ !styleCollapsed && styles }}">
+    <template name="style-property-item">
+      <view wx:if="{{ item.disabled }}" class="style-rule-disabled" catch:tap="styleDisable" mark:toDisable="{{ false }}">྾</view>
+      <view wx:else class="style-rule-enabled" hover-class="style-rule-enabled_hover" catch:tap="styleDisable" mark:toDisable="{{ true }}">●</view>
+      <editable class="style-rule-property {{ item.disabled ? 'style-rule-property_disabled' : '' }}" model:value="{{ item.name + ': ' + item.value + ';' }}" bind:change="styleChange">
+        <view class="section-key">{{ item.name }}</view>
+        <block>: </block>
+        <view class="section-value">{{ item.value }}</view>
+        <view wx:if="{{ item.important }}" class="section-value-extra">
+          <block>{{ item.important ? ' !important' : '' }}</block>
+        </view>
+        <block>;</block>
+      </editable>
+    </template>
     <view wx:if="{{ styles.crossOriginFailing }}">Failed to display styles due to inaccessable style sheets. This happens when style sheets are cross-origin served, or the page is visited as a local file.</view>
-    <view wx:if="{{ styles.inlineStyle.cssProperties.length }}" class="style-rule">
-      <view class="style-rule-prefix">Inline Style</view>
+    <view class="style-rule">
+      <view class="style-rule-prefix">Inline Style
+        <view class="style-rule-inline-add" hover-class="style-rule-inline-add_hover" catch:tap="styleAddProperty">+</view>
+      </view>
       <view class="style-rule-body">
-        <view wx:for="{{ styles.inlineStyle.cssProperties }}" class="section-item">
-          <view class="section-key">{{ item.name }}</view>
-          <block>: </block>
-          <view class="section-value">{{ item.value }}</view>
-          <view wx:if="{{ item.important }}" class="section-value-extra">{{ item.important ? ' !important' : '' }}</view>
-          <block>;</block>
+        <view wx:for="{{ styles.inlineStyle.cssProperties }}" class="section-item" mark:propertyIndex="{{ index }}">
+          <template is="style-property-item" data="{{ item }}" />
+        </view>
+        <view wx:if="{{ stylePropertyAddRuleIndex === -1 }}">
+          <view class="style-rule-enabled"></view>
+          <editable edit bind:change="styleAddPropertyApply">
+            <view>:</view>
+          </editable>
         </view>
       </view>
     </view>
@@ -168,17 +185,7 @@
       <block> {</block>
       <view>
         <view wx:for="{{ item.rule.style.cssProperties }}" class="section-item {{ item.disabled ? 'section-item_disabled' : '' }}" mark:propertyIndex="{{ index }}">
-          <view wx:if="{{ item.disabled }}" class="style-rule-disabled" catch:tap="styleDisable" mark:toDisable="{{ false }}">྾</view>
-          <view wx:else class="style-rule-enabled" hover-class="style-rule-enabled_hover" catch:tap="styleDisable" mark:toDisable="{{ true }}">●</view>
-          <editable class="style-rule-property {{ item.disabled ? 'style-rule-property_disabled' : '' }}" model:value="{{ item.name + ': ' + item.value + ';' }}" bind:change="styleChange">
-            <view class="section-key">{{ item.name }}</view>
-            <block>: </block>
-            <view class="section-value">{{ item.value }}</view>
-            <view wx:if="{{ item.important }}" class="section-value-extra">
-              <block>{{ item.important ? ' !important' : '' }}</block>
-            </view>
-            <block>;</block>
-          </editable>
+          <template is="style-property-item" data="{{ item }}" />
         </view>
         <view wx:if="{{ index === stylePropertyAddRuleIndex }}">
           <view class="style-rule-enabled"></view>
@@ -187,7 +194,7 @@
           </editable>
         </view>
       </view>
-      <view class="style-rule-item-add" catch:tap="styleAddProperty">}</block>
+      <view class="style-rule-item-add" catch:tap="styleAddProperty">}</view>
     </view>
   </block>
 </detail-section>
