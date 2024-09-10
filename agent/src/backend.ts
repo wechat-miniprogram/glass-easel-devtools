@@ -446,3 +446,75 @@ class StyleEditContext {
 }
 
 export const styleEditContext = new StyleEditContext()
+
+export class ClassListEdit {
+  private list: { className: string; disabled: boolean }[] = []
+
+  update(names: string[]) {
+    const oldList = this.list
+    this.list = names.map((className) => ({ className, disabled: false }))
+    let i = 0
+    oldList.forEach((item) => {
+      if (item.disabled) {
+        this.list.splice(i, 0, item)
+        i += 1
+      }
+      while (i < this.list.length) {
+        i += 1
+        if (item.className === this.list[i - 1].className) {
+          break
+        }
+      }
+    })
+    return this
+  }
+
+  setDisabled(className: string, disabled: boolean) {
+    const item = this.list.find((x) => x.className === className)
+    if (item) item.disabled = disabled
+  }
+
+  getClasses() {
+    return this.list.slice()
+  }
+
+  setClasses(list: { className: string; disabled?: boolean }[]) {
+    this.list = []
+    list.forEach(({ className, disabled }) => {
+      className.split(/\s+/g).forEach((className) => {
+        if (!className) return
+        this.list.push({ className, disabled: !!disabled })
+      })
+    })
+  }
+
+  stringify() {
+    return this.list
+      .filter((x) => !x.disabled)
+      .map((x) => x.className)
+      .join(' ')
+  }
+
+  matches(v: string): boolean {
+    return this.stringify() === v
+  }
+}
+
+export class ClassEditContext {
+  map = new WeakMap<glassEasel.Element, Record<string, ClassListEdit>>()
+
+  createOrGet(external: string, elem: glassEasel.Element): ClassListEdit {
+    if (!this.map.get(elem)) {
+      const group = Object.create(null) as Record<string, ClassListEdit>
+      this.map.set(elem, group)
+    }
+    const group = this.map.get(elem)!
+    const key = external ?? ''
+    if (!group[key]) {
+      group[key] = new ClassListEdit()
+    }
+    return group[key]
+  }
+}
+
+export const classEditContext = new ClassEditContext()

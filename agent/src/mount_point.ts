@@ -126,7 +126,7 @@ export class MountPointsManager {
           virtual: false,
           is: '',
           id: '',
-          class: '',
+          classes: [],
           slot: '',
           slotName: undefined,
           slotValues: undefined,
@@ -152,7 +152,8 @@ export class MountPointsManager {
       if (nativeNode) is = nativeNode.is
       if (virtualNode) is = virtualNode.is
       const id = elem.id
-      const nodeClass = elem.class
+      const classEdit = backendUtils.classEditContext.createOrGet('', elem)
+      const classes = classEdit.update(elem.class.split(/\s+/g).filter((x) => x)).getClasses()
       const slot = elem.slot
       let slotName
       const maybeSlotName = Reflect.get(elem, '_$slotName') as unknown
@@ -206,7 +207,9 @@ export class MountPointsManager {
       // collect attributes, properties, and external classes
       let normalAttributes: { name: string; value: GlassEaselVar }[] | undefined
       let properties: { name: string; value: GlassEaselVar }[] | undefined
-      let externalClasses: { name: string; value: string }[] | undefined
+      let externalClasses:
+        | { name: string; value: { className: string; disabled?: boolean }[] }[]
+        | undefined
       if (nativeNode) {
         normalAttributes = []
         elem.attributes.forEach(({ name, value }) => {
@@ -224,7 +227,10 @@ export class MountPointsManager {
         if (ec) {
           externalClasses = Object.entries(ec).map(([name, value]) => ({
             name,
-            value: value?.join(' ') ?? '',
+            value: backendUtils.classEditContext
+              .createOrGet(name, elem)
+              .update(value ?? [])
+              .getClasses(),
           }))
         }
       }
@@ -245,7 +251,7 @@ export class MountPointsManager {
         virtual,
         is,
         id,
-        class: nodeClass,
+        classes,
         slot,
         slotName,
         slotValues,
@@ -257,6 +263,67 @@ export class MountPointsManager {
         marks,
       }
     })
+
+    this.conn.setRequestHandler(
+      'DOM.setAttributeValue',
+      async ({ nodeId, name, value, nameType }) => {
+        const { node } = this.queryActiveNode(nodeId)
+        const elem = node.asElement()
+        if (!elem) return undefined
+        if (nameType === 'normal-attribute') {
+          elem.setAttribute(name, value)
+        } else if (nameType === 'property') {
+          const comp = elem.asGeneralComponent()
+          comp?.setData({ [name]: value })
+        } else if (nameType === 'external-class') {
+          const comp = elem.asGeneralComponent()
+          comp?.setExternalClass(name, value)
+        } else if (name === 'id') {
+          elem.id = value
+        } else if (name === 'class') {
+          elem.class = value
+        } else if (name === 'slot') {
+          elem.slot = value
+        } else if (name.indexOf(':') >= 0) {
+          const [scope, key] = name.split(':', 2)
+          if (scope === 'dataset') {
+            elem.setDataset(key, value)
+          } else if (scope === 'mark') {
+            elem.setMark(key, value)
+          }
+        } else {
+          const comp = elem.asGeneralComponent()
+          if (comp) {
+            const beh = comp.getComponentDefinition().behavior
+            if (beh.listProperties().includes(name)) {
+              comp.setData({ [name]: value })
+            } else if (Object.keys(comp.getExternalClasses()).includes(name)) {
+              comp.setExternalClass(name, value)
+            }
+          }
+          elem.setAttribute(name, value)
+        }
+        return undefined
+      },
+    )
+
+    this.conn.setRequestHandler(
+      'DOM.setGlassEaselClassList',
+      async ({ nodeId, externalClass, classes }) => {
+        const { node } = this.queryActiveNode(nodeId)
+        const elem = node.asElement()
+        if (!elem) return { classes: [] }
+        const edit = backendUtils.classEditContext.createOrGet(externalClass ?? '', elem)
+        edit.setClasses(classes)
+        if (externalClass) {
+          const comp = elem.asGeneralComponent()
+          comp?.setExternalClass(externalClass, edit.stringify())
+        } else {
+          elem.class = edit.stringify()
+        }
+        return { classes: edit.getClasses() }
+      },
+    )
 
     this.conn.setRequestHandler('DOM.getGlassEaselComposedChildren', async ({ nodeId }) => {
       const { node } = this.queryActiveNode(nodeId)
@@ -639,8 +706,12 @@ export class MountPointsManager {
             const marks = Reflect.get(elem, '_$marks') as { [key: string]: unknown } | undefined
             v = marks?.[name.slice(5)]
           } else if (nameType === 'external-class') {
-            name = ev.attributeName ?? ''
-            v = elem.asGeneralComponent()?.getExternalClasses()?.[name]?.join(' ') ?? ''
+            const external = ev.attributeName ?? ''
+            const classes = elem.asGeneralComponent()?.getExternalClasses()?.[external]?.join(' ')
+            if (!backendUtils.classEditContext.createOrGet(external, elem)) {
+              name = external
+              v = classes ?? ''
+            }
           } else if (ev.attributeName === 'slot') {
             name = ev.attributeName
             v = elem.slot
@@ -648,8 +719,10 @@ export class MountPointsManager {
             name = ev.attributeName
             v = elem.id
           } else if (ev.attributeName === 'class') {
-            name = ev.attributeName
-            v = elem.class
+            if (!backendUtils.classEditContext.createOrGet('', elem).matches(elem.class)) {
+              name = ev.attributeName
+              v = elem.class
+            }
           } else if (ev.attributeName === 'style') {
             name = ev.attributeName
             v = elem.style
@@ -667,8 +740,6 @@ export class MountPointsManager {
               detail,
               nameType,
             })
-          } else {
-            warn('unknown mutation observer event')
           }
         }
         return

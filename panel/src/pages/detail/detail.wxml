@@ -1,41 +1,53 @@
 <detail-section class="section" title="{{ nodeTypeName }}">
   <block wx:if="{{ info.glassEaselNodeType === 0x102 }}">
-    <view wx:if="{{ info.id }}" class="section-item">
-      <view class="section-key-core">id</view> = <value primitive-value="{{ info.id }}" node-id="{{ nodeId }}" />
-    </view>
-    <view wx:if="{{ info.class }}" class="section-item">
-      <view class="section-key-core">class</view> = <value primitive-value="{{ info.class }}" node-id="{{ nodeId }}" />
-    </view>
-    <view wx:if="{{ info.slot }}" class="section-item">
-      <view class="section-key-core">slot</view> = <value primitive-value="{{ info.slot }}" node-id="{{ nodeId }}" />
-    </view>
+    <template is="node-id-slot" data="{{ info }}" />
+    <template is="node-class" wx:if="{{ info.classes.length }}" data="{{ classes: info.classes }}" />
   </block>
   <block wx:elif="{{ info.glassEaselNodeType === 0x103 }}">
     <view class="section-item">
       <view class="section-key-core">is</view> = <value primitive-value="{{ info.is }}" node-id="{{ nodeId }}" />
     </view>
-    <view wx:if="{{ info.id }}" class="section-item">
-      <view class="section-key-core">id</view> = <value primitive-value="{{ info.id }}" node-id="{{ nodeId }}" />
-    </view>
-    <view wx:if="{{ info.class }}" class="section-item">
-      <view class="section-key-core">class</view> = <value primitive-value="{{ info.class }}" node-id="{{ nodeId }}" />
-    </view>
-    <view wx:if="{{ info.slot }}" class="section-item">
-      <view class="section-key-core">slot</view> = <value primitive-value="{{ info.slot }}" node-id="{{ nodeId }}" />
-    </view>
+    <template is="node-id-slot" data="{{ info }}" />
+    <template is="node-class" wx:if="{{ info.classes.length }}" data="{{ classes: info.classes }}" />
+    <block wx:for="{{ info.externalClasses }}" wx:key="name">
+      <template is="node-class" data="{{ classes: item.value, external: item.name }}" />
+    </block>
   </block>
   <block wx:elif="{{ info.glassEaselNodeType === 0x104 }}">
     <view class="section-item">
       <view class="section-key-core">is</view> = <value primitive-value="{{ info.is }}" node-id="{{ nodeId }}" />
     </view>
-    <view wx:if="{{ info.id }}" class="section-item">
-      <view class="section-key-core">id</view> = <value primitive-value="{{ info.id }}" node-id="{{ nodeId }}" />
-    </view>
-    <view wx:if="{{ info.slot }}" class="section-item">
-      <view class="section-key-core">slot</view> = <value primitive-value="{{ info.slot }}" node-id="{{ nodeId }}" />
-    </view>
+    <template is="node-id-slot" data="{{ info }}" />
   </block>
 </detail-section>
+
+<template name="node-id-slot">
+  <view wx:if="{{ info.id }}" class="section-item">
+    <view class="section-key-core">id</view> = <value primitive-value="{{ info.id }}" node-id="{{ nodeId }}" />
+  </view>
+  <view wx:if="{{ info.slot }}" class="section-item">
+    <view class="section-key-core">slot</view> = <value primitive-value="{{ info.slot }}" node-id="{{ nodeId }}" />
+  </view>
+</template>
+
+<template name="node-class">
+  <view class="section-item" mark:external="{{ external }}">
+    <view wx:if="{{ external }}" class="class-external">
+      <view class="section-key">{{ external }}</view>
+      <view class="class-external-hint"> external</view>
+    </view>
+    <view wx:else>
+      <view class="section-key">class</view>
+    </view>
+    <view wx:for="{{ classes }}" wx:key="className" class="class-value-item" mark:classNameIndex="{{ index }}">
+      <view wx:if="{{ item.disabled }}" class="style-rule-disabled" catch:tap="classDisable" mark:toDisable="{{ false }}">྾</view>
+      <view wx:else class="style-rule-enabled" hover-class="style-rule-enabled_hover" catch:tap="classDisable" mark:toDisable="{{ true }}">●</view>
+      <editable class="style-rule-property {{ item.disabled ? 'style-rule-property_disabled' : '' }}" model:value="{{ item.className }}" bind:change="classChange">
+        <block>{{ item.className }}</block>
+      </editable>
+    </view>
+  </view>
+</template>
 
 <view hidden="{{ info.slotName === undefined }}">
   <detail-section class="section" title="slot">
@@ -64,17 +76,6 @@
     <block wx:if="{{ info.properties.length }}">
       <view wx:for="{{ info.properties }}" class="section-item">
         <view class="section-key">{{ item.name }}</view> = <value value="{{ item.value }}" node-id="{{ nodeId }}" attribute="{{ item.name }}" />
-      </view>
-    </block>
-    <view wx:else class="section-empty">empty</view>
-  </detail-section>
-</view>
-
-<view hidden="{{ !info.externalClasses }}">
-  <detail-section class="section" title="external classes">
-    <block wx:if="{{ info.externalClasses.length }}">
-      <view wx:for="{{ info.externalClasses }}" class="section-item">
-        <view class="section-key">{{ item.name }}</view> = <value primitive-value="{{ item.value }}" node-id="{{ nodeId }}" attribute="{{ item.name }}" />
       </view>
     </block>
     <view wx:else class="section-empty">empty</view>

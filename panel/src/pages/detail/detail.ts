@@ -9,7 +9,7 @@ const DEFAULT_NODE_DATA = {
   virtual: true,
   is: '',
   id: '',
-  class: '',
+  classes: [],
   slot: '',
   slotName: undefined,
   slotValues: undefined,
@@ -130,9 +130,13 @@ Component()
         const index = data.info.externalClasses?.map((x) => x.name).indexOf(name) ?? -1
         if (index >= 0) {
           self.groupUpdates(() => {
+            const classes = value
+              .split(/\s+/g)
+              .filter((x) => x.length > 0)
+              .map((className) => ({ className }))
             self.replaceDataOnPath(
               ['info', 'externalClasses', index, 'value'],
-              value as unknown as never,
+              classes as unknown as never,
             )
           })
         }
@@ -146,7 +150,11 @@ Component()
         })
       } else if (name === 'class') {
         self.groupUpdates(() => {
-          self.replaceDataOnPath(['info', 'class'], value)
+          const classes = value
+            .split(/\s+/g)
+            .filter((x) => x.length > 0)
+            .map((className) => ({ className }))
+          self.replaceDataOnPath(['info', 'classes'], classes)
         })
       } else if (name === 'name') {
         self.groupUpdates(() => {
@@ -163,6 +171,65 @@ Component()
       }
       listeningNodeId = nodeId
     }
+
+    const updateClasses = async (
+      externalClass: string,
+      classes: { className: string; disabled?: boolean }[],
+    ) => {
+      const nodeId = store.selectedNodeId
+      const { classes: newClasses } = await sendRequest('DOM.setGlassEaselClassList', {
+        nodeId,
+        externalClass,
+        classes,
+      })
+      if (externalClass) {
+        self.groupUpdates(() => {
+          const index = data.info.externalClasses?.findIndex((x) => x.name === externalClass)
+          if (index !== undefined) {
+            self.replaceDataOnPath(
+              ['info', 'externalClasses', index, 'value'],
+              newClasses as unknown as never,
+            )
+          }
+        })
+      } else {
+        self.groupUpdates(() => {
+          self.replaceDataOnPath(['info', 'classes'], newClasses)
+        })
+      }
+      await refreshStyles()
+    }
+
+    const classChange = listener<{ value: string }>((ev) => {
+      const { external, classNameIndex } = ev.mark as {
+        external?: string
+        classNameIndex: number
+      }
+      const classGroup = external
+        ? data.info.externalClasses?.find((x) => x.name === external)?.value
+        : data.info.classes
+      if (!classGroup) return
+      const newGroup = classGroup.map(({ className, disabled }) => ({ className, disabled }))
+      newGroup[classNameIndex].className = ev.detail.value
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      updateClasses(external ?? '', newGroup)
+    })
+
+    const classDisable = listener((ev) => {
+      const { external, classNameIndex, toDisable } = ev.mark as {
+        external?: string
+        classNameIndex: number
+        toDisable: boolean
+      }
+      const classGroup = external
+        ? data.info.externalClasses?.find((x) => x.name === external)?.value
+        : data.info.classes
+      if (!classGroup) return
+      const newGroup = classGroup.map(({ className, disabled }) => ({ className, disabled }))
+      newGroup[classNameIndex].disabled = toDisable
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      updateClasses(external ?? '', newGroup)
+    })
 
     const refreshBoxModel = method(async () => {
       const nodeId = store.selectedNodeId
@@ -282,6 +349,8 @@ Component()
     })
 
     return {
+      classChange,
+      classDisable,
       refreshBoxModel,
       refreshStyles,
       refreshComputedStyles,

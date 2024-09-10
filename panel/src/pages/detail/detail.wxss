@@ -67,6 +67,14 @@
   align-items: center;
 }
 
+.class-external-hint {
+  display: inline;
+  font-style: italic;
+}
+.class-value-item {
+  .color-mode(color, @attribute-value);
+}
+
 .style-rule {
   margin: 5px 0;
   user-select: text;
