@@ -12,10 +12,10 @@
   "devDependencies": {
     "@csstools/css-tokenizer": "^2.4.1",
     "@csstools/selector-specificity": "^3.1.1",
-    "@types/node": "^20.14.9",
+    "@types/node": "^20.16.5",
     "devtools-protocol": "^0.0.1319565",
     "glass-easel": "^0.9.0",
     "glass-easel-template-compiler": "^0.9.0",
-    "postcss-selector-parser": "^6.1.1"
+    "postcss-selector-parser": "^6.1.2"
   }
 }
