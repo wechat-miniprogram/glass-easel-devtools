@@ -1,0 +1,7 @@
+<view catch:tap="startEdit">
+  <slot />
+</view>
+<block wx:if="{{ edit }}">
+  <div id="measure" class="measure">{{ previewValue }}</div>
+  <input id="edit" class="edit" style="width: {{ width }}px" value="{{ value }}" bind:blur="inputBlur" bind:keyup="updateWidth" bind:change="commit" />
+</block>

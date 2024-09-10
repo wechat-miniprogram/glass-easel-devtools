@@ -18,6 +18,7 @@ export type AgentRequestKind = {
   pushNodesByBackendIdsToFrontend: PushNodesByBackendIdsToFrontend
   removeAttribute: RemoveAttribute
   setAttributeValue: SetAttributeValue
+  setGlassEaselClassList: SetGlassEaselClassList
   setAttributesAsText: SetAttributesAsText
   getAttributes: GetAttributes
   getGlassEaselAttributes: GetGlassEaselAttributes
@@ -161,8 +162,28 @@ export interface RemoveAttribute extends RequestResponse {
  * Set an attribute.
  */
 export interface SetAttributeValue extends RequestResponse {
-  request: { nodeId: NodeId; name: string; value: string }
+  request: {
+    nodeId: NodeId
+    name: string
+    value: string
+    nameType?: 'auto' | 'normal-attribute' | 'property' | 'external-class'
+  }
   cdpRequestResponse: [Protocol.DOM.SetAttributeValueRequest, unknown]
+}
+
+/**
+ * Set an attribute.
+ */
+export interface SetGlassEaselClassList extends RequestResponse {
+  request: {
+    nodeId: NodeId
+    externalClass?: string
+    classes: { className: string; disabled?: boolean }[]
+  }
+  response: {
+    classes: { className: string; disabled?: boolean }[]
+  }
+  cdpRequestResponse: [unknown, unknown]
 }
 
 /**
@@ -197,7 +218,7 @@ export interface GetGlassEaselAttributes extends RequestResponse {
     virtual: boolean
     is: string
     id: string
-    class: string
+    classes: { className: string; disabled?: boolean }[]
     slot: string
     slotName: string | undefined
     slotValues: { name: string; value: GlassEaselVar }[] | undefined
@@ -210,7 +231,7 @@ export interface GetGlassEaselAttributes extends RequestResponse {
     }[]
     normalAttributes?: { name: string; value: GlassEaselVar }[]
     properties?: { name: string; value: GlassEaselVar }[]
-    externalClasses?: { name: string; value: string }[]
+    externalClasses?: { name: string; value: { className: string; disabled?: boolean }[] }[]
     dataset: { name: string; value: GlassEaselVar }[]
     marks: { name: string; value: GlassEaselVar }[]
   }

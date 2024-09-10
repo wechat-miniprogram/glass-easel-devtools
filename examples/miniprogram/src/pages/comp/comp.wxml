@@ -1,3 +1,4 @@
+<div class="self-class">This component has self classes.</div>
 <div class="hello-class hover-class" custom-attr="custom-value">
   This component has external classes.
   <div catch:tap="updateRandom">

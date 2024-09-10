@@ -1,0 +1,32 @@
+@import url('../common.wxss');
+
+:host {
+  display: inline-block;
+  cursor: text;
+  position: relative;
+}
+
+.measure {
+  color: transparent;
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-family: monospace;
+  white-space: nowrap;
+}
+
+.edit {
+  box-sizing: content-box;
+  position: absolute;
+  left: -2px;
+  top: -2px;
+  right: -2px;
+  border: 1px solid #808080;
+  padding: 1px;
+  .color-mode(background-color, @secondary-bg);
+  .color-mode(color, @important-text);
+  font-size: 1em;
+  font-family: monospace;
+  border-radius: none;
+  outline: none;
+}
