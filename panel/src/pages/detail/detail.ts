@@ -261,7 +261,7 @@ Component()
       }
       let styleSheetId: string | undefined
       let ruleIndex = 0
-      if (matchedRuleIndex) {
+      if (matchedRuleIndex !== undefined) {
         const rule = data.styles?.matchedCSSRules[matchedRuleIndex]?.rule
         if (!rule) return
         styleSheetId = rule.styleSheetId
@@ -291,7 +291,7 @@ Component()
       }
       let styleSheetId: string | undefined
       let ruleIndex = 0
-      if (matchedRuleIndex) {
+      if (matchedRuleIndex !== undefined) {
         const rule = data.styles?.matchedCSSRules[matchedRuleIndex]?.rule
         if (!rule) return
         styleSheetId = rule.styleSheetId
@@ -327,7 +327,7 @@ Component()
       }
       let styleSheetId: string | undefined
       let ruleIndex = 0
-      if (matchedRuleIndex) {
+      if (matchedRuleIndex !== undefined) {
         const rule = data.styles?.matchedCSSRules[matchedRuleIndex]?.rule
         if (!rule) return
         styleSheetId = rule.styleSheetId
