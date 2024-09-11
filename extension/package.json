@@ -1,6 +1,6 @@
 {
   "name": "glass-easel-devtools-extension",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "main": "src/utils.ts",
   "scripts": {
     "build": "webpack --config webpack.config.js --no-devtool",
@@ -9,7 +9,7 @@
     "debug-firefox": "ln -s -f firefox.manifest.json manifest.json"
   },
   "dependencies": {
-    "glass-easel": "^0.10.0",
+    "glass-easel": "^0.10.1",
     "glass-easel-devtools-agent": "workspace:*",
     "glass-easel-devtools-panel": "workspace:*"
   },
