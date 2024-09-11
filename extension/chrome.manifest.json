@@ -2,7 +2,7 @@
   "description": "DevTools extension for developing glass-easel applications",
   "manifest_version": 3,
   "name": "glass-easel DevTools",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "homepage_url": "https://github.com/wechat-miniprogram/glass-easel-devtools",
   "icons": {
     "16": "icons/glass-easel-16.png",
