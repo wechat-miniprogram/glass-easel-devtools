@@ -48,7 +48,10 @@ Component()
           .select('#measure')
           .boundingClientRect((rect) => {
             if (!rect) return
-            const width = rect.width > PRESERVED_RIGHT_WIDTH ? rect.width + PRESERVED_RIGHT_WIDTH : PRESERVED_RIGHT_WIDTH
+            const width =
+              rect.width > PRESERVED_RIGHT_WIDTH
+                ? rect.width + PRESERVED_RIGHT_WIDTH
+                : PRESERVED_RIGHT_WIDTH
             self.setData({ width })
           })
           .exec()
