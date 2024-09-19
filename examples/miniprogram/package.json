@@ -7,8 +7,8 @@
     "dev": "webpack --config webpack.dev.config.js --watch"
   },
   "dependencies": {
-    "glass-easel": "^0.10.1",
-    "glass-easel-miniprogram-adapter": "^0.10.1"
+    "glass-easel": "^0.10.2",
+    "glass-easel-miniprogram-adapter": "^0.10.2"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^6.21.0",
@@ -17,7 +17,7 @@
     "eslint": "^7.32.0",
     "eslint-plugin-import": "^2.30.0",
     "eslint-plugin-promise": "^4.3.1",
-    "glass-easel-miniprogram-webpack-plugin": "^0.10.1",
+    "glass-easel-miniprogram-webpack-plugin": "^0.10.2",
     "less": "^4.2.0",
     "less-loader": "^11.1.4",
     "mini-css-extract-plugin": "^2.9.1",

@@ -171,6 +171,40 @@ export class OverlayManager {
     ) as glassEasel.Component<any, any, ComponentExport>
     this.backendContexts.set(ctx, component)
 
+    // inject a middleware as an event listener
+    if (
+      ctx.mode === glassEasel.BackendMode.Composed ||
+      ctx.mode === glassEasel.BackendMode.Shadow
+    ) {
+      if (ctx.addPriorEventListener) {
+        const isEventUnderRoot = (target: glassEasel.Element): boolean => {
+          // detect whether the event is under the root
+          if (!(target instanceof glassEasel.Element)) return false
+          let cur = target
+          for (;;) {
+            if (cur === component) return true
+            if (cur.parentNode) {
+              cur = cur.parentNode
+              continue
+            }
+            if (cur.ownerShadowRoot) {
+              cur = cur.ownerShadowRoot.getHostNode()
+              continue
+            }
+            return false
+          }
+        }
+        ctx.addPriorEventListener((target, type, detail, options) => {
+          if (!isEventUnderRoot(target)) return undefined
+          const ev = new glassEasel.Event(type, detail, options)
+          glassEasel.Event.dispatchEvent(target, ev)
+          return ev.defaultPrevented()
+            ? glassEasel.EventBubbleStatus.NoDefault
+            : glassEasel.EventBubbleStatus.Normal
+        })
+      }
+    }
+
     // insert into backend
     let parentElement: glassEasel.GeneralBackendElement
     let placeholder: glassEasel.GeneralBackendElement

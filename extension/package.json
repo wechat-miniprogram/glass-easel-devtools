@@ -9,7 +9,7 @@
     "debug-firefox": "ln -s -f firefox.manifest.json manifest.json"
   },
   "dependencies": {
-    "glass-easel": "^0.10.1",
+    "glass-easel": "^0.10.2",
     "glass-easel-devtools-agent": "workspace:*",
     "glass-easel-devtools-panel": "workspace:*"
   },

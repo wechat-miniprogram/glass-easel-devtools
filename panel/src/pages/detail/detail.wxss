@@ -93,6 +93,7 @@
   line-height: 1em;
   text-align: center;
   cursor: pointer;
+  user-select: none;
   .color-mode(color, @warn-text);
 }
 .style-rule-enabled {
@@ -102,6 +103,7 @@
   line-height: 1em;
   text-align: center;
   cursor: pointer;
+  user-select: none;
   color: transparent;
 }
 .style-rule-enabled_hover {

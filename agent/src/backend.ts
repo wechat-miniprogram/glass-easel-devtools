@@ -160,7 +160,7 @@ const expectToken = (
 }
 
 const parseNameValueStr = (cssText: string) => {
-  const ret: { name: string; value: string }[] = []
+  const ret: { name: string; value: string; disabled: boolean }[] = []
   const tokens = tokenize({ css: cssText })
   if (tokens.length === 0) return null
   let nameStart = 0
@@ -175,7 +175,7 @@ const parseNameValueStr = (cssText: string) => {
         if (expectToken(t, TokenType.Semicolon)) break
       }
       const value = stringify(...tokens.slice(valueStart, i)).trim()
-      ret.push({ name, value })
+      ret.push({ name, value, disabled: false })
       nameStart = i + 1
     }
   }
@@ -230,10 +230,8 @@ export const getMatchedRules = (
     rules: glassEasel.CSSRule[],
   ): glassEasel.CSSRule[] => {
     const rulesWithSelector = rules.map((rule) => {
-      if (rule.propertyText !== undefined) {
-        const edit = styleEditContext.createOrGetRule(ctx, rule, rule.propertyText)
-        rule.properties = edit.getProps()
-      }
+      const edit = styleEditContext.createOrGetRule(ctx, rule, rule.propertyText)
+      rule.properties = edit.getProps()
       const ps = parser().astSync(rule.selector)
       const specificity = selectorSpecificity(ps)
       return [specificity, rule] as const
@@ -268,10 +266,8 @@ export const getMatchedRules = (
           ctx.getMatchedRules(elem as glassEasel.domlikeBackend.Element, (ret) => {
             convertAdapterGeneratedRules(ret.rules)
             ret.rules = calcRuleWeight(ctx, ret.rules)
-            if (ret.inlineText !== undefined) {
-              const edit = styleEditContext.createOrGetInline(elem, ret.inlineText)
-              ret.inline = edit.getProps()
-            }
+            const edit = styleEditContext.createOrGetInline(elem, ret.inline, ret.inlineText)
+            ret.inline = edit.getProps()
             resolve(ret)
           })
         } catch (err) {
@@ -289,6 +285,8 @@ export const getMatchedRules = (
       if ('getMatchedRules' in elem) {
         ;(elem as glassEasel.backend.Element).getMatchedRules!((ret) => {
           ret.rules = calcRuleWeight(ctx, ret.rules)
+          const edit = styleEditContext.createOrGetInline(elem, ret.inline, ret.inlineText)
+          ret.inline = edit.getProps()
           resolve(ret)
         })
       } else {
@@ -298,22 +296,33 @@ export const getMatchedRules = (
   })
 }
 
+const filterCssProperties = (props: glassEasel.CSSProperty[]) => {
+  return props.map((prop) => ({
+    name: prop.name.trim(),
+    value: prop.value.trim(),
+    disabled: false,
+    important: prop.important,
+  }))
+}
+
 export class StyleRuleEdit {
-  private props: glassEasel.CSSProperty[]
+  private props: { name: string; value: string; disabled: boolean; important?: boolean }[]
 
   constructor(props: glassEasel.CSSProperty[]) {
-    this.props = props
+    this.props = filterCssProperties(props)
   }
 
-  static fromInlineStyle(s: string) {
+  static fromMaybeInlineStyle(props: glassEasel.CSSProperty[], inlineStyle?: string) {
+    if (inlineStyle === undefined) return new StyleRuleEdit(props)
     const ret = new StyleRuleEdit([])
-    ret.props = parseNameValueStr(s) ?? []
+    ret.props = parseNameValueStr(inlineStyle) ?? []
     return ret
   }
 
-  updateWithProps(props: glassEasel.CSSProperty[]) {
+  updateWithProps(props: glassEasel.CSSProperty[], inlineStyle?: string) {
     const oldProps = this.props
-    this.props = props
+    this.props =
+      inlineStyle === undefined ? filterCssProperties(props) : parseNameValueStr(inlineStyle) ?? []
     let i = 0
     oldProps.forEach((prop) => {
       if (prop.disabled) {
@@ -380,10 +389,17 @@ class StyleEditContext {
   inlineStyleMap = new WeakMap<glassEasel.GeneralBackendElement, StyleRuleEdit>()
   ruleMap = new WeakMap<glassEasel.GeneralBackendContext, Record<string, StyleRuleEdit>>()
 
-  createOrGetInline(elem: glassEasel.GeneralBackendElement, inlineStyle: string): StyleRuleEdit {
+  createOrGetInline(
+    elem: glassEasel.GeneralBackendElement,
+    properties: glassEasel.CSSProperty[],
+    inlineStyle?: string,
+  ): StyleRuleEdit {
     const r = this.inlineStyleMap.get(elem)
-    if (r) return r
-    const edit = StyleRuleEdit.fromInlineStyle(inlineStyle)
+    if (r) {
+      r.updateWithProps(properties, inlineStyle)
+      return r
+    }
+    const edit = StyleRuleEdit.fromMaybeInlineStyle(properties, inlineStyle)
     this.inlineStyleMap.set(elem, edit)
     return edit
   }
@@ -391,20 +407,21 @@ class StyleEditContext {
   createOrGetRule(
     ctx: glassEasel.GeneralBackendContext,
     rule: glassEasel.CSSRule,
-    inlineStyle: string,
+    inlineStyle?: string,
   ): StyleRuleEdit {
     const key = `${rule.sheetIndex}/${rule.ruleIndex}`
     const map = this.ruleMap.get(ctx)
     if (!map) {
       const map = Object.create(null) as Record<string, StyleRuleEdit>
-      map[key] = StyleRuleEdit.fromInlineStyle(inlineStyle)
+      map[key] = StyleRuleEdit.fromMaybeInlineStyle(rule.properties, inlineStyle)
       this.ruleMap.set(ctx, map)
       return map[key]
     }
     if (!map[key]) {
-      map[key] = StyleRuleEdit.fromInlineStyle(inlineStyle)
+      map[key] = StyleRuleEdit.fromMaybeInlineStyle(rule.properties, inlineStyle)
       return map[key]
     }
+    map[key].updateWithProps(rule.properties, inlineStyle)
     return map[key]
   }
 

@@ -7,7 +7,7 @@
     "dev": "webpack --config webpack.config.js --watch --mode development"
   },
   "dependencies": {
-    "glass-easel": "^0.10.1",
+    "glass-easel": "^0.10.2",
     "glass-easel-devtools-agent": "workspace:*",
     "glass-easel-devtools-panel": "workspace:*"
   },

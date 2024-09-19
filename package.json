@@ -1,6 +1,7 @@
 {
   "scripts": {
     "init-dev": "pnpm i && npm run build",
+    "dev": "pnpm --parallel run dev",
     "build": "pnpm -r run build",
     "pack-extension": "npm run build && cd extension && node pack.js"
   },
