@@ -1,6 +1,6 @@
 {
   "name": "glass-easel-devtools-examples-standalone",
-  "version": "0.10.1",
+  "version": "0.10.2",
   "main": "src/index.ts",
   "scripts": {
     "build": "webpack --config webpack.config.js",
