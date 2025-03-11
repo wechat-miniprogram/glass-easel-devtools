@@ -1,0 +1,7 @@
+<view class="wrapper">
+  <view class="item">
+    <checkbox>Hide syntax virtual nodes</checkbox>
+    <checkbox>Hide all virtual nodes</checkbox>
+    <checkbox>Display composed tree</checkbox>
+  </view>
+</view>

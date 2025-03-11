@@ -1,0 +1,4 @@
+<view class="wrapper" hover-class="hover" bind:tap="check">
+  <view class="check">{{ checked ? '✔' : '' }}</view>
+  <slot />
+</view>

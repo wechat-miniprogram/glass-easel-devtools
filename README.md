@@ -10,8 +10,6 @@ An important usage is to run as a browser DevTools extension. Install the extens
 
 However, it can also be integrated into other JS environments.
 
-Still in rapid development.
-
 
 ## Installation
 
@@ -81,8 +79,8 @@ The panel is the front end to display the information extracted by the agent. It
 
 To build these two modules:
 
-1. run `npm run build` in `glass-easel-devtools-agent` directory;
-1. run `npm run build` in `glass-easel-devtools-panel` directory.
+1. run `npm run build` in `agent` directory;
+1. run `npm run build` in `panel` directory.
 
 While development, run `npm run dev` instead (more debug logs and webpack will watch changes).
 
@@ -92,7 +90,7 @@ These two modules are also available as npm public packages.
 
 The extension `glass-easel-devtools-extension` is a wrapper for both the agent and the panel. It acts as an Chrome/Firefox extension.
 
-1. Run `npm run build` in `glass-easel-devtools-extension` directory to build the extension.
+1. Run `npm run build` in `extension` directory to build the extension.
 1. Then the directory can be loaded as an browser extension.
   * In Chrome, open `chrome://extensions/` and load this extracted extension.
   * In Firefox, open `about:debugging#/runtime/this-firefox` and temporarily load this extension.
