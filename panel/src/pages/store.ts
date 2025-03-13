@@ -2,10 +2,21 @@ import { makeAutoObservable } from 'mobx-miniprogram'
 import { type protocol } from 'glass-easel-devtools-agent'
 import { sendRequest } from '../message_channel'
 
+export type UserConfig = {
+  hideInherit: boolean
+  hideVirtual: boolean
+  showComposed: boolean
+}
+
 export const store = makeAutoObservable({
   selectedNodeId: 0 as protocol.NodeId,
   highlightNodeId: 0 as protocol.NodeId,
   sideBarShown: false,
+  userConfig: {
+    hideInherit: true,
+    hideVirtual: false,
+    showComposed: false,
+  } as UserConfig,
 
   selectNode(n: protocol.NodeId) {
     this.selectedNodeId = n
@@ -29,5 +40,9 @@ export const store = makeAutoObservable({
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       sendRequest('Overlay.hideHighlight', {})
     }
+  },
+
+  setUserConfig(userConfig: UserConfig) {
+    this.userConfig = { ...userConfig }
   },
 })

@@ -54,6 +54,7 @@ export const enum GlassEaselNodeType {
   NativeNode,
   Component,
   VirtualNode,
+  InheritVirtualNode,
 }
 
 export const glassEaselNodeTypeToCDP = (t: GlassEaselNodeType) => {
@@ -61,6 +62,7 @@ export const glassEaselNodeTypeToCDP = (t: GlassEaselNodeType) => {
   if (t === GlassEaselNodeType.NativeNode) return CDPNodeType.ELEMENT_NODE
   if (t === GlassEaselNodeType.Component) return CDPNodeType.ELEMENT_NODE
   if (t === GlassEaselNodeType.VirtualNode) return CDPNodeType.ELEMENT_NODE
+  if (t === GlassEaselNodeType.InheritVirtualNode) return CDPNodeType.ELEMENT_NODE
   if (t === GlassEaselNodeType.Unknown) return CDPNodeType.DOCUMENT_NODE
   return CDPNodeType.DOCUMENT_NODE
 }

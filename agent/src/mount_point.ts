@@ -29,7 +29,12 @@ export const enum StaticNodeName {
 const getNodeType = (node: glassEasel.Node): GlassEaselNodeType => {
   if (node.asTextNode()) return GlassEaselNodeType.TextNode
   if (node.asNativeNode()) return GlassEaselNodeType.NativeNode
-  if (node.asVirtualNode()) return GlassEaselNodeType.VirtualNode
+  if (node.asVirtualNode()) {
+    if (node.asVirtualNode()!.isInheritSlots()) {
+      return GlassEaselNodeType.InheritVirtualNode
+    }
+    return GlassEaselNodeType.VirtualNode
+  }
   if (node.asGeneralComponent()) return GlassEaselNodeType.Component
   return GlassEaselNodeType.Unknown
 }
@@ -45,7 +50,12 @@ const getNodeName = (
     const comp = node.asGeneralComponent()!
     return local ? comp.is : comp.tagName
   }
-  if (nodeType === GlassEaselNodeType.VirtualNode) return node.asVirtualNode()!.is
+  if (
+    nodeType === GlassEaselNodeType.VirtualNode ||
+    nodeType === GlassEaselNodeType.InheritVirtualNode
+  ) {
+    return node.asVirtualNode()!.is
+  }
   return StaticNodeName.Unknown
 }
 
@@ -143,7 +153,11 @@ export class MountPointsManager {
       let glassEaselNodeType = GlassEaselNodeType.Unknown
       if (comp) glassEaselNodeType = GlassEaselNodeType.Component
       if (nativeNode) glassEaselNodeType = GlassEaselNodeType.NativeNode
-      if (virtualNode) glassEaselNodeType = GlassEaselNodeType.VirtualNode
+      if (virtualNode) {
+        glassEaselNodeType = virtualNode.isInheritSlots()
+          ? GlassEaselNodeType.InheritVirtualNode
+          : GlassEaselNodeType.VirtualNode
+      }
 
       // collect basic attributes
       const virtual = elem.isVirtual()

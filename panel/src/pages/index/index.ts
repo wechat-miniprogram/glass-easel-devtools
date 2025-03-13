@@ -15,6 +15,7 @@ export const componentDefinition = Component()
     mountPoints: [] as protocol.dom.Node[],
     inSelectMode: false,
     detailWidth: 300,
+    showOptions: false,
   }))
   .init((ctx) => {
     const { self, data, setData, method, listener } = ctx
@@ -82,6 +83,11 @@ export const componentDefinition = Component()
       })
     })
 
+    // handling options
+    const showOptions = listener(() => {
+      setData({ showOptions: !data.showOptions })
+    })
+
     // split drag & resize
     let startPosX: null | number = null
     const splitDragStart = listener<{ clientX: number; clientY: number; button: number }>((ev) => {
@@ -111,6 +117,7 @@ export const componentDefinition = Component()
 
     return {
       toggleSelectMode,
+      showOptions,
       closeSideBar,
       splitDragStart,
       splitDragMove,

@@ -11,7 +11,7 @@ import {
 } from '../../events'
 import { sendRequest } from '../../message_channel'
 import { error, warn } from '../../utils'
-import { store } from '../store'
+import { store, type UserConfig } from '../store'
 
 type AttributeMeta = { name: string; value: string; isProperty: boolean; updateAniTs: number }
 
@@ -19,6 +19,7 @@ const enum DisplayKind {
   Text = 0,
   Tag = 1,
   VirtualTag = 2,
+  InheritVirtualTag = 3,
 }
 
 export const compDef = Component()
@@ -27,6 +28,7 @@ export const compDef = Component()
     propertyPassingDeepCopy: DeepCopyKind.None,
     propertyEarlyInit: true,
   })
+  .property('isShadowRoot', Boolean)
   .property('nodeInfo', {
     type: Object,
     value: null as protocol.dom.Node | null,
@@ -44,6 +46,7 @@ export const compDef = Component()
     children: [] as protocol.dom.Node[],
     tagVarName: '',
     tagUpdateHighlight: false,
+    hideSelf: false,
   }))
   .init((ctx) => {
     // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -60,7 +63,7 @@ export const compDef = Component()
     // store bindings
     initStoreBindings(ctx, {
       store,
-      fields: ['selectedNodeId', 'highlightNodeId'],
+      fields: ['selectedNodeId', 'highlightNodeId', 'userConfig'],
     })
 
     // child nodes listeners
@@ -206,8 +209,9 @@ export const compDef = Component()
       } else {
         let tagName = nodeInfo?.nodeName ?? ''
         if (nodeType === protocol.dom.GlassEaselNodeType.Unknown) tagName = 'unknown'
+        const isInherit = nodeType === protocol.dom.GlassEaselNodeType.InheritVirtualNode
         setData({
-          kind: DisplayKind.VirtualTag,
+          kind: isInherit ? DisplayKind.InheritVirtualTag : DisplayKind.VirtualTag,
           tagName,
         })
       }
@@ -227,6 +231,28 @@ export const compDef = Component()
         })
       }
     })
+
+    // hide self node mode for virtual nodes
+    observer(
+      ['kind', 'isShadowRoot', 'userConfig'] as any,
+      (kind: DisplayKind, isShadowRoot: boolean, userConfig: UserConfig) => {
+        let hideSelf = false
+        if (userConfig && !isShadowRoot) {
+          if (userConfig.hideVirtual) {
+            if (kind === DisplayKind.InheritVirtualTag || kind === DisplayKind.VirtualTag) {
+              hideSelf = true
+            }
+          } else if (userConfig.hideInherit) {
+            if (kind === DisplayKind.InheritVirtualTag) hideSelf = true
+          }
+        }
+        if (!data.hideSelf && hideSelf) {
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
+          sendRequest('DOM.requestChildNodes', { nodeId })
+        }
+        setData({ hideSelf })
+      },
+    )
 
     // toggle children events
     const updateChildren = async () => {

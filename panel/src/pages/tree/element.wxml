@@ -1,42 +1,48 @@
-<view wx:if="{{ kind === 1 || kind === 2 }}" class="tag {{ tagUpdateHighlight ? 'updated' : '' }}">
-  <view class="fold-arrow">
-    <view wx:if="{{ hasChildNodes || hasSlotContent || hasShadowRoot }}" class="fold-arrow-icon {{ showChildNodes ? 'fold-arrow-icon_open' : '' }}" catch:tap="toggleChildren">▶</view>
-  </view>
+<view wx:if="{{ kind === 1 || kind === 2 || kind === 3 || kind === 4 }}" class="tag {{ tagUpdateHighlight ? 'updated' : '' }}">
+  <block wx:if="{{ hideSelf }}"></block>
+  <block wx:else>
+    <view class="fold-arrow">
+      <view wx:if="{{ hasChildNodes || hasSlotContent || hasShadowRoot }}" class="fold-arrow-icon {{ showChildNodes ? 'fold-arrow-icon_open' : '' }}" catch:tap="toggleChildren">▶</view>
+    </view>
+
+    <view
+      class="tag-body {{ selectedNodeId === nodeInfo.nodeId ? 'tag-body_selected' : '' }} {{ highlightNodeId === nodeInfo.nodeId ? 'tag-body_highlight' : '' }}"
+      hover-class="tag-body_hover"
+      catch:tap="selectTag"
+      bind:mouseenter="startHoverTag"
+      bind:mouseleave="endHoverTag"
+    >
+      <block wx:if="{{ kind === 1 }}">
+        <view class="tag-text">&lt;</view>
+        <view class="tag-name">{{ tagName }}</view>
+        <block wx:for="{{ attributes }}">
+          <view class="attribute">
+            <block>{{ ' ' }}</block>
+            <view class="attribute-name {{ item.isProperty ? 'attribute-name_property' : '' }}">{{ item.name }}</view>
+            <block>{{ '="' }}</block>
+            <view class="attribute-value {{ item.updateAniTs ? 'updated' : '' }}">{{ item.value }}</view>
+            <block>{{ '"' }}</block>
+          </view>
+        </block>
+        <view class="tag-text">&gt;</view>
+      </block>
+      <block wx:else>
+        <view class="virtual-tag-name">{{ tagName }}</view>
+      </block>
+    </view>
+
+    <view class="tag-var-name-wrapper" hidden="{{ selectedNodeId !== nodeInfo.nodeId }}">
+      <view wx:if="{{ tagVarName }}" class="tag-var-name">={{ tagVarName }}</view>
+      <view wx:else class="tag-var-name" hover-class="tag-var-name_hover" catch:tap="useElementInConsole">↖</view>
+    </view>
+  </block>
 
   <view
-    class="tag-body {{ selectedNodeId === nodeInfo.nodeId ? 'tag-body_selected' : '' }} {{ highlightNodeId === nodeInfo.nodeId ? 'tag-body_highlight' : '' }}"
-    hover-class="tag-body_hover"
-    catch:tap="selectTag"
-    bind:mouseenter="startHoverTag"
-    bind:mouseleave="endHoverTag"
+    hidden="{{ !showChildNodes && !hideSelf }}"
+    class="children {{ hideSelf ? '' : 'children_indent' }}"
   >
-    <block wx:if="{{ kind === 1 }}">
-      <view class="tag-text">&lt;</view>
-      <view class="tag-name">{{ tagName }}</view>
-      <block wx:for="{{ attributes }}">
-        <view class="attribute">
-          <block>{{ ' ' }}</block>
-          <view class="attribute-name {{ item.isProperty ? 'attribute-name_property' : '' }}">{{ item.name }}</view>
-          <block>{{ '="' }}</block>
-          <view class="attribute-value {{ item.updateAniTs ? 'updated' : '' }}">{{ item.value }}</view>
-          <block>{{ '"' }}</block>
-        </view>
-      </block>
-      <view class="tag-text">&gt;</view>
-    </block>
-    <block wx:else>
-      <view class="virtual-tag-name">{{ tagName }}</view>
-    </block>
-  </view>
-
-  <view class="tag-var-name-wrapper" hidden="{{ selectedNodeId !== nodeInfo.nodeId }}">
-    <view wx:if="{{ tagVarName }}" class="tag-var-name">={{ tagVarName }}</view>
-    <view wx:else class="tag-var-name" hover-class="tag-var-name_hover" catch:tap="useElementInConsole">↖</view>
-  </view>
-
-  <view hidden="{{ !showChildNodes }}" class="children">
     <view wx:if="{{ hasShadowRoot }}" class="shadow-roots">
-      <element wx:for="{{ shadowRoots }}" wx:key="nodeId" id="child-{{ item.nodeId }}" node-info="{{ item }}" />
+      <element is-shadow-root wx:for="{{ shadowRoots }}" wx:key="nodeId" id="child-{{ item.nodeId }}" node-info="{{ item }}" />
     </view>
     <element wx:for="{{ children }}" wx:key="nodeId" id="child-{{ item.nodeId }}" node-info="{{ item }}" />
   </view>

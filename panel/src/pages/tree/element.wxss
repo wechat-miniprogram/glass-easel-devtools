@@ -94,7 +94,7 @@
   .color-mode(color, @attribute-value);
 }
 
-.children {
+.children_indent {
   margin-left: 1em;
 }
 
