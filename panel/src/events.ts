@@ -1,6 +1,8 @@
 import { type builder } from 'glass-easel-miniprogram-adapter/dist/glass_easel_miniprogram_adapter'
 import { type protocol, setEventHandler } from './message_channel'
 
+const deepCopy = <T>(x: T) => JSON.parse(JSON.stringify(x)) as T
+
 export class EventDispatcher<
   N extends string,
   K extends string | number,
@@ -38,7 +40,7 @@ export class EventDispatcher<
 
   dispatch(args: T) {
     const funcArr = this.listeners[args[this.keyName]]
-    funcArr?.forEach((f) => f(args))
+    funcArr?.forEach((f) => f(deepCopy(args)))
   }
 }
 

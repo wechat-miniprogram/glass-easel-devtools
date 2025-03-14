@@ -23,7 +23,7 @@ export type AgentRequestKind = {
   getAttributes: GetAttributes
   getGlassEaselAttributes: GetGlassEaselAttributes
   useGlassEaselAttributeInConsole: UseGlassEaselAttributeInConsole
-  getGlassEaselComposedChildren: GetGlassEaselComposedChildren
+  getGlassEaselNonInheritComposedChildren: GetGlassEaselNonInheritComposedChildren
   requestChildNodes: RequestChildNodes
   removeNode: RemoveNode
   resolveNode: ResolveNode
@@ -94,7 +94,7 @@ export type Node = BackendNode & {
   /** Node id of its parent (if any); for shadow-root, this is its host. */
   parentId?: NodeId
   /** The composed parent (if any). */
-  glassEaselComposedParentId?: NodeId
+  glassEaselNonInheritComposedParentId?: NodeId
   /** The local name of the node (for components, it is the component name). */
   localName: string
   /** The text content (if any). */
@@ -252,7 +252,7 @@ export interface UseGlassEaselAttributeInConsole {
 /**
  * Get the composed children of a node.
  */
-export interface GetGlassEaselComposedChildren extends RequestResponse {
+export interface GetGlassEaselNonInheritComposedChildren extends RequestResponse {
   request: { nodeId: NodeId }
   response: { nodes: Node[] }
 }

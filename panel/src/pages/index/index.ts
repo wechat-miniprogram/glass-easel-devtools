@@ -68,7 +68,7 @@ export const componentDefinition = Component()
       const inComposedTree = store.userConfig.showComposed
       const rec = async (backendNodeId: protocol.NodeId) => {
         const { node } = await sendRequest('DOM.describeNode', { backendNodeId, depth: 2 })
-        const parentId = inComposedTree ? node.glassEaselComposedParentId : node.parentId
+        const parentId = inComposedTree ? node.glassEaselNonInheritComposedParentId : node.parentId
         if (parentId) await rec(parentId)
         nodePath.push(node)
       }

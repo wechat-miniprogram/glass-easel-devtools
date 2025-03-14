@@ -265,7 +265,9 @@ export const compDef = Component()
     const updateChildren = async () => {
       const distributedNodes = data.nodeInfo?.distributedNodes
       if (distributedNodes) {
-        const { nodes } = await sendRequest('DOM.getGlassEaselComposedChildren', { nodeId })
+        const { nodes } = await sendRequest('DOM.getGlassEaselNonInheritComposedChildren', {
+          nodeId,
+        })
         setData({ children: nodes })
       } else {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -282,6 +284,7 @@ export const compDef = Component()
       }
     })
     const visitChildNodePath = method(async (nodePath: protocol.dom.Node[], composed: boolean) => {
+      console.info('!!!', nodePath)
       const [node, ...childPath] = nodePath
       if (childPath.length === 0) {
         setData({ children: node.children })

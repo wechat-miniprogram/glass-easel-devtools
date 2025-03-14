@@ -62,7 +62,9 @@ const getNodeName = (
 export class MountPointsManager {
   private conn: Connection
   private nodeIdMap = new WeakMap<glassEasel.Node, NodeId>()
+  // active nodes are the nodes that being display and watched
   private activeNodes = Object.create(null) as Record<NodeId, NodeMeta>
+  // backend nodes are the nodes that has being transmitted to the client in arguments but not display
   private activeBackendNodes = Object.create(null) as Record<NodeId, WeakRef<glassEasel.Node>>
   readonly documentNodeId = 1
   private nodeIdInc = 2
@@ -339,17 +341,28 @@ export class MountPointsManager {
       },
     )
 
-    this.conn.setRequestHandler('DOM.getGlassEaselComposedChildren', async ({ nodeId }) => {
-      const { node } = this.queryActiveNode(nodeId)
-      const elem = node.asElement()
-      if (!elem) return { nodes: [] }
-      const nodes: dom.Node[] = []
-      elem.forEachComposedChild((child) => {
-        const nodeMeta = this.activateNode(child)
-        nodes.push(this.collectNodeDetails(nodeMeta, 0, false))
-      })
-      return { nodes }
-    })
+    this.conn.setRequestHandler(
+      'DOM.getGlassEaselNonInheritComposedChildren',
+      async ({ nodeId }) => {
+        const { node } = this.queryActiveNode(nodeId)
+        const elem = node.asElement()
+        if (!elem) return { nodes: [] }
+        const nodes: dom.Node[] = []
+        if (elem.isInheritSlots()) {
+          elem.childNodes.forEach((child) => {
+            const nodeMeta = this.activateNode(child)
+            nodes.push(this.collectNodeDetails(nodeMeta, 0, false))
+          })
+        } else {
+          elem.forEachComposedChild((child) => {
+            if (child.parentNode?.isInheritSlots()) return
+            const nodeMeta = this.activateNode(child)
+            nodes.push(this.collectNodeDetails(nodeMeta, 0, false))
+          })
+        }
+        return { nodes }
+      },
+    )
 
     this.conn.setRequestHandler(
       'DOM.pushNodesByBackendIdsToFrontend',
@@ -662,6 +675,14 @@ export class MountPointsManager {
     return newNodeId
   }
 
+  private getActiveNodeId(node: glassEasel.Node): NodeId | null {
+    const nodeId = this.nodeIdMap.get(node)
+    if (nodeId !== undefined) {
+      return this.activeNodes[nodeId] ? nodeId : null
+    }
+    return null
+  }
+
   private queryActiveNode(nodeId: NodeId): NodeMeta {
     const nodeMeta = this.activeNodes[nodeId]
     if (!nodeMeta) throw new Error(`no active node found for node id ${nodeId}`)
@@ -766,11 +787,32 @@ export class MountPointsManager {
           if (index < 0) return
           const previousNodeId = index === 0 ? 0 : this.getNodeId(parent.childNodes[index - 1])
           const childMeta = this.activateNode(child)
+          const node = this.collectNodeDetails(childMeta, 0, false)
           this.conn.sendEvent('DOM.childNodeInserted', {
             parentNodeId: nodeId,
             previousNodeId,
-            node: this.collectNodeDetails(childMeta, 0, false),
+            node,
           })
+          const composedParent = child.getComposedParent()
+          if (!parent.isInheritSlots() && composedParent && composedParent !== parent) {
+            const composedParentId = this.getActiveNodeId(composedParent)
+            if (composedParentId) {
+              let prev: glassEasel.Node | null = null
+              const found = composedParent.forEachComposedChild((c) => {
+                if (c === child) return false
+                prev = c
+                return true
+              })
+              if (found) {
+                const previousNodeId = prev ? this.getNodeId(prev) : 0
+                this.conn.sendEvent('DOM.childNodeInserted', {
+                  parentNodeId: composedParentId,
+                  previousNodeId,
+                  node,
+                })
+              }
+            }
+          }
         })
         ev.removedNodes?.forEach((child) => {
           this.deactivateNodeTree(child)
@@ -778,6 +820,16 @@ export class MountPointsManager {
             parentNodeId: nodeId,
             nodeId: this.getNodeId(child),
           })
+          const composedParent = child.getComposedParent()
+          if (!parent.isInheritSlots() && composedParent && composedParent !== parent) {
+            const composedParentId = this.getActiveNodeId(composedParent)
+            if (composedParentId) {
+              this.conn.sendEvent('DOM.childNodeRemoved', {
+                parentNodeId: composedParentId,
+                nodeId: this.getNodeId(child),
+              })
+            }
+          }
         })
         return
       }
@@ -903,6 +955,8 @@ export class MountPointsManager {
     let composedParentId: NodeId | undefined
     if (isMountPoint) {
       composedParentId = this.documentNodeId
+    } else if (node.parentNode?.isInheritSlots()) {
+      composedParentId = parentId
     } else {
       const composedParent = node.getComposedParent()
       if (composedParent) {
@@ -1016,6 +1070,7 @@ export class MountPointsManager {
       const elem = node.asElement()!
       distributedNodes = []
       elem.forEachComposedChild((child) => {
+        if (child.parentNode?.isInheritSlots()) return
         const nodeId = this.addBackendNode(child)
         const n = this.collectNodeBasicInfomation(nodeId, child)
         if (n) distributedNodes!.push(n)
@@ -1031,7 +1086,7 @@ export class MountPointsManager {
       inheritSlots,
       nodeId,
       parentId,
-      glassEaselComposedParentId: composedParentId,
+      glassEaselNonInheritComposedParentId: composedParentId,
       localName,
       nodeValue,
       attributes,
