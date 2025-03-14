@@ -8,6 +8,10 @@
       <view class="left">
         <view class="toolbar">
           <view class="tool {{ inSelectMode ? 'tool_active' : '' }}" hover-class="tool_hover" catch:tap="toggleSelectMode">Tap Select</view>
+          <view class="tool" hover-class="tool_hover">
+            <view catch:tap="showOptions">Options</view>
+            <options model:shown="{{ showOptions }}" />
+          </view>
           <view class="tool-space" />
           <view hidden="{{ !selectedNodeId || !sideBarShown }}" class="tool" hover-class="tool_hover" catch:tap="closeSideBar">▶</view>
         </view>

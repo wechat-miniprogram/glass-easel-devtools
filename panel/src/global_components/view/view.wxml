@@ -1,6 +1,7 @@
 <div
-  class="class {{ hover ? 'hover-class' : '' }}"
+  class="base class {{ hover ? 'hover-class' : '' }}"
   style="{{ hidden ? 'display: none;' : '' }}{{ style }}"
+  tabindex="{{ focusEnabled ? '-1' : '' }}"
   bind:mouseenter="hoverStart"
   bind:mouseleave="hoverEnd"
   bind:mousedown="mousedown"
@@ -9,6 +10,8 @@
   bind:touchstart="touchstart"
   bind:touchmove="touchmove"
   bind:touchend="touchend"
+  bind:focus="bindfocus"
+  bind:blur="bindblur"
 >
   <slot/>
 </div>

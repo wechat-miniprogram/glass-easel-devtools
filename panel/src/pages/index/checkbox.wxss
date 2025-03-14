@@ -1,0 +1,24 @@
+@import url('../common.wxss');
+
+.wrapper {
+  display: block;
+  white-space: nowrap;
+  padding: 3px;
+}
+
+.hover {
+  .color-mode(background-color, @highlight-bg);
+}
+
+.check {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: middle;
+  margin: 0 0.5em;
+  border: 1px solid transparent;
+  .color-mode(border-color, @important-text);
+  .color-mode(color, @important-text);
+  line-height: 1em;
+  text-align: center;
+}

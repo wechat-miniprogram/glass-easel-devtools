@@ -1,0 +1,7 @@
+<view class="wrapper" hidden="{{ !shown }}" focus-enabled bind:blur="blur">
+  <view class="list">
+    <checkbox model:checked="{{ options.hideInherit }}">Hide syntax virtual nodes</checkbox>
+    <checkbox model:checked="{{ options.hideVirtual }}">Hide all virtual nodes</checkbox>
+    <checkbox model:checked="{{ options.showComposed }}">Display composed tree</checkbox>
+  </view>
+</view>

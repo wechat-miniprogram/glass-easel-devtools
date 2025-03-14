@@ -53,6 +53,7 @@ body {
   flex: none;
   display: inline-block;
   padding: 5px 10px;
+  position: relative;
 }
 .tool_hover {
   .color-mode(background-color, @hover-bg);

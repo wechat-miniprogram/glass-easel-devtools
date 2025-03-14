@@ -1,0 +1,15 @@
+@import url('../common.wxss');
+
+:host {
+  display: block;
+  position: absolute;
+  left: 0;
+  top: 100%;
+  width: auto;
+}
+
+.wrapper {
+  .color-mode(background-color, @secondary-bg);
+  border: 2px solid #888;
+  padding: 2px;
+}

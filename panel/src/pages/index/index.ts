@@ -15,6 +15,7 @@ export const componentDefinition = Component()
     mountPoints: [] as protocol.dom.Node[],
     inSelectMode: false,
     detailWidth: 300,
+    showOptions: false,
   }))
   .init((ctx) => {
     const { self, data, setData, method, listener } = ctx
@@ -64,9 +65,11 @@ export const componentDefinition = Component()
     })
     setEventHandler('Overlay.inspectNodeRequested', ({ backendNodeId }) => {
       const nodePath: protocol.dom.Node[] = []
+      const inComposedTree = store.userConfig.showComposed
       const rec = async (backendNodeId: protocol.NodeId) => {
         const { node } = await sendRequest('DOM.describeNode', { backendNodeId, depth: 2 })
-        if (node.parentId) await rec(node.parentId)
+        const parentId = inComposedTree ? node.glassEaselNonInheritComposedParentId : node.parentId
+        if (parentId) await rec(parentId)
         nodePath.push(node)
       }
       // eslint-disable-next-line @typescript-eslint/no-floating-promises, promise/catch-or-return
@@ -74,12 +77,17 @@ export const componentDefinition = Component()
         await rec(backendNodeId)
         const tree = self.selectComponent(`#mount-point-${nodePath[0].nodeId}`, treeCompDef)
         if (tree) {
-          await tree.visitChildNodePath(nodePath)
+          await tree.visitChildNodePath(nodePath, inComposedTree)
         } else {
           error(`cannot find child node id ${nodePath[0].nodeId}`)
         }
         return undefined
       })
+    })
+
+    // handling options
+    const showOptions = listener(() => {
+      setData({ showOptions: !data.showOptions })
     })
 
     // split drag & resize
@@ -111,6 +119,7 @@ export const componentDefinition = Component()
 
     return {
       toggleSelectMode,
+      showOptions,
       closeSideBar,
       splitDragStart,
       splitDragMove,

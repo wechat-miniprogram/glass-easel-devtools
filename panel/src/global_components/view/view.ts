@@ -1,3 +1,9 @@
+interface ViewUtils {
+  focus(): void
+}
+
+export const viewUtils = Behavior.trait<ViewUtils>()
+
 export const componentDefinition = Component()
   .options({
     virtualHost: true,
@@ -5,10 +11,11 @@ export const componentDefinition = Component()
   .externalClasses(['class', 'hover-class'])
   .property('style', String)
   .property('hidden', Boolean)
+  .property('focusEnabled', Boolean)
   .data(() => ({
     hover: false,
   }))
-  .init(({ self, setData, listener }) => {
+  .init(({ self, setData, listener, implement }) => {
     const hoverStart = listener((ev) => {
       setData({ hover: true })
       self.triggerEvent('mouseenter', ev.detail, {})
@@ -35,6 +42,31 @@ export const componentDefinition = Component()
     const touchend = listener((ev) => {
       self.triggerEvent('touchend', ev.detail, {})
     })
-    return { hoverStart, hoverEnd, mousedown, mousemove, mouseup, touchstart, touchmove, touchend }
+    const bindfocus = listener(() => {
+      self.triggerEvent('focus', undefined, {})
+    })
+    const bindblur = listener(() => {
+      self.triggerEvent('blur', undefined, {})
+    })
+    implement(viewUtils, {
+      focus() {
+        const be = self._$.getShadowRoot()?.childNodes[0]?.getBackendElement()
+        if (be instanceof HTMLElement) {
+          be.focus()
+        }
+      },
+    })
+    return {
+      hoverStart,
+      hoverEnd,
+      mousedown,
+      mousemove,
+      mouseup,
+      touchstart,
+      touchmove,
+      touchend,
+      bindfocus,
+      bindblur,
+    }
   })
   .register()

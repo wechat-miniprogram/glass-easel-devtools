@@ -11,7 +11,7 @@ import {
 } from '../../events'
 import { sendRequest } from '../../message_channel'
 import { error, warn } from '../../utils'
-import { store } from '../store'
+import { store, type UserConfig } from '../store'
 
 type AttributeMeta = { name: string; value: string; isProperty: boolean; updateAniTs: number }
 
@@ -19,6 +19,7 @@ const enum DisplayKind {
   Text = 0,
   Tag = 1,
   VirtualTag = 2,
+  InheritVirtualTag = 3,
 }
 
 export const compDef = Component()
@@ -27,6 +28,7 @@ export const compDef = Component()
     propertyPassingDeepCopy: DeepCopyKind.None,
     propertyEarlyInit: true,
   })
+  .property('isShadowRoot', Boolean)
   .property('nodeInfo', {
     type: Object,
     value: null as protocol.dom.Node | null,
@@ -44,6 +46,7 @@ export const compDef = Component()
     children: [] as protocol.dom.Node[],
     tagVarName: '',
     tagUpdateHighlight: false,
+    hideSelf: false,
   }))
   .init((ctx) => {
     // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -60,7 +63,7 @@ export const compDef = Component()
     // store bindings
     initStoreBindings(ctx, {
       store,
-      fields: ['selectedNodeId', 'highlightNodeId'],
+      fields: ['selectedNodeId', 'highlightNodeId', 'userConfig'],
     })
 
     // child nodes listeners
@@ -206,8 +209,9 @@ export const compDef = Component()
       } else {
         let tagName = nodeInfo?.nodeName ?? ''
         if (nodeType === protocol.dom.GlassEaselNodeType.Unknown) tagName = 'unknown'
+        const isInherit = nodeType === protocol.dom.GlassEaselNodeType.InheritVirtualNode
         setData({
-          kind: DisplayKind.VirtualTag,
+          kind: isInherit ? DisplayKind.InheritVirtualTag : DisplayKind.VirtualTag,
           tagName,
         })
       }
@@ -228,11 +232,42 @@ export const compDef = Component()
       }
     })
 
+    // hide self node mode for virtual nodes
+    observer(
+      ['kind', 'isShadowRoot', 'userConfig'] as any,
+      (kind: DisplayKind, isShadowRoot: boolean, userConfig: UserConfig) => {
+        let hideSelf = false
+        if (userConfig) {
+          if (
+            userConfig.showComposed &&
+            (kind === DisplayKind.InheritVirtualTag || kind === DisplayKind.VirtualTag)
+          ) {
+            hideSelf = true
+          } else if (!isShadowRoot) {
+            if (userConfig.hideVirtual) {
+              if (kind === DisplayKind.InheritVirtualTag || kind === DisplayKind.VirtualTag) {
+                hideSelf = true
+              }
+            } else if (userConfig.hideInherit) {
+              if (kind === DisplayKind.InheritVirtualTag) hideSelf = true
+            }
+          }
+        }
+        if (!data.hideSelf && hideSelf) {
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises, promise/catch-or-return
+          Promise.resolve().then(updateChildren)
+        }
+        setData({ hideSelf })
+      },
+    )
+
     // toggle children events
     const updateChildren = async () => {
       const distributedNodes = data.nodeInfo?.distributedNodes
       if (distributedNodes) {
-        const { nodes } = await sendRequest('DOM.getGlassEaselComposedChildren', { nodeId })
+        const { nodes } = await sendRequest('DOM.getGlassEaselNonInheritComposedChildren', {
+          nodeId,
+        })
         setData({ children: nodes })
       } else {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -248,7 +283,8 @@ export const compDef = Component()
         Promise.resolve().then(updateChildren)
       }
     })
-    const visitChildNodePath = method(async (nodePath: protocol.dom.Node[]) => {
+    const visitChildNodePath = method(async (nodePath: protocol.dom.Node[], composed: boolean) => {
+      console.info('!!!', nodePath)
       const [node, ...childPath] = nodePath
       if (childPath.length === 0) {
         setData({ children: node.children })
@@ -259,9 +295,12 @@ export const compDef = Component()
         showChildNodes: true,
         children: node.children,
       })
+      if (composed && data.nodeInfo?.distributedNodes) {
+        await updateChildren()
+      }
       const childComp = self.selectComponent(`#child-${childPath[0].nodeId}`, compDef)
       if (childComp) {
-        await childComp.visitChildNodePath(childPath)
+        await childComp.visitChildNodePath(childPath, composed)
       } else {
         error(`cannot find child node id ${childPath[0].nodeId}`)
       }
