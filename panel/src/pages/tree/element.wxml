@@ -44,7 +44,9 @@
     <view wx:if="{{ hasShadowRoot }}" class="shadow-roots">
       <element is-shadow-root wx:for="{{ shadowRoots }}" wx:key="nodeId" id="child-{{ item.nodeId }}" node-info="{{ item }}" />
     </view>
-    <element wx:for="{{ children }}" wx:key="nodeId" id="child-{{ item.nodeId }}" node-info="{{ item }}" />
+    <block wx:if="{{ !userConfig.showComposed || isShadowRoot || nodeInfo.distributedNodes }}">
+      <element wx:for="{{ children }}" wx:key="nodeId" id="child-{{ item.nodeId }}" node-info="{{ item }}" />
+    </block>
   </view>
 </view>
 

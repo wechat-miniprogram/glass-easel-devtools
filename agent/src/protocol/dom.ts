@@ -93,6 +93,8 @@ export type Node = BackendNode & {
   nodeId: NodeId
   /** Node id of its parent (if any); for shadow-root, this is its host. */
   parentId?: NodeId
+  /** The composed parent (if any). */
+  glassEaselComposedParentId?: NodeId
   /** The local name of the node (for components, it is the component name). */
   localName: string
   /** The text content (if any). */

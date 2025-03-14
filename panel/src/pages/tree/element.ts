@@ -237,18 +237,25 @@ export const compDef = Component()
       ['kind', 'isShadowRoot', 'userConfig'] as any,
       (kind: DisplayKind, isShadowRoot: boolean, userConfig: UserConfig) => {
         let hideSelf = false
-        if (userConfig && !isShadowRoot) {
-          if (userConfig.hideVirtual) {
-            if (kind === DisplayKind.InheritVirtualTag || kind === DisplayKind.VirtualTag) {
-              hideSelf = true
+        if (userConfig) {
+          if (
+            userConfig.showComposed &&
+            (kind === DisplayKind.InheritVirtualTag || kind === DisplayKind.VirtualTag)
+          ) {
+            hideSelf = true
+          } else if (!isShadowRoot) {
+            if (userConfig.hideVirtual) {
+              if (kind === DisplayKind.InheritVirtualTag || kind === DisplayKind.VirtualTag) {
+                hideSelf = true
+              }
+            } else if (userConfig.hideInherit) {
+              if (kind === DisplayKind.InheritVirtualTag) hideSelf = true
             }
-          } else if (userConfig.hideInherit) {
-            if (kind === DisplayKind.InheritVirtualTag) hideSelf = true
           }
         }
         if (!data.hideSelf && hideSelf) {
-          // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          sendRequest('DOM.requestChildNodes', { nodeId })
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises, promise/catch-or-return
+          Promise.resolve().then(updateChildren)
         }
         setData({ hideSelf })
       },
@@ -274,7 +281,7 @@ export const compDef = Component()
         Promise.resolve().then(updateChildren)
       }
     })
-    const visitChildNodePath = method(async (nodePath: protocol.dom.Node[]) => {
+    const visitChildNodePath = method(async (nodePath: protocol.dom.Node[], composed: boolean) => {
       const [node, ...childPath] = nodePath
       if (childPath.length === 0) {
         setData({ children: node.children })
@@ -285,9 +292,12 @@ export const compDef = Component()
         showChildNodes: true,
         children: node.children,
       })
+      if (composed && data.nodeInfo?.distributedNodes) {
+        await updateChildren()
+      }
       const childComp = self.selectComponent(`#child-${childPath[0].nodeId}`, compDef)
       if (childComp) {
-        await childComp.visitChildNodePath(childPath)
+        await childComp.visitChildNodePath(childPath, composed)
       } else {
         error(`cannot find child node id ${childPath[0].nodeId}`)
       }

@@ -900,6 +900,15 @@ export class MountPointsManager {
     else if (node.parentNode) parentId = this.getNodeId(node.parentNode)
     else if (node.asShadowRoot()) parentId = this.getNodeId(node.asShadowRoot()!.getHostNode())
     else parentId = undefined
+    let composedParentId: NodeId | undefined
+    if (isMountPoint) {
+      composedParentId = this.documentNodeId
+    } else {
+      const composedParent = node.getComposedParent()
+      if (composedParent) {
+        composedParentId = this.addBackendNode(composedParent)
+      }
+    }
     const localName = getNodeName(node, ty, true)
     const nodeValue = node.asTextNode()?.textContent ?? ''
 
@@ -1022,6 +1031,7 @@ export class MountPointsManager {
       inheritSlots,
       nodeId,
       parentId,
+      glassEaselComposedParentId: composedParentId,
       localName,
       nodeValue,
       attributes,
