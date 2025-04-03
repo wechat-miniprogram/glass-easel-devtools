@@ -1,7 +1,7 @@
 import { getDevTools, type protocol } from 'glass-easel-devtools-agent'
 import { type DevToolsBridge } from '../utils'
 
-export type AgentSendMessageMeta = protocol.AgentSendMessage | { kind: '_init' }
+export type AgentSendMessageMeta = protocol.AgentSendMessage | { kind: '_preinit' | '_init' }
 
 if (window.top !== window) {
   // for iframes, connect to the top frame

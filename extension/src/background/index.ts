@@ -4,16 +4,19 @@ import { ConnectionSource } from '../utils'
 
 // inject a small user script
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
-chrome.scripting.registerContentScripts([
-  {
-    id: 'glassEaselDevToolsUser',
-    world: 'MAIN',
-    matches: ['<all_urls>'],
-    allFrames: true,
-    js: ['dist/stub.js'],
-    runAt: 'document_start',
-  },
-])
+const USER_SCRIPT_ID = 'glassEaselDevToolsUser'
+chrome.scripting
+  .registerContentScripts([
+    {
+      id: USER_SCRIPT_ID,
+      world: 'MAIN',
+      matches: ['<all_urls>'],
+      allFrames: true,
+      js: ['dist/stub.js'],
+      runAt: 'document_start',
+    },
+  ])
+  .catch(() => {})
 
 // inject main agent when needed
 const injectContentScript = (tabId: number) => {
@@ -42,15 +45,13 @@ const injectAgentScript = (tabId: number) => {
 const tabMetaMap = Object.create(null) as Record<
   number,
   {
-    devTools: chrome.runtime.Port
-    contentScript?: chrome.runtime.Port
+    devTools?: chrome.runtime.Port
+    pendingMessages: AgentSendMessageMeta[]
   }
 >
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name === ConnectionSource.DevToolsPanel) {
     newDevToolsConnection(port)
-  } else if (port.name === ConnectionSource.ContentScript) {
-    newContentScriptConnection(port)
   }
 })
 
@@ -58,20 +59,23 @@ chrome.runtime.onConnect.addListener((port) => {
 const newDevToolsConnection = (port: chrome.runtime.Port) => {
   let tabId = 0
   port.onMessage.addListener((message: PanelSendMessageMeta) => {
-    if (message.kind === '_init') {
+    if (message.kind === '_init' || message.kind === '_reconnect') {
       if (tabId) delete tabMetaMap[tabId]
       tabId = message.tabId
-      tabMetaMap[tabId] = { devTools: port }
-      injectContentScript(tabId)
-    } else if (message.kind !== '') {
-      const tabMeta = tabMetaMap[tabId]
-      if (!tabMeta) return
-      if (tabMeta.contentScript) {
-        tabMeta.contentScript.postMessage(message)
+      if (tabMetaMap[tabId]) {
+        tabMetaMap[tabId].devTools = port
+        const pendingMessages = tabMetaMap[tabId].pendingMessages
+        tabMetaMap[tabId].pendingMessages = []
+        pendingMessages.forEach((message) => {
+          port.postMessage(message)
+        })
       } else {
-        // eslint-disable-next-line no-console
-        console.warn('Failed to send message to agent since the agent is not connected')
+        tabMetaMap[tabId] = { devTools: port, pendingMessages: [] }
       }
+      if (message.kind === '_init') injectContentScript(tabId)
+    } else {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      chrome.tabs.sendMessage(tabId, message)
     }
   })
   port.onDisconnect.addListener((_port) => {
@@ -80,28 +84,27 @@ const newDevToolsConnection = (port: chrome.runtime.Port) => {
 }
 
 // connections from content script
-const newContentScriptConnection = (port: chrome.runtime.Port) => {
-  const tabId = port.sender?.tab?.id
-  if (tabId === undefined) return
+chrome.runtime.onMessage.addListener((message: AgentSendMessageMeta, sender) => {
+  if (sender.id !== chrome.runtime.id) return
+  const tabId = sender.tab?.id
+  if (!tabId) return
   const tabMeta = tabMetaMap[tabId]
-  if (!tabMeta) return
-  port.onMessage.addListener((message: AgentSendMessageMeta) => {
-    const tabMeta = tabMetaMap[tabId]
-    if (!tabMeta) return
-    if (message.kind === '_init') {
-      tabMeta.contentScript = port
-      tabMeta.devTools.postMessage({ kind: '_connected' })
-    } else {
-      tabMeta.devTools.postMessage(message)
-    }
-  })
-  port.onDisconnect.addListener((_port) => {
-    const tabMeta = tabMetaMap[tabId]
-    if (!tabMeta) return
-    tabMeta.contentScript = undefined
-  })
-  injectAgentScript(tabId)
-}
+  if (!tabMeta) {
+    tabMetaMap[tabId] = { pendingMessages: [message] }
+    return
+  }
+  if (!tabMeta.devTools) {
+    tabMeta.pendingMessages.push(message)
+    return
+  }
+  if (message.kind === '_preinit') {
+    injectAgentScript(tabId)
+  } else if (message.kind === '_init') {
+    tabMeta.devTools.postMessage({ kind: '_connected' })
+  } else {
+    tabMeta.devTools.postMessage(message)
+  }
+})
 
 // inject agent when reloaded
 chrome.webNavigation.onDOMContentLoaded.addListener((ev) => {

@@ -284,7 +284,6 @@ export const compDef = Component()
       }
     })
     const visitChildNodePath = method(async (nodePath: protocol.dom.Node[], composed: boolean) => {
-      console.info('!!!', nodePath)
       const [node, ...childPath] = nodePath
       if (childPath.length === 0) {
         setData({ children: node.children })

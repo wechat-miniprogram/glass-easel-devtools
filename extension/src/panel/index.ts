@@ -7,31 +7,42 @@ import {
 } from 'glass-easel-devtools-panel'
 import { ConnectionSource } from '../utils'
 
-export type PanelSendMessageMeta = PanelSendMessage | { kind: '_init'; tabId: number }
+export type PanelSendMessageMeta =
+  | PanelSendMessage
+  | { kind: '_init' | '_reconnect'; tabId: number }
 export type PanelRecvMessageMeta = PanelRecvMessage | { kind: '_connected' }
 
 // build connection to main service
-const background = chrome.runtime.connect({
+let background = chrome.runtime.connect({
   name: ConnectionSource.DevToolsPanel,
 })
 const postToBackground = (msg: PanelSendMessageMeta) => {
-  background.postMessage(msg)
-}
-const sendHeartbeat = () => {
-  setTimeout(() => {
-    postToBackground({ kind: '' })
-    sendHeartbeat()
-  }, 15000)
-}
-sendHeartbeat()
-background.onMessage.addListener((message: PanelRecvMessageMeta) => {
-  if (message.kind === '_connected') {
-    restart()
-  } else {
-    listener?.(message)
+  try {
+    background.postMessage(msg)
+  } catch {
+    reconnect()
+    background.postMessage(msg)
   }
-})
+}
+const bindListener = () => {
+  background.onMessage.addListener((message: PanelRecvMessageMeta) => {
+    if (message.kind === '_connected') {
+      restart()
+    } else {
+      listener?.(message)
+    }
+  })
+}
+const reconnect = () => {
+  background = chrome.runtime.connect({
+    name: ConnectionSource.DevToolsPanel,
+  })
+  bindListener()
+  postToBackground({ kind: '_reconnect', tabId: chrome.devtools.inspectedWindow.tabId })
+}
+bindListener()
 postToBackground({ kind: '_init', tabId: chrome.devtools.inspectedWindow.tabId })
+background.onDisconnect.addListener(reconnect)
 
 // passing massage through channel
 let listener: ((data: PanelRecvMessage) => void) | null = null

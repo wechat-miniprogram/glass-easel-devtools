@@ -1,5 +1,6 @@
 import { type protocol } from 'glass-easel-devtools-agent'
-import { ConnectionSource, inFirefox } from '../utils'
+import { type AgentSendMessageMeta } from '../agent'
+import { inFirefox } from '../utils'
 
 declare function cloneInto<T>(x: T, target: Window): T
 
@@ -29,17 +30,12 @@ hostElement.setAttribute('style', hostNodeStyle)
 document.documentElement.appendChild(hostElement)
 
 // messaging from background to agent
-const background = chrome.runtime.connect({
-  name: ConnectionSource.ContentScript,
-})
-const sendHeartbeat = () => {
-  setTimeout(() => {
-    background.postMessage({ kind: '' })
-    sendHeartbeat()
-  }, 15000)
+const postToBackground = (msg: AgentSendMessageMeta) => {
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  chrome.runtime.sendMessage(msg)
 }
-sendHeartbeat()
-background.onMessage.addListener((message: protocol.AgentRecvMessage) => {
+chrome.runtime.onMessage.addListener((message: protocol.AgentRecvMessage, sender) => {
+  if (sender.id !== chrome.runtime.id) return
   const ev = new CustomEvent('glass-easel-devtools-agent-recv', {
     detail: prepareDataToAgent(message),
   })
@@ -49,5 +45,6 @@ background.onMessage.addListener((message: protocol.AgentRecvMessage) => {
 // messaging from agent to background
 hostElement.addEventListener('glass-easel-devtools-agent-send', (ev) => {
   const { detail } = ev as CustomEvent<protocol.AgentSendMessage>
-  background.postMessage(detail)
+  postToBackground(detail)
 })
+postToBackground({ kind: '_preinit' })
