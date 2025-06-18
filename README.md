@@ -107,6 +107,8 @@ The agent and the panel can also be loaded as common JS modules. The `examples/s
 1. Run `npm run build` in `examples/standalone` directory.
 1. Open the `examples/standalone/index.html` (may need a web server to host the directory).
 
+Note: this does not work if your browser has the extension enabled (disable the extension in your browser first).
+
 While development, run `npm run dev` instead.
 
 When developing the agent and the panel, the standalone environment is more convinient.

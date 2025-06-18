@@ -66,11 +66,11 @@ importers:
         specifier: ^0.0.1319565
         version: 0.0.1319565
       glass-easel:
-        specifier: '>=0.12.0'
-        version: 0.12.1
+        specifier: '>=0.13.0'
+        version: 0.13.0
       glass-easel-template-compiler:
-        specifier: '>=0.12.0'
-        version: 0.12.1
+        specifier: '>=0.13.0'
+        version: 0.13.0
       postcss-selector-parser:
         specifier: ^6.1.2
         version: 6.1.2
@@ -78,11 +78,11 @@ importers:
   examples/miniprogram:
     dependencies:
       glass-easel:
-        specifier: '>=0.12.0'
-        version: 0.12.1
+        specifier: '>=0.13.0'
+        version: 0.13.0
       glass-easel-miniprogram-adapter:
-        specifier: '>=0.12.0'
-        version: 0.12.1(glass-easel@0.12.1)
+        specifier: '>=0.13.0'
+        version: 0.13.0(glass-easel@0.13.0)
     devDependencies:
       '@typescript-eslint/eslint-plugin':
         specifier: ^6.21.0
@@ -103,8 +103,8 @@ importers:
         specifier: ^4.3.1
         version: 4.3.1
       glass-easel-miniprogram-webpack-plugin:
-        specifier: '>=0.12.0'
-        version: 0.12.1(glass-easel-miniprogram-adapter@0.12.1)(glass-easel@0.12.1)(webpack@5.94.0)
+        specifier: '>=0.13.0'
+        version: 0.13.0(glass-easel-miniprogram-adapter@0.13.0)(glass-easel@0.13.0)(webpack@5.94.0)
       less:
         specifier: ^4.2.0
         version: 4.2.0
@@ -130,8 +130,8 @@ importers:
   examples/standalone:
     dependencies:
       glass-easel:
-        specifier: '>=0.12.0'
-        version: 0.12.1
+        specifier: '>=0.13.0'
+        version: 0.13.0
       glass-easel-devtools-agent:
         specifier: workspace:*
         version: link:../../agent
@@ -182,8 +182,8 @@ importers:
   extension:
     dependencies:
       glass-easel:
-        specifier: '>=0.12.0'
-        version: 0.12.1
+        specifier: '>=0.13.0'
+        version: 0.13.0
       glass-easel-devtools-agent:
         specifier: workspace:*
         version: link:../agent
@@ -204,17 +204,17 @@ importers:
         specifier: ^7.1.2
         version: 7.1.2(webpack@5.94.0)
       glass-easel:
-        specifier: '>=0.12.0'
-        version: 0.12.1
+        specifier: '>=0.13.0'
+        version: 0.13.0
       glass-easel-devtools-agent:
         specifier: workspace:*
         version: link:../agent
       glass-easel-miniprogram-adapter:
-        specifier: '>=0.12.0'
-        version: 0.12.1(glass-easel@0.12.1)
+        specifier: '>=0.13.0'
+        version: 0.13.0(glass-easel@0.13.0)
       glass-easel-miniprogram-webpack-plugin:
-        specifier: '>=0.12.0'
-        version: 0.12.1(glass-easel-miniprogram-adapter@0.12.1)(glass-easel@0.12.1)(webpack@5.94.0)
+        specifier: '>=0.13.0'
+        version: 0.13.0(glass-easel-miniprogram-adapter@0.13.0)(glass-easel@0.13.0)(webpack@5.94.0)
       less:
         specifier: ^4.2.0
         version: 4.2.0
@@ -1946,42 +1946,42 @@ packages:
       get-intrinsic: 1.2.4
     dev: true
 
-  /glass-easel-miniprogram-adapter@0.12.1(glass-easel@0.12.1):
-    resolution: {integrity: sha512-sZfrjqGt7mvIih5x38cQ+MJ32eaXLu8B4RuCzSPShA2SlC7r4FGere+ZrHHNHT47Nczfl2xkuBZQfs3aDjhMZQ==}
+  /glass-easel-miniprogram-adapter@0.13.0(glass-easel@0.13.0):
+    resolution: {integrity: sha512-cQ1pKyMmPdI1/da/8LFLizKBIQIBHjEK0Y8RAHqdwd7UTkHgiRncsGcCpsjfdE8vCVjskTUYssR8Vfkan3/nyg==}
     peerDependencies:
-      glass-easel: 0.12.1
+      glass-easel: 0.13.0
     dependencies:
-      glass-easel: 0.12.1
+      glass-easel: 0.13.0
 
-  /glass-easel-miniprogram-webpack-plugin@0.12.1(glass-easel-miniprogram-adapter@0.12.1)(glass-easel@0.12.1)(webpack@5.94.0):
-    resolution: {integrity: sha512-kOsexEXTGJn7arpiB9OTCbJtymf+JPnsDCZcMZB2BBmg7Z9Yw74+DgRdUccSgpXsCovUHXz59h21LTmsEZUMtg==}
+  /glass-easel-miniprogram-webpack-plugin@0.13.0(glass-easel-miniprogram-adapter@0.13.0)(glass-easel@0.13.0)(webpack@5.94.0):
+    resolution: {integrity: sha512-buoqT5wgSuHkSHLxXG/yiN98KwqWefpduwaXEZ87rkl23NVgfJHIqjPR88xkJkmfTY/Cr/upAKVQirWkVzmQXA==}
     peerDependencies:
-      glass-easel: 0.12.1
-      glass-easel-miniprogram-adapter: 0.12.1
+      glass-easel: 0.13.0
+      glass-easel-miniprogram-adapter: 0.13.0
       webpack: ^5.85.0
     dependencies:
       chalk: 4.1.2
       chokidar: 3.6.0
-      glass-easel: 0.12.1
-      glass-easel-miniprogram-adapter: 0.12.1(glass-easel@0.12.1)
-      glass-easel-stylesheet-compiler: 0.12.1
-      glass-easel-template-compiler: 0.12.1
+      glass-easel: 0.13.0
+      glass-easel-miniprogram-adapter: 0.13.0(glass-easel@0.13.0)
+      glass-easel-stylesheet-compiler: 0.13.0
+      glass-easel-template-compiler: 0.13.0
       source-map: 0.7.4
       webpack: 5.94.0(webpack-cli@5.1.4)
       webpack-sources: 3.2.3
       webpack-virtual-modules: 0.5.0
     dev: true
 
-  /glass-easel-stylesheet-compiler@0.12.1:
-    resolution: {integrity: sha512-z5O+ArL+YF2Lc1eiFZ4rdytT/NGNcQmsSRPlQw3b5f/+L71EyW/gj4C5ovPCtij2DXSBdGCeaRi4ib5+yX4k6A==}
+  /glass-easel-stylesheet-compiler@0.13.0:
+    resolution: {integrity: sha512-MSe8ZWZHcEOFQumT17fuiOs+//AfqH9HCOtwT3MtwnflX35qmXqdOQtZo7UwdAk2PuqyVw1QZnfIF0Gt2TQQOA==}
     dev: true
 
-  /glass-easel-template-compiler@0.12.1:
-    resolution: {integrity: sha512-zN44ggsek9wu5qVFaXIIwgTaT4ojosvmKapxpYQpikZz99JVJwlY/0w4QZQ4GkMf7I6fW5hX2N/AI4Oa818taA==}
+  /glass-easel-template-compiler@0.13.0:
+    resolution: {integrity: sha512-H+uqmA54cg2eyYh5uhA+vdF4LskfPRJ85YgdbpCS/nd64XmPuLy6VmVTCDv7FoCNsSrmVNotU8wnjnTWAvCMXQ==}
     dev: true
 
-  /glass-easel@0.12.1:
-    resolution: {integrity: sha512-SlwiIDs0ipaTDIolmo8qa7QZA+Xh8/O0yCM6Ec9A3/Qk8Jk01R8mmL6YKWLo5FCKbVlnVMdTyWbrI9McYN7/jA==}
+  /glass-easel@0.13.0:
+    resolution: {integrity: sha512-CF07ih4s4p8Dv8Xud1tjsF/muTvPFbdzH1OyW0b8dA3ZxJ82oJi19H38a0vWf1vEwg4Ess/PVghAb9Pc5UsQSg==}
 
   /glob-parent@5.1.2:
     resolution: {integrity: sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow==}
