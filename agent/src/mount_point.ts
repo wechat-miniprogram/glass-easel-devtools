@@ -399,8 +399,8 @@ export class MountPointsManager {
         border: toQuad(border),
         padding: toQuad(padding),
         content: toQuad(content),
-        width: border.width,
-        height: border.height,
+        width: content.width,
+        height: content.height,
       }
     })
 
