@@ -341,6 +341,14 @@ export class MountPointsManager {
       },
     )
 
+    this.conn.setRequestHandler('DOM.setNodeValue', async ({ nodeId, value }) => {
+      const { node } = this.queryActiveNode(nodeId)
+      const textNode = node.asTextNode()
+      if (!textNode) return undefined
+      textNode.textContent = value
+      return undefined
+    })
+
     this.conn.setRequestHandler(
       'DOM.getGlassEaselNonInheritComposedChildren',
       async ({ nodeId }) => {

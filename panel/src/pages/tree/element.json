@@ -1,6 +1,7 @@
 {
   "component": true,
   "usingComponents": {
-    "element": "./element"
+    "element": "./element",
+    "multiline-editable": "./multiline-editable"
   }
 }

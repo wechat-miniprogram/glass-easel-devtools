@@ -319,6 +319,10 @@ export const compDef = Component()
       const { varName } = await sendRequest('DOM.useGlassEaselElementInConsole', { nodeId })
       setData({ tagVarName: varName })
     })
+    const textContentChange = listener<{ value: string }>((ev) => {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      sendRequest('DOM.setNodeValue', { nodeId, value: ev.detail.value })
+    })
 
     return {
       toggleChildren,
@@ -327,6 +331,7 @@ export const compDef = Component()
       startHoverTag,
       endHoverTag,
       useElementInConsole,
+      textContentChange,
       tagUpdatedAni,
     }
   })

@@ -1,0 +1,7 @@
+<view class="content" catch:tap="startEdit">
+  <slot />
+</view>
+<block wx:if="{{ edit }}">
+  <div id="measure" class="measure">{{ previewValue }}</div>
+  <textarea id="edit" class="edit" style="height: {{ height }}px" bind:blur="inputBlur" bind:keyup="updateSize" bind:change="commit">{{ value }}</textarea>
+</block>
