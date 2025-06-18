@@ -45,6 +45,8 @@ if (gitStatusRes.status !== 0 || gitStatusRes.stdout.length > 0) {
   'extension/package.json',
   'examples/miniprogram/package.json',
   'examples/standalone/package.json',
+  'extension/chrome.manifest.json',
+  'extension/firefox.manifest.json',
 ].forEach((p) => {
   let content = fs.readFileSync(p, { encoding: 'utf8' })
   let oldVersion

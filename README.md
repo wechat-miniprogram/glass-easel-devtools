@@ -99,6 +99,8 @@ This extension appears in DevTools (F12) in every web pages.
 
 While development, run `npm run dev` instead.
 
+Shortcut scripts: `npm run build` in the project root do all subdirectory builds; `npm run pack-extension` do all complete builds and pack the extension packages (output to `extension/pkg`).
+
 ### The Standalone Usage
 
 The agent and the panel can also be loaded as common JS modules. The `examples/standalone` is an example that shows how to use them.
@@ -112,3 +114,5 @@ Note: this does not work if your browser has the extension enabled (disable the 
 While development, run `npm run dev` instead.
 
 When developing the agent and the panel, the standalone environment is more convinient.
+
+Shortcut scripts: `npm run dev` in the project root do all development builds above and keep watching.
