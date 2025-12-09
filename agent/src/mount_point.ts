@@ -208,7 +208,7 @@ export class MountPointsManager {
         | undefined
       if (typeof maybeEventTarget === 'object' && maybeEventTarget !== null) {
         const processListeners = (capture: boolean, listeners?: { [name: string]: EventPoint }) => {
-          if (typeof listeners === 'object') {
+          if (typeof listeners === 'object' && listeners !== null) {
             Object.entries(listeners).forEach(([name, value]) => {
               const count = value.funcArr?._$arr?.length ?? 0
               if (count > 0) {
