@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-deprecated */
+
 import { type protocol } from 'glass-easel-devtools-agent'
 import { type AgentSendMessageMeta } from '../agent'
 import { inFirefox } from '../utils'

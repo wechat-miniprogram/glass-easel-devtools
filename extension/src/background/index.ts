@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-deprecated */
+
 import { type AgentSendMessageMeta } from '../agent'
 import { type PanelSendMessageMeta } from '../panel'
 import { ConnectionSource } from '../utils'
 
 // inject a small user script
-// eslint-disable-next-line @typescript-eslint/no-floating-promises
 const USER_SCRIPT_ID = 'glassEaselDevToolsUser'
 chrome.scripting
   .registerContentScripts([
@@ -44,10 +45,11 @@ const injectAgentScript = (tabId: number) => {
 // states
 const tabMetaMap = Object.create(null) as Record<
   number,
-  {
-    devTools?: chrome.runtime.Port
-    pendingMessages: AgentSendMessageMeta[]
-  }
+  | {
+      devTools?: chrome.runtime.Port
+      pendingMessages: AgentSendMessageMeta[]
+    }
+  | undefined
 >
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name === ConnectionSource.DevToolsPanel) {
@@ -60,12 +62,13 @@ const newDevToolsConnection = (port: chrome.runtime.Port) => {
   let tabId = 0
   port.onMessage.addListener((message: PanelSendMessageMeta) => {
     if (message.kind === '_init' || message.kind === '_reconnect') {
+      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
       if (tabId) delete tabMetaMap[tabId]
       tabId = message.tabId
       if (tabMetaMap[tabId]) {
-        tabMetaMap[tabId].devTools = port
-        const pendingMessages = tabMetaMap[tabId].pendingMessages
-        tabMetaMap[tabId].pendingMessages = []
+        tabMetaMap[tabId]!.devTools = port
+        const pendingMessages = tabMetaMap[tabId]!.pendingMessages
+        tabMetaMap[tabId]!.pendingMessages = []
         pendingMessages.forEach((message) => {
           port.postMessage(message)
         })
@@ -79,6 +82,7 @@ const newDevToolsConnection = (port: chrome.runtime.Port) => {
     }
   })
   port.onDisconnect.addListener((_port) => {
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
     if (tabId) delete tabMetaMap[tabId]
   })
 }

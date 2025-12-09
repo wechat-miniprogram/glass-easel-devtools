@@ -32,6 +32,5 @@ export const glassEaselVarToString = (v: GlassEaselVar): string => {
   if (v.type === 'symbol') return v.value
   if (v.type === 'function') return '() => {...}'
   if (v.type === 'object') return '{...}'
-  if (v.type === 'array') return '[...]'
   return '[unknown]'
 }

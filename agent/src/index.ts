@@ -18,14 +18,17 @@ export interface MessageChannel {
 
 export class Connection {
   private messageChannel: MessageChannel
-  private requestHandlers = Object.create(null) as Record<string, (detail: any) => Promise<any>>
+  private requestHandlers = Object.create(null) as Record<
+    string,
+    ((detail: any) => Promise<any>) | undefined
+  >
   readonly overlayManager: OverlayManager
 
   constructor(messageChannel: MessageChannel) {
     this.messageChannel = messageChannel
     messageChannel.recv((data) => {
       if (data.kind === 'request') {
-        debug(`recv request ${data.id}`, data.name, data.detail)
+        debug(`recv request ${data.id.toString()}`, data.name, data.detail)
         this.recvRequest(data.id, data.name, data.detail)
       }
     })
@@ -46,12 +49,12 @@ export class Connection {
     handler
       .call(this, detail)
       .then((ret: unknown) => {
-        debug(`send response ${id}`, ret)
+        debug(`send response ${id.toString()}`, ret)
         const data: AgentSendMessage = { kind: 'response', id, detail: ret }
         this.messageChannel.send(data)
         return undefined
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         const data: AgentSendMessage = {
           kind: 'error',
           id,
@@ -94,13 +97,11 @@ class InspectorDevToolsImpl implements glassEasel.InspectorDevTools {
     })
   }
 
-  // eslint-disable-next-line class-methods-use-this
   addMountPoint(root: glassEasel.Element, env: glassEasel.MountPointEnv): void {
     debug('attach mount point', root)
     this.mountPoints.attach(root, env)
   }
 
-  // eslint-disable-next-line class-methods-use-this
   removeMountPoint(root: glassEasel.GeneralComponent): void {
     debug('detach mount point', root)
     this.mountPoints.detach(root)

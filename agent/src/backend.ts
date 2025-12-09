@@ -1,5 +1,3 @@
-/* eslint-disable arrow-body-style */
-
 import * as glassEasel from 'glass-easel'
 import parser from 'postcss-selector-parser'
 import { selectorSpecificity, compare as selectorCompare } from '@csstools/selector-specificity'
@@ -214,7 +212,7 @@ export const getMatchedRules = (
           if (peek) {
             i += 1
             const [prefix, name] = peek.split('--', 2)
-            if (name !== undefined) {
+            if (prefix !== peek) {
               rule.styleScope = prefix
               tokens[i][1] = name
             }
@@ -270,7 +268,7 @@ export const getMatchedRules = (
             ret.inline = edit.getProps()
             resolve(ret)
           })
-        } catch (err) {
+        } catch (_err) {
           // this may throw when reading cross-origin stylesheets
           resolve({
             inline: [],
@@ -322,7 +320,9 @@ export class StyleRuleEdit {
   updateWithProps(props: glassEasel.CSSProperty[], inlineStyle?: string) {
     const oldProps = this.props
     this.props =
-      inlineStyle === undefined ? filterCssProperties(props) : parseNameValueStr(inlineStyle) ?? []
+      inlineStyle === undefined
+        ? filterCssProperties(props)
+        : (parseNameValueStr(inlineStyle) ?? [])
     let i = 0
     oldProps.forEach((prop) => {
       if (prop.disabled) {
@@ -387,7 +387,10 @@ export class StyleRuleEdit {
 
 class StyleEditContext {
   inlineStyleMap = new WeakMap<glassEasel.GeneralBackendElement, StyleRuleEdit>()
-  ruleMap = new WeakMap<glassEasel.GeneralBackendContext, Record<string, StyleRuleEdit>>()
+  ruleMap = new WeakMap<
+    glassEasel.GeneralBackendContext,
+    Record<string, StyleRuleEdit | undefined>
+  >()
 
   createOrGetInline(
     elem: glassEasel.GeneralBackendElement,
@@ -409,7 +412,7 @@ class StyleEditContext {
     rule: glassEasel.CSSRule,
     inlineStyle?: string,
   ): StyleRuleEdit {
-    const key = `${rule.sheetIndex}/${rule.ruleIndex}`
+    const key = `${rule.sheetIndex.toString()}/${rule.ruleIndex.toString()}`
     const map = this.ruleMap.get(ctx)
     if (!map) {
       const map = Object.create(null) as Record<string, StyleRuleEdit>
@@ -438,6 +441,7 @@ class StyleEditContext {
       ;(elem as glassEasel.domlikeBackend.Element).setAttribute('style', style)
     } else if (ctx.mode === glassEasel.BackendMode.Composed) {
       ;(elem as glassEasel.composedBackend.Element).setStyle(style)
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     } else if (ctx.mode === glassEasel.BackendMode.Shadow) {
       ;(elem as glassEasel.backend.Element).setStyle(style)
     }
@@ -449,7 +453,7 @@ class StyleEditContext {
     ruleIndex: number,
     f: (edit: StyleRuleEdit) => void,
   ): Promise<void> {
-    const key = `${sheetIndex}/${ruleIndex}`
+    const key = `${sheetIndex.toString()}/${ruleIndex.toString()}`
     const edit = this.ruleMap.get(ctx)?.[key]
     if (!edit) return Promise.resolve()
     f(edit)
@@ -518,9 +522,9 @@ export class ClassListEdit {
 }
 
 export class ClassEditContext {
-  map = new WeakMap<glassEasel.Element, Record<string, ClassListEdit>>()
+  map = new WeakMap<glassEasel.Element, Record<string, ClassListEdit | undefined>>()
 
-  createOrGet(external: string, elem: glassEasel.Element): ClassListEdit {
+  createOrGet(external: string | undefined, elem: glassEasel.Element): ClassListEdit {
     if (!this.map.get(elem)) {
       const group = Object.create(null) as Record<string, ClassListEdit>
       this.map.set(elem, group)

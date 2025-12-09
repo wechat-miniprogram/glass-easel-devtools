@@ -9,7 +9,9 @@ export class EventDispatcher<
   T extends { [k in N]: K },
 > {
   private keyName: N
-  private listeners = Object.create(null) as { [key: string | number]: ((args: T) => void)[] }
+  private listeners = Object.create(null) as {
+    [key: string | number]: ((args: T) => void)[] | undefined
+  }
 
   constructor(keyName: N) {
     this.keyName = keyName
@@ -40,7 +42,9 @@ export class EventDispatcher<
 
   dispatch(args: T) {
     const funcArr = this.listeners[args[this.keyName]]
-    funcArr?.forEach((f) => f(deepCopy(args)))
+    funcArr?.forEach((f) => {
+      f(deepCopy(args))
+    })
   }
 }
 

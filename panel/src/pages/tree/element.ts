@@ -49,7 +49,6 @@ export const compDef = Component()
     hideSelf: false,
   }))
   .init((ctx) => {
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     const { self, data, setData, observer, listener, method } = ctx
     let nodeId = 0
     const initNodeId = (n: protocol.NodeId) => {
@@ -93,7 +92,7 @@ export const compDef = Component()
         self.groupUpdates(() => {
           self.spliceArrayDataOnPath(['children'], before, 0, [node])
         })
-        const childComp = self.selectComponent(`#child-${node.nodeId}`, compDef)
+        const childComp = self.selectComponent(`#child-${node.nodeId.toString()}`, compDef)
         childComp?.tagUpdatedAni()
       },
     )
@@ -235,7 +234,7 @@ export const compDef = Component()
     // hide self node mode for virtual nodes
     observer(
       ['kind', 'isShadowRoot', 'userConfig'] as any,
-      (kind: DisplayKind, isShadowRoot: boolean, userConfig: UserConfig) => {
+      (kind: DisplayKind, isShadowRoot: boolean, userConfig?: UserConfig) => {
         let hideSelf = false
         if (userConfig) {
           if (
@@ -297,11 +296,11 @@ export const compDef = Component()
       if (composed && data.nodeInfo?.distributedNodes) {
         await updateChildren()
       }
-      const childComp = self.selectComponent(`#child-${childPath[0].nodeId}`, compDef)
+      const childComp = self.selectComponent(`#child-${childPath[0].nodeId.toString()}`, compDef)
       if (childComp) {
         await childComp.visitChildNodePath(childPath, composed)
       } else {
-        error(`cannot find child node id ${childPath[0].nodeId}`)
+        error(`cannot find child node id ${childPath[0].nodeId.toString()}`)
       }
     })
 

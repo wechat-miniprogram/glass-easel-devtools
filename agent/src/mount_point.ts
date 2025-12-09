@@ -63,9 +63,12 @@ export class MountPointsManager {
   private conn: Connection
   private nodeIdMap = new WeakMap<glassEasel.Node, NodeId>()
   // active nodes are the nodes that being display and watched
-  private activeNodes = Object.create(null) as Record<NodeId, NodeMeta>
+  private activeNodes = Object.create(null) as Record<NodeId, NodeMeta | undefined>
   // backend nodes are the nodes that has being transmitted to the client in arguments but not display
-  private activeBackendNodes = Object.create(null) as Record<NodeId, WeakRef<glassEasel.Node>>
+  private activeBackendNodes = Object.create(null) as Record<
+    NodeId,
+    WeakRef<glassEasel.Node> | undefined
+  >
   readonly documentNodeId = 1
   private nodeIdInc = 2
   private mountPoints: { nodeMeta: NodeMeta; env: glassEasel.MountPointEnv }[] = []
@@ -205,12 +208,12 @@ export class MountPointsManager {
         | undefined
       if (typeof maybeEventTarget === 'object' && maybeEventTarget !== null) {
         const processListeners = (capture: boolean, listeners?: { [name: string]: EventPoint }) => {
-          if (typeof listeners === 'object' && listeners !== null) {
+          if (typeof listeners === 'object') {
             Object.entries(listeners).forEach(([name, value]) => {
-              const count = value?.funcArr?._$arr?.length ?? 0
+              const count = value.funcArr?._$arr?.length ?? 0
               if (count > 0) {
-                const hasCatch = (value?.finalCount ?? 0) > 0
-                const hasMutBind = (value?.finalCount ?? 0) > 0
+                const hasCatch = (value.finalCount ?? 0) > 0
+                const hasMutBind = (value.mutCount ?? 0) > 0
                 eventBindings.push({ name, capture, count, hasCatch, hasMutBind })
               }
             })
@@ -240,20 +243,18 @@ export class MountPointsManager {
           properties!.push({ name, value: toGlassEaselVar(comp.data[name]) })
         })
         const ec = comp.getExternalClasses()
-        if (ec) {
-          externalClasses = Object.entries(ec).map(([name, value]) => ({
-            name,
-            value: backendUtils.classEditContext
-              .createOrGet(name, elem)
-              .update(value ?? [])
-              .getClasses(),
-          }))
-        }
+        externalClasses = Object.entries(ec).map(([name, value]) => ({
+          name,
+          value: backendUtils.classEditContext
+            .createOrGet(name, elem)
+            .update(value ?? [])
+            .getClasses(),
+        }))
       }
 
       // collect dataset
       const dataset: { name: string; value: GlassEaselVar }[] = []
-      Object.entries(elem.dataset ?? {}).forEach(([name, value]) => {
+      Object.entries(elem.dataset).forEach(([name, value]) => {
         dataset.push({ name, value: toGlassEaselVar(value) })
       })
       const marks: { name: string; value: GlassEaselVar }[] = []
@@ -445,8 +446,8 @@ export class MountPointsManager {
 
     this.conn.setRequestHandler('CSS.getComputedStyleForNode', async ({ nodeId }) => {
       const { node } = this.queryActiveNode(nodeId)
-      const ctx = node?.getBackendContext()
-      const elem = node?.getBackendElement()
+      const ctx = node.getBackendContext()
+      const elem = node.getBackendElement()
       if (!ctx || !elem) {
         throw new Error('no such backend node found')
       }
@@ -460,9 +461,8 @@ export class MountPointsManager {
       if (!elem) {
         throw new Error('not an element')
       }
-      const { inline, inlineText, rules, crossOriginFailing } = await backendUtils.getMatchedRules(
-        elem,
-      )
+      const { inline, inlineText, rules, crossOriginFailing } =
+        await backendUtils.getMatchedRules(elem)
       const inlineStyle = { cssProperties: inline, cssText: inlineText }
       const matchedCSSRules = rules.map((rule) => ({
         rule: {
@@ -482,8 +482,8 @@ export class MountPointsManager {
       'CSS.replaceGlassEaselStyleSheetProperty',
       async ({ nodeId, styleSheetId, ruleIndex, propertyIndex, styleText }) => {
         const { node } = this.queryActiveNode(nodeId)
-        const ctx = node?.getBackendContext()
-        const elem = node?.getBackendElement()
+        const ctx = node.getBackendContext()
+        const elem = node.getBackendElement()
         if (!ctx || !elem) {
           throw new Error('no such backend node found')
         }
@@ -503,8 +503,8 @@ export class MountPointsManager {
       'CSS.addGlassEaselStyleSheetProperty',
       async ({ nodeId, styleSheetId, ruleIndex, styleText }) => {
         const { node } = this.queryActiveNode(nodeId)
-        const ctx = node?.getBackendContext()
-        const elem = node?.getBackendElement()
+        const ctx = node.getBackendContext()
+        const elem = node.getBackendElement()
         if (!ctx || !elem) {
           throw new Error('no such backend node found')
         }
@@ -524,8 +524,8 @@ export class MountPointsManager {
       'CSS.setGlassEaselStyleSheetPropertyDisabled',
       async ({ nodeId, styleSheetId, ruleIndex, propertyIndex, disabled }) => {
         const { node } = this.queryActiveNode(nodeId)
-        const ctx = node?.getBackendContext()
-        const elem = node?.getBackendElement()
+        const ctx = node.getBackendContext()
+        const elem = node.getBackendElement()
         if (!ctx || !elem) {
           throw new Error('no such backend node found')
         }
@@ -597,7 +597,8 @@ export class MountPointsManager {
 
   attach(root: glassEasel.Element, env: glassEasel.MountPointEnv) {
     const nodeMeta = this.activateNode(root)
-    const previousNode = this.mountPoints[this.mountPoints.length - 1]
+    const previousNode =
+      this.mountPoints.length > 0 ? this.mountPoints[this.mountPoints.length - 1] : null
     const previousNodeId = previousNode ? previousNode.nodeMeta.nodeId : undefined
     this.mountPoints.push({ nodeMeta, env })
     this.conn.sendEvent('DOM.childNodeInserted', {
@@ -650,11 +651,10 @@ export class MountPointsManager {
     return ret
   }
 
-  // eslint-disable-next-line class-methods-use-this
   private useInConsole(v: unknown): string {
     let i = 0
     while (i <= 0xffffffff) {
-      const varName = `temp${i}`
+      const varName = `temp${i.toString()}`
       if (!Object.prototype.hasOwnProperty.call(globalThis, varName)) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         ;(globalThis as any)[varName] = v
@@ -693,17 +693,16 @@ export class MountPointsManager {
 
   private queryActiveNode(nodeId: NodeId): NodeMeta {
     const nodeMeta = this.activeNodes[nodeId]
-    if (!nodeMeta) throw new Error(`no active node found for node id ${nodeId}`)
+    if (!nodeMeta) throw new Error(`no active node found for node id ${nodeId.toString()}`)
     return nodeMeta
   }
 
   private getMaybeBackendNode(backendNodeId: NodeId): glassEasel.Node | null {
     const nodeMeta = this.activeNodes[backendNodeId]
-    if (nodeMeta) return nodeMeta?.node
+    if (nodeMeta) return nodeMeta.node
     return this.activeBackendNodes[backendNodeId]?.deref() ?? null
   }
 
-  // eslint-disable-next-line class-methods-use-this
   private startWatch(node: glassEasel.Node) {
     const observer = glassEasel.MutationObserver.create((ev) => {
       const node = ev.target
@@ -750,11 +749,9 @@ export class MountPointsManager {
             v = marks?.[name.slice(5)]
           } else if (nameType === 'external-class') {
             const external = ev.attributeName ?? ''
-            const classes = elem.asGeneralComponent()?.getExternalClasses()?.[external]?.join(' ')
-            if (!backendUtils.classEditContext.createOrGet(external, elem)) {
-              name = external
-              v = classes ?? ''
-            }
+            const classes = elem.asGeneralComponent()?.getExternalClasses()[external]?.join(' ')
+            name = external
+            v = classes ?? ''
           } else if (ev.attributeName === 'slot') {
             name = ev.attributeName
             v = elem.slot
@@ -854,7 +851,6 @@ export class MountPointsManager {
     return observer
   }
 
-  // eslint-disable-next-line class-methods-use-this
   private endWatch(observer: glassEasel.MutationObserver) {
     observer.disconnect()
   }
@@ -866,6 +862,7 @@ export class MountPointsManager {
    */
   private activateNode(node: glassEasel.Node): NodeMeta {
     const nodeId = this.getNodeId(node)
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
     delete this.activeBackendNodes[nodeId]
     if (this.activeNodes[nodeId]) {
       const nodeMeta = this.activeNodes[nodeId]
@@ -896,12 +893,13 @@ export class MountPointsManager {
     }
     const { observer } = this.activeNodes[nodeId]
     this.endWatch(observer)
-    const shadowRoot = node.asGeneralComponent()?.getShadowRoot?.()
+    const shadowRoot = node.asGeneralComponent()?.getShadowRoot()
     if (shadowRoot) this.deactivateNodeTree(shadowRoot)
-    const childNodes: glassEasel.Node[] | undefined = (node as glassEasel.Element).childNodes
+    const childNodes: glassEasel.Node[] | undefined = node.asElement()?.childNodes
     if (childNodes) {
       childNodes.forEach((node) => this.deactivateNodeTree(node))
     }
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
     delete this.activeNodes[nodeId]
     return nodeId
   }
@@ -921,7 +919,6 @@ export class MountPointsManager {
     return this.activateNode(node)
   }
 
-  // eslint-disable-next-line class-methods-use-this
   private collectNodeBasicInfomation(
     backendNodeId: NodeId,
     node: glassEasel.Node,
@@ -991,7 +988,7 @@ export class MountPointsManager {
             if (name === ':style') attributes.push('style', elem.style)
             if (name === ':name') attributes.push('style', Reflect.get(elem, '_$slotName'))
           } else if (name.startsWith('data:')) {
-            const value = elem.dataset?.[name.slice(5)]
+            const value = elem.dataset[name.slice(5)]
             attributes.push(name, glassEaselVarToString(toGlassEaselVar(value)))
           } else if (name.startsWith('mark:')) {
             const marks = Reflect.get(elem, '_$marks') as { [key: string]: unknown } | undefined
@@ -1036,7 +1033,7 @@ export class MountPointsManager {
             attributes.push(name, glassEaselVarToString(toGlassEaselVar(value)))
           })
         }
-        Object.entries(elem.dataset ?? {}).forEach(([key, value]) => {
+        Object.entries(elem.dataset).forEach(([key, value]) => {
           const name = `data:${key}`
           attributes.push(name, glassEaselVarToString(toGlassEaselVar(value)))
         })
@@ -1056,7 +1053,7 @@ export class MountPointsManager {
       const nodeMeta = this.activateNode(sr)
       const n = this.collectNodeDetails(nodeMeta, depth - 1, false)
       n.nodeName = 'shadow-root'
-      if (n) shadowRoots = [n]
+      shadowRoots = [n]
     }
 
     // collect children
@@ -1068,7 +1065,7 @@ export class MountPointsManager {
       elem.childNodes.forEach((child) => {
         const nodeMeta = this.activateNode(child)
         const n = this.collectNodeDetails(nodeMeta, depth - 1, false)
-        if (n) children!.push(n)
+        children!.push(n)
       })
     }
 
@@ -1081,7 +1078,7 @@ export class MountPointsManager {
         if (child.parentNode?.isInheritSlots()) return
         const nodeId = this.addBackendNode(child)
         const n = this.collectNodeBasicInfomation(nodeId, child)
-        if (n) distributedNodes!.push(n)
+        distributedNodes!.push(n)
       })
     }
 

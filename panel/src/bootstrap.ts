@@ -39,6 +39,7 @@ const insertInto = (
     const parent = backendElement as glassEasel.domlikeBackend.Element
     placeholder = ctx.document.createElement('glass-easel-devtools-panel')
     parent.appendChild(placeholder)
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   } else if (backendContext.mode === glassEasel.BackendMode.Shadow) {
     const parent = backendElement as glassEasel.backend.Element
     const sr = parent.getShadowRoot()

@@ -29,10 +29,6 @@ Component()
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         value: data.primitiveValue,
       }
-      if (!v) {
-        setData({ slices: [], allowInspect: false })
-        return
-      }
       if (data.nodeId === prevNodeId) {
         updatedAni()
       } else {
@@ -68,6 +64,7 @@ Component()
         setData({ slices: [{ dynamic: true, str: 'Function' }], allowInspect: data.nodeId > 0 })
       } else if (v.type === 'object') {
         setData({ slices: [{ dynamic: true, str: 'Object' }], allowInspect: data.nodeId > 0 })
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       } else if (v.type === 'array') {
         setData({ slices: [{ dynamic: true, str: 'Array' }], allowInspect: data.nodeId > 0 })
       }

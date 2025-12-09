@@ -75,11 +75,14 @@ export const componentDefinition = Component()
       // eslint-disable-next-line @typescript-eslint/no-floating-promises, promise/catch-or-return
       Promise.resolve().then(async () => {
         await rec(backendNodeId)
-        const tree = self.selectComponent(`#mount-point-${nodePath[0].nodeId}`, treeCompDef)
+        const tree = self.selectComponent(
+          `#mount-point-${nodePath[0].nodeId.toString()}`,
+          treeCompDef,
+        )
         if (tree) {
           await tree.visitChildNodePath(nodePath, inComposedTree)
         } else {
-          error(`cannot find child node id ${nodePath[0].nodeId}`)
+          error(`cannot find child node id ${nodePath[0].nodeId.toString()}`)
         }
         return undefined
       })

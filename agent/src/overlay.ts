@@ -1,6 +1,6 @@
 import * as glassEasel from 'glass-easel'
 
-// eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const wxml = require('./overlay.wxml') as Record<string, unknown>
 
 export const enum OverlayState {
@@ -71,7 +71,6 @@ export const overlayCompDef = space
         return
       }
       setData({ selectMoveDetecting: true })
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       elementFromPointInContext(ctx, x, y)
         .then(async (elem) => {
           setData({ selectMoveDetecting: false })
@@ -135,11 +134,10 @@ const elementFromPointInContext = (
   y: number,
 ) =>
   new Promise<glassEasel.Element | null>((resolve) => {
-    if (!context?.elementFromPoint) {
+    if (!context.elementFromPoint) {
       resolve(null)
       return
     }
-    // eslint-disable-next-line
     context.elementFromPoint(x, y, (elem) => {
       resolve(elem)
     })
@@ -216,10 +214,10 @@ export class OverlayManager {
       parentElement = ctx.getRootNode()
       placeholder = ctx.document.createElement('glass-easel-devtools-agent')
       parentElement.appendChild(placeholder)
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     } else if (ctx.mode === glassEasel.BackendMode.Shadow) {
       const sr = ctx.getRootNode()
       parentElement = sr
-      if (!sr) throw new Error('the host element should be inside of a shadow tree')
       placeholder = sr.createElement('glass-easel-devtools-agent', 'glass-easel-devtools-agent')
       sr.appendChild(placeholder)
     } else {

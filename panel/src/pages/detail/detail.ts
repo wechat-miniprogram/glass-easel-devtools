@@ -113,14 +113,14 @@ Component()
           })
         }
       } else if (nameType === 'dataset' && name.startsWith('data:')) {
-        const index = data.info.dataset.map((x) => x.name).indexOf(name.slice(5)) ?? -1
+        const index = data.info.dataset.map((x) => x.name).indexOf(name.slice(5))
         if (index >= 0) {
           self.groupUpdates(() => {
             self.replaceDataOnPath(['info', 'dataset', index, 'value'], detail)
           })
         }
       } else if (nameType === 'mark' && name.startsWith('mark:')) {
-        const index = data.info.marks.map((x) => x.name).indexOf(name.slice(5)) ?? -1
+        const index = data.info.marks.map((x) => x.name).indexOf(name.slice(5))
         if (index >= 0) {
           self.groupUpdates(() => {
             self.replaceDataOnPath(['info', 'marks', index, 'value'], detail)

@@ -1,5 +1,3 @@
-/* eslint-disable class-methods-use-this */
-
 import type * as glassEasel from 'glass-easel'
 import { type DevTools, type DevToolsBridge, type InspectorDevTools } from '../utils'
 

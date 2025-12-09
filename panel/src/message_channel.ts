@@ -12,15 +12,15 @@ export interface MessageChannel {
 }
 
 let messageChannel: MessageChannel | null = null
-const eventHandlers = Object.create(null) as Record<string, (data: any) => void>
-const requestCallbacks = Object.create(null) as Record<number, (data: any) => void>
+const eventHandlers = new Map<string, (data: any) => void>()
+const requestCallbacks = new Map<number, (data: any) => void>()
 let requestIdInc = 1
 
 export const setMessageChannel = (mc: MessageChannel) => {
   messageChannel = mc
   messageChannel.recv((data) => {
     if (data.kind === 'event') {
-      const handler = eventHandlers[data.name]
+      const handler = eventHandlers.get(data.name)
       if (!handler) {
         warn(`missing event handler for ${data.name}`)
       } else {
@@ -29,21 +29,24 @@ export const setMessageChannel = (mc: MessageChannel) => {
       }
     } else if (data.kind === 'response') {
       const requestId = data.id
-      const callback = requestCallbacks[requestId]
+      const callback = requestCallbacks.get(requestId)
       if (!callback) {
-        warn(`illegal response for request ${requestId}`)
+        warn(`illegal response for request ${requestId.toString()}`)
       } else {
-        delete requestCallbacks[requestId]
-        debug(`recv response ${requestId}`, data.detail)
+        requestCallbacks.delete(requestId)
+        debug(`recv response ${requestId.toString()}`, data.detail)
         callback(data.detail)
       }
     } else if (data.kind === 'error') {
       const requestId = data.id
-      const callback = requestCallbacks[requestId]
+      const callback = requestCallbacks.get(requestId)
       if (!callback) {
-        warn(`illegal error response for request ${requestId}`)
+        warn(`illegal error response for request ${requestId.toString()}`)
       } else {
-        error(`request error for request ${requestId}: ${data.message || '(unknown)'}`, data.stack)
+        error(
+          `request error for request ${requestId.toString()}: ${data.message || '(unknown)'}`,
+          data.stack,
+        )
       }
     }
   })
@@ -53,7 +56,7 @@ export const setEventHandler = <T extends keyof protocol.AgentEventKind>(
   name: T,
   handler: (detail: protocol.AgentEventKind[T]['detail']) => void,
 ) => {
-  eventHandlers[name] = handler
+  eventHandlers.set(name, handler)
 }
 
 export const sendRequest = <T extends keyof protocol.AgentRequestKind>(
@@ -63,8 +66,8 @@ export const sendRequest = <T extends keyof protocol.AgentRequestKind>(
   const requestId = requestIdInc
   requestIdInc += 1
   return new Promise((resolve): void => {
-    requestCallbacks[requestId] = resolve
-    debug(`send request ${requestId}`, name, detail)
+    requestCallbacks.set(requestId, resolve)
+    debug(`send request ${requestId.toString()}`, name, detail)
     messageChannel?.send({ kind: 'request', id: requestId, name, detail })
   })
 }

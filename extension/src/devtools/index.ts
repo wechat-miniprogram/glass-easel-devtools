@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-deprecated */
+
 import { inFirefox } from '../utils'
 
 chrome.devtools.panels.create(
