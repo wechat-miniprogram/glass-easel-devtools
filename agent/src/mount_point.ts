@@ -802,7 +802,7 @@ export class MountPointsManager {
           if (!parent.isInheritSlots() && composedParent && composedParent !== parent) {
             const composedParentId = this.getActiveNodeId(composedParent)
             if (composedParentId) {
-              let prev: glassEasel.Node | null = null
+              let prev = null as glassEasel.Node | null
               const found = composedParent.forEachComposedChild((c) => {
                 if (c === child) return false
                 prev = c
