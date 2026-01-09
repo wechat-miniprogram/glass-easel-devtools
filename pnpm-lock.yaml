@@ -63,11 +63,11 @@ importers:
         specifier: ^0.0.1319565
         version: 0.0.1319565
       glass-easel:
-        specifier: '>=0.13.0'
-        version: 0.13.0
+        specifier: '>=0.17.2'
+        version: 0.17.2
       glass-easel-template-compiler:
-        specifier: '>=0.13.0'
-        version: 0.13.0
+        specifier: '>=0.17.2'
+        version: 0.17.2
       postcss-selector-parser:
         specifier: ^6.1.2
         version: 6.1.2
@@ -75,11 +75,11 @@ importers:
   examples/miniprogram:
     dependencies:
       glass-easel:
-        specifier: '>=0.13.0'
-        version: 0.13.0
+        specifier: '>=0.17.2'
+        version: 0.17.2
       glass-easel-miniprogram-adapter:
-        specifier: '>=0.13.0'
-        version: 0.13.0(glass-easel@0.13.0)
+        specifier: '>=0.17.2'
+        version: 0.17.2(glass-easel@0.17.2)
     devDependencies:
       '@typescript-eslint/eslint-plugin':
         specifier: ^6.21.0
@@ -100,8 +100,8 @@ importers:
         specifier: ^4.3.1
         version: 4.3.1
       glass-easel-miniprogram-webpack-plugin:
-        specifier: '>=0.13.0'
-        version: 0.13.0(glass-easel-miniprogram-adapter@0.13.0)(glass-easel@0.13.0)(webpack@5.94.0)
+        specifier: '>=0.17.2'
+        version: 0.17.2(glass-easel-miniprogram-adapter@0.17.2)(glass-easel@0.17.2)(webpack@5.94.0)
       less:
         specifier: ^4.2.0
         version: 4.2.0
@@ -127,8 +127,8 @@ importers:
   examples/standalone:
     dependencies:
       glass-easel:
-        specifier: '>=0.13.0'
-        version: 0.13.0
+        specifier: '>=0.17.2'
+        version: 0.17.2
       glass-easel-devtools-agent:
         specifier: workspace:*
         version: link:../../agent
@@ -179,8 +179,8 @@ importers:
   extension:
     dependencies:
       glass-easel:
-        specifier: '>=0.13.0'
-        version: 0.13.0
+        specifier: '>=0.17.2'
+        version: 0.17.2
       glass-easel-devtools-agent:
         specifier: workspace:*
         version: link:../agent
@@ -201,17 +201,17 @@ importers:
         specifier: ^7.1.2
         version: 7.1.2(webpack@5.103.0)
       glass-easel:
-        specifier: '>=0.13.0'
-        version: 0.13.0
+        specifier: '>=0.17.2'
+        version: 0.17.2
       glass-easel-devtools-agent:
         specifier: workspace:*
         version: link:../agent
       glass-easel-miniprogram-adapter:
-        specifier: '>=0.13.0'
-        version: 0.13.0(glass-easel@0.13.0)
+        specifier: '>=0.17.2'
+        version: 0.17.2(glass-easel@0.17.2)
       glass-easel-miniprogram-webpack-plugin:
-        specifier: '>=0.13.0'
-        version: 0.13.0(glass-easel-miniprogram-adapter@0.13.0)(glass-easel@0.13.0)(webpack@5.103.0)
+        specifier: '>=0.17.2'
+        version: 0.17.2(glass-easel-miniprogram-adapter@0.17.2)(glass-easel@0.17.2)(webpack@5.103.0)
       less:
         specifier: ^4.2.0
         version: 4.2.0
@@ -1288,14 +1288,6 @@ packages:
     engines: {node: '>=12'}
     dev: true
 
-  /anymatch@3.1.3:
-    resolution: {integrity: sha512-KMReFUr0B4t+D+OBkjR3KYqvocp2XaSzO55UcB6mgQMd3KbcE+mWTyvVV7D/zsdEbNnV6acZUutkiHQXvTr1Rw==}
-    engines: {node: '>= 8'}
-    dependencies:
-      normalize-path: 3.0.0
-      picomatch: 2.3.1
-    dev: true
-
   /archiver-utils@5.0.2:
     resolution: {integrity: sha512-wuLJMmIBQYCsGZgYLTy5FIB2pF6Lfb6cXMSF8Qywwk3t20zWnAi7zLcQFdKQmIB8wyZpY5ER38x08GbwtR2cLA==}
     engines: {node: '>= 14'}
@@ -1515,11 +1507,6 @@ packages:
     hasBin: true
     dev: true
 
-  /binary-extensions@2.3.0:
-    resolution: {integrity: sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw==}
-    engines: {node: '>=8'}
-    dev: true
-
   /brace-expansion@1.1.11:
     resolution: {integrity: sha512-iCuPHDFgrHX7H2vEI/5xpz07zSHB00TpugqhmYtVmMO6518mCuRMoOYFldEBl0g187ufozdaHgWKcYFb61qGiA==}
     dependencies:
@@ -1646,19 +1633,11 @@ packages:
       supports-color: 7.2.0
     dev: true
 
-  /chokidar@3.6.0:
-    resolution: {integrity: sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw==}
-    engines: {node: '>= 8.10.0'}
+  /chokidar@4.0.3:
+    resolution: {integrity: sha512-Qgzu8kfBvo+cA4962jnP1KkS6Dop5NS6g7R5LFYJr4b8Ub94PPQXUksCw9PvXoeXPRRddRNC5C1JQUR2SMGtnA==}
+    engines: {node: '>= 14.16.0'}
     dependencies:
-      anymatch: 3.1.3
-      braces: 3.0.3
-      glob-parent: 5.1.2
-      is-binary-path: 2.1.0
-      is-glob: 4.0.3
-      normalize-path: 3.0.0
-      readdirp: 3.6.0
-    optionalDependencies:
-      fsevents: 2.3.3
+      readdirp: 4.1.2
     dev: true
 
   /chrome-trace-event@1.0.4:
@@ -2784,14 +2763,6 @@ packages:
     resolution: {integrity: sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==}
     dev: true
 
-  /fsevents@2.3.3:
-    resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
-    engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
-    os: [darwin]
-    requiresBuild: true
-    dev: true
-    optional: true
-
   /function-bind@1.1.2:
     resolution: {integrity: sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA==}
     dev: true
@@ -2884,61 +2855,61 @@ packages:
       get-intrinsic: 1.3.0
     dev: true
 
-  /glass-easel-miniprogram-adapter@0.13.0(glass-easel@0.13.0):
-    resolution: {integrity: sha512-cQ1pKyMmPdI1/da/8LFLizKBIQIBHjEK0Y8RAHqdwd7UTkHgiRncsGcCpsjfdE8vCVjskTUYssR8Vfkan3/nyg==}
+  /glass-easel-miniprogram-adapter@0.17.2(glass-easel@0.17.2):
+    resolution: {integrity: sha512-yZPucxr0HlnjNO/P6XLVsk9ix6QAmb0EGrcAR95aVv2cR0Q/mWT6pgD3Zg/1iwv6KCYWBoKWCxSxeHGxYQIXCA==}
     peerDependencies:
-      glass-easel: 0.13.0
+      glass-easel: 0.17.2
     dependencies:
-      glass-easel: 0.13.0
+      glass-easel: 0.17.2
 
-  /glass-easel-miniprogram-webpack-plugin@0.13.0(glass-easel-miniprogram-adapter@0.13.0)(glass-easel@0.13.0)(webpack@5.103.0):
-    resolution: {integrity: sha512-buoqT5wgSuHkSHLxXG/yiN98KwqWefpduwaXEZ87rkl23NVgfJHIqjPR88xkJkmfTY/Cr/upAKVQirWkVzmQXA==}
+  /glass-easel-miniprogram-webpack-plugin@0.17.2(glass-easel-miniprogram-adapter@0.17.2)(glass-easel@0.17.2)(webpack@5.103.0):
+    resolution: {integrity: sha512-/kKsYZwQYlib8g1/YpfN7jdq9AX7HtWpM5237Xg21zwH5T/0WBYfY1Naf/HIJ+AdkuzslCDHahf+1IPST6uemw==}
     peerDependencies:
-      glass-easel: 0.13.0
-      glass-easel-miniprogram-adapter: 0.13.0
-      webpack: ^5.85.0
+      glass-easel: 0.17.2
+      glass-easel-miniprogram-adapter: 0.17.2
+      webpack: ^5.101.3
     dependencies:
       chalk: 4.1.2
-      chokidar: 3.6.0
-      glass-easel: 0.13.0
-      glass-easel-miniprogram-adapter: 0.13.0(glass-easel@0.13.0)
-      glass-easel-stylesheet-compiler: 0.13.0
-      glass-easel-template-compiler: 0.13.0
+      chokidar: 4.0.3
+      glass-easel: 0.17.2
+      glass-easel-miniprogram-adapter: 0.17.2(glass-easel@0.17.2)
+      glass-easel-stylesheet-compiler: 0.17.2
+      glass-easel-template-compiler: 0.17.2
       source-map: 0.7.4
       webpack: 5.103.0(webpack-cli@5.1.4)
-      webpack-sources: 3.2.3
+      webpack-sources: 3.3.3
       webpack-virtual-modules: 0.5.0
     dev: true
 
-  /glass-easel-miniprogram-webpack-plugin@0.13.0(glass-easel-miniprogram-adapter@0.13.0)(glass-easel@0.13.0)(webpack@5.94.0):
-    resolution: {integrity: sha512-buoqT5wgSuHkSHLxXG/yiN98KwqWefpduwaXEZ87rkl23NVgfJHIqjPR88xkJkmfTY/Cr/upAKVQirWkVzmQXA==}
+  /glass-easel-miniprogram-webpack-plugin@0.17.2(glass-easel-miniprogram-adapter@0.17.2)(glass-easel@0.17.2)(webpack@5.94.0):
+    resolution: {integrity: sha512-/kKsYZwQYlib8g1/YpfN7jdq9AX7HtWpM5237Xg21zwH5T/0WBYfY1Naf/HIJ+AdkuzslCDHahf+1IPST6uemw==}
     peerDependencies:
-      glass-easel: 0.13.0
-      glass-easel-miniprogram-adapter: 0.13.0
-      webpack: ^5.85.0
+      glass-easel: 0.17.2
+      glass-easel-miniprogram-adapter: 0.17.2
+      webpack: ^5.101.3
     dependencies:
       chalk: 4.1.2
-      chokidar: 3.6.0
-      glass-easel: 0.13.0
-      glass-easel-miniprogram-adapter: 0.13.0(glass-easel@0.13.0)
-      glass-easel-stylesheet-compiler: 0.13.0
-      glass-easel-template-compiler: 0.13.0
+      chokidar: 4.0.3
+      glass-easel: 0.17.2
+      glass-easel-miniprogram-adapter: 0.17.2(glass-easel@0.17.2)
+      glass-easel-stylesheet-compiler: 0.17.2
+      glass-easel-template-compiler: 0.17.2
       source-map: 0.7.4
       webpack: 5.94.0(webpack-cli@5.1.4)
-      webpack-sources: 3.2.3
+      webpack-sources: 3.3.3
       webpack-virtual-modules: 0.5.0
     dev: true
 
-  /glass-easel-stylesheet-compiler@0.13.0:
-    resolution: {integrity: sha512-MSe8ZWZHcEOFQumT17fuiOs+//AfqH9HCOtwT3MtwnflX35qmXqdOQtZo7UwdAk2PuqyVw1QZnfIF0Gt2TQQOA==}
+  /glass-easel-stylesheet-compiler@0.17.2:
+    resolution: {integrity: sha512-+t1gw3J878UEv6DrqxUmzYVPb/bi9ECP88uMXCftJbqnlnPXAIdiUShfi1syrxI3bPTu0Gu0g2uOcQvCI9b0Ig==}
     dev: true
 
-  /glass-easel-template-compiler@0.13.0:
-    resolution: {integrity: sha512-H+uqmA54cg2eyYh5uhA+vdF4LskfPRJ85YgdbpCS/nd64XmPuLy6VmVTCDv7FoCNsSrmVNotU8wnjnTWAvCMXQ==}
+  /glass-easel-template-compiler@0.17.2:
+    resolution: {integrity: sha512-Vrb5CR89OPObyAAdYV0YouA59D4YPRG+ZhEScssorC3ug4Yu9X2vtzXzVkm5HW9+eUBOxADurXbrC3y/vStwog==}
     dev: true
 
-  /glass-easel@0.13.0:
-    resolution: {integrity: sha512-CF07ih4s4p8Dv8Xud1tjsF/muTvPFbdzH1OyW0b8dA3ZxJ82oJi19H38a0vWf1vEwg4Ess/PVghAb9Pc5UsQSg==}
+  /glass-easel@0.17.2:
+    resolution: {integrity: sha512-M0nHtuj59HjKXHWVsqWN6jXjYy7QzMrWL4iS74i+KvZeFzxW8Ds4iZGRQ21tGy7wlmw/Cav8tUj9SBLintbwRg==}
 
   /glob-parent@5.1.2:
     resolution: {integrity: sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow==}
@@ -3245,13 +3216,6 @@ packages:
     engines: {node: '>= 0.4'}
     dependencies:
       has-bigints: 1.0.2
-    dev: true
-
-  /is-binary-path@2.1.0:
-    resolution: {integrity: sha512-ZMERYes6pDydyuGidse7OsHxtbI7WVeUEozgR/g7rd0xUimYNlvZRE/K2MgZTjWy725IfelLeVcEM97mmtRGXw==}
-    engines: {node: '>=8'}
-    dependencies:
-      binary-extensions: 2.3.0
     dev: true
 
   /is-boolean-object@1.1.2:
@@ -4261,11 +4225,9 @@ packages:
       minimatch: 5.1.6
     dev: true
 
-  /readdirp@3.6.0:
-    resolution: {integrity: sha512-hOS089on8RduqdbhvQ5Z37A0ESjsqz6qnRcffsMU3495FuTdqSm+7bhJ29JvIOsBDEEnan5DPu9t3To9VRlMzA==}
-    engines: {node: '>=8.10.0'}
-    dependencies:
-      picomatch: 2.3.1
+  /readdirp@4.1.2:
+    resolution: {integrity: sha512-GDhwkLfywWL2s6vEjyhri+eXmfH6j1L7JE27WhqLeYzoh/A3DBaYGEj2H/HFZCn/kMfim73FXxEJTw06WtxQwg==}
+    engines: {node: '>= 14.18.0'}
     dev: true
 
   /rechoir@0.8.0:

@@ -18,6 +18,7 @@ export type PanelRecvMessageMeta = PanelRecvMessage | { kind: '_connected' }
 let background = chrome.runtime.connect({
   name: ConnectionSource.DevToolsPanel,
 })
+let reconnecting = false
 const postToBackground = (msg: PanelSendMessageMeta) => {
   try {
     background.postMessage(msg)
@@ -29,7 +30,11 @@ const postToBackground = (msg: PanelSendMessageMeta) => {
 const bindListener = () => {
   background.onMessage.addListener((message: PanelRecvMessageMeta) => {
     if (message.kind === '_connected') {
-      restart()
+      if (reconnecting) {
+        reconnecting = false
+      } else {
+        restart()
+      }
     } else {
       listener?.(message)
     }
@@ -41,6 +46,7 @@ const reconnect = () => {
   })
   bindListener()
   postToBackground({ kind: '_reconnect', tabId: chrome.devtools.inspectedWindow.tabId })
+  reconnecting = true
 }
 bindListener()
 postToBackground({ kind: '_init', tabId: chrome.devtools.inspectedWindow.tabId })

@@ -2,7 +2,7 @@
 
 import { type protocol } from 'glass-easel-devtools-agent'
 import { type AgentSendMessageMeta } from '../agent'
-import { inFirefox } from '../utils'
+import { ConnectionSource, inFirefox } from '../utils'
 
 declare function cloneInto<T>(x: T, target: Window): T
 
@@ -12,41 +12,62 @@ const prepareDataToAgent = <T>(data: T): T => {
 }
 
 // avoid double injection
-const existingElements = document.querySelectorAll('glass-easel-devtools')
-for (let i = 0; i < existingElements.length; i += 1) {
-  const hostElement = existingElements[i]
-  hostElement.parentNode?.removeChild(hostElement)
-}
-
-// create a host node
-const hostElement = document.createElement('glass-easel-devtools')
-const hostNodeStyle = `
-  display: none;
-  position: fixed;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
-`
-hostElement.setAttribute('style', hostNodeStyle)
-document.documentElement.appendChild(hostElement)
-
-// messaging from background to agent
-const postToBackground = (msg: AgentSendMessageMeta) => {
-  // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  chrome.runtime.sendMessage(msg)
-}
-chrome.runtime.onMessage.addListener((message: protocol.AgentRecvMessage, sender) => {
-  if (sender.id !== chrome.runtime.id) return
-  const ev = new CustomEvent('glass-easel-devtools-agent-recv', {
-    detail: prepareDataToAgent(message),
+const existingElement = document.querySelector('glass-easel-devtools')
+if (existingElement) {
+  const ev = new CustomEvent('glass-easel-devtools-reconnect', {})
+  existingElement.dispatchEvent(ev)
+} else {
+  const hostElement = document.createElement('glass-easel-devtools')
+  hostElement.addEventListener('glass-easel-devtools-reconnect', () => {
+    reconnect()
   })
-  hostElement.dispatchEvent(ev)
-})
 
-// messaging from agent to background
-hostElement.addEventListener('glass-easel-devtools-agent-send', (ev) => {
-  const { detail } = ev as CustomEvent<protocol.AgentSendMessage>
-  postToBackground(detail)
-})
-postToBackground({ kind: '_preinit' })
+  // host node styles
+  const hostNodeStyle = `
+    display: none;
+    position: fixed;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+  `
+  hostElement.setAttribute('style', hostNodeStyle)
+  document.documentElement.appendChild(hostElement)
+
+  // messaging from background to agent
+  let background = chrome.runtime.connect({
+    name: ConnectionSource.ContentScript,
+  })
+  const postToBackground = (msg: AgentSendMessageMeta) => {
+    try {
+      background.postMessage(msg)
+    } catch {
+      reconnect()
+      background.postMessage(msg)
+    }
+  }
+  const bindListener = () => {
+    background.onMessage.addListener((message) => {
+      const ev = new CustomEvent('glass-easel-devtools-agent-recv', {
+        detail: prepareDataToAgent(message),
+      })
+      hostElement.dispatchEvent(ev)
+    })
+  }
+  const reconnect = () => {
+    background = chrome.runtime.connect({
+      name: ConnectionSource.ContentScript,
+    })
+    bindListener()
+    postToBackground({ kind: '_reconnect' })
+  }
+  bindListener()
+  background.onDisconnect.addListener(reconnect)
+
+  // messaging from agent to background
+  hostElement.addEventListener('glass-easel-devtools-agent-send', (ev) => {
+    const { detail } = ev as CustomEvent<protocol.AgentSendMessage>
+    postToBackground(detail)
+  })
+  postToBackground({ kind: '_preinit' })
+}
