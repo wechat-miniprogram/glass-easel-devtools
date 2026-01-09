@@ -443,7 +443,7 @@ class StyleEditContext {
       ;(elem as glassEasel.composedBackend.Element).setStyle(style)
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     } else if (ctx.mode === glassEasel.BackendMode.Shadow) {
-      ;(elem as glassEasel.backend.Element).setStyle(style)
+      ;(elem as glassEasel.backend.Element).setStyle(style, 0)
     }
   }
 
