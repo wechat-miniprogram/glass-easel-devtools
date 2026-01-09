@@ -32,7 +32,6 @@ const panelEnd = {
 
 // init iframe
 const iframe = document.createElement('iframe')
-// eslint-disable-next-line no-script-url
 iframe.src = 'stub.html'
 iframe.style.border = 'none'
 iframe.style.flex = '1'

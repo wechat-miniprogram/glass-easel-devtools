@@ -13,6 +13,13 @@ export default defineConfig(
   pluginPromise.configs['flat/recommended'],
   eslintPluginPrettierRecommended,
   {
+    ignores: [
+      '**/dist/**',
+      '**/node_modules/**',
+      '**/*.js',
+    ],
+  },
+  {
     languageOptions: {
       globals: {
         ...globals.webextensions,

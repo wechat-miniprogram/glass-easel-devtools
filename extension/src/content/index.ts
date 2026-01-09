@@ -47,7 +47,7 @@ if (existingElement) {
     }
   }
   const bindListener = () => {
-    background.onMessage.addListener((message) => {
+    background.onMessage.addListener((message: unknown) => {
       const ev = new CustomEvent('glass-easel-devtools-agent-recv', {
         detail: prepareDataToAgent(message),
       })

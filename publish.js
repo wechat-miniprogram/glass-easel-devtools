@@ -23,8 +23,7 @@ if (!/[0-9]+\.[0-9]+\.[0-9]+(-alpha\.[0-9]+|-beta\.[0-9]+)?/.test(version)) {
 ;['agent', 'panel', 'extension', 'examples'].forEach((p) => {
   console.info(`Run eslint on ${p}`)
   if (
-    childProcess.spawnSync('npx', ['eslint', '-c', '../.eslintrc.js', '.'], {
-      cwd: p,
+    childProcess.spawnSync('npx', ['eslint', '-c', './eslint.config.mjs', p], {
       stdio: 'inherit',
     }).status !== 0
   ) {

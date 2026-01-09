@@ -8,7 +8,7 @@ Component()
   }))
   .init(({ self, data, setData, listener }) => {
     const modifyClass = listener(() => {
-      setData({ class: `my-class-${Math.floor(Math.random() * 10)}` })
+      setData({ class: `my-class-${Math.floor(Math.random() * 10).toString()}` })
     })
 
     const modifyStyle = listener(() => {

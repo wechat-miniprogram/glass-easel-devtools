@@ -1,6 +1,6 @@
 import * as glassEasel from 'glass-easel'
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-call
 const wxml = require('./overlay.wxml') as Record<string, unknown>
 
 export const enum OverlayState {
