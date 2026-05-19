@@ -17,6 +17,7 @@ export default defineConfig(
       '**/dist/**',
       '**/node_modules/**',
       '**/*.js',
+      '**/*.mjs',
     ],
   },
   {
@@ -53,6 +54,7 @@ export default defineConfig(
         },
       ],
       '@typescript-eslint/require-await': 'off',
+      '@typescript-eslint/no-unnecessary-type-assertion': 'off',
       'comma-dangle': ['error', 'always-multiline'],
       'handle-callback-err': ['error', '^(err|error)$'],
       'no-catch-shadow': 'error',

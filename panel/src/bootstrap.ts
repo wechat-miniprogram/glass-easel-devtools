@@ -49,10 +49,7 @@ const insertInto = (
   } else {
     throw new Error('unrecognized host backend mode')
   }
-  root.attach(
-    backendElement as unknown as glassEasel.GeneralBackendElement,
-    placeholder as unknown as glassEasel.GeneralBackendElement,
-  )
+  root.attach(backendElement, placeholder)
   if (
     backendContext.mode === glassEasel.BackendMode.Composed ||
     backendContext.mode === glassEasel.BackendMode.Shadow
