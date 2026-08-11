@@ -1,0 +1,80 @@
+name: publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-alpha\.[0-9]+|-beta\.[0-9]+)?$'; then
+            echo "Error: tag must be vX.Y.Z format, got: $GITHUB_REF"
+            exit 1
+          fi
+          echo "Releasing version: $VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check version
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          for pkg in agent/package.json \
+                     panel/package.json \
+                     extension/package.json \
+                     examples/miniprogram/package.json \
+                     examples/standalone/package.json \
+                     extension/chrome.manifest.json \
+                     extension/firefox.manifest.json; do
+            ACTUAL=$(grep -m1 '"version"' "$pkg" | sed -E 's/.*"version": "([^"]*)".*/\1/')
+            if [ "$ACTUAL" != "$VERSION" ]; then
+              echo "Error: $pkg has version $ACTUAL but tag is v$VERSION"
+              exit 1
+            fi
+            echo "OK: $pkg = $ACTUAL"
+          done
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: pnpm install --recursive --frozen-lockfile --strict-peer-dependencies
+
+      - name: Build all packages
+        run: pnpm -r run build
+        env:
+          GLASS_EASEL_ARGS: ''
+
+      - name: Publish npm packages
+        run: |
+          for pkg in agent panel extension examples/miniprogram examples/standalone; do
+            echo "Publishing $pkg to npm..."
+            cd "$pkg"
+            pnpm publish --provenance --no-git-checks
+            cd ..
+          done
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -49,7 +49,6 @@ if (gitStatusRes.status !== 0 || gitStatusRes.stdout.length > 0) {
 ].forEach((p) => {
   let content = fs.readFileSync(p, { encoding: 'utf8' })
   let oldVersion
-  const refVersions = []
   content = content.replace(/"version": "(.+)"/, (_, v) => {
     oldVersion = v
     return `"version": "${version}"`
@@ -58,21 +57,18 @@ if (gitStatusRes.status !== 0 || gitStatusRes.stdout.length > 0) {
     throw new Error(`version segment not found in ${p}`)
   }
   console.info(`Update ${p} version from "${oldVersion}" to "${version}"`)
-  refVersions.forEach(({ mod, v }) => {
-    console.info(`  + dependency ${mod} version from "${v}" to "${version}"`)
-  })
   writeFileAndGitAdd(p, content)
 })
 
 // pnpm install
 console.info('Run pnpm install')
 if (childProcess.spawnSync('pnpm', ['install'], { stdio: 'inherit' }).status !== 0) {
-  throw new Error('failed to clean glass-easel dist')
+  throw new Error('failed to pnpm install')
 }
 
-// compile agent
+// build
 ;['agent', 'panel', 'extension', 'examples/miniprogram', 'examples/standalone'].forEach((p) => {
-  console.info(`Compile ${p}`)
+  console.info(`Build ${p}`)
   if (childProcess.spawnSync('rm', ['-rf', 'dist'], { cwd: p }).status !== 0) {
     throw new Error('failed to clean dist')
   }
@@ -83,14 +79,14 @@ if (childProcess.spawnSync('pnpm', ['install'], { stdio: 'inherit' }).status !==
       stdio: 'inherit',
     }).status !== 0
   ) {
-    throw new Error(`failed to compile ${p}`)
+    throw new Error(`failed to build ${p}`)
   }
 })
 
 // npm test
 console.info('Run pnpm test')
 if (childProcess.spawnSync('pnpm', ['test', '-r'], { stdio: 'inherit' }).status !== 0) {
-  throw new Error('failed to clean glass-easel dist')
+  throw new Error('failed to pnpm test')
 }
 
 // add lock files
@@ -109,29 +105,16 @@ if (
   throw new Error('failed to execute git commit')
 }
 
-// publish js modules
-;['agent', 'panel', 'extension', 'examples/miniprogram', 'examples/standalone'].forEach((p) => {
-  console.info(`Publish ${p} to npmjs`)
-  if (
-    childProcess.spawnSync('pnpm', ['publish', '--registry', 'https://registry.npmjs.org'], {
-      cwd: p,
-      stdio: 'inherit',
-    }).status !== 0
-  ) {
-    throw new Error('failed to publish to npmjs')
-  }
-})
-
 // add a git tag and push
 console.info('Push to git origin')
 if (childProcess.spawnSync('git', ['tag', `v${version}`]).status !== 0) {
   throw new Error('failed to execute git tag')
 }
 if (childProcess.spawnSync('git', ['push'], { stdio: 'inherit' }).status !== 0) {
-  throw new Error('failed to execute git push')
+  throw new Error('failed to git push')
 }
 if (childProcess.spawnSync('git', ['push', '--tags'], { stdio: 'inherit' }).status !== 0) {
-  throw new Error('failed to execute git push --tags')
+  throw new Error('failed to git push --tags')
 }
 
-console.info('All done!')
+console.info('Version updated! Wait the remote actions to build and publish.')
