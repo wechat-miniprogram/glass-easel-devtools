@@ -17,7 +17,7 @@ The final product can be found in `extension/pkg` directory.
 
 ## Publish
 
-The extension packages should be publish manually (the `publish.js` does not do this).
+The extension packages should be publish manually (the `publish-version.js` does not do this).
 
 Modify the version in [Chrome Manifest](./chrome.manifest.json) and [Firefox Manifest](./firefox.manifest.json), then run `npm run pack-extension` in the project root.
 
