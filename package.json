@@ -21,5 +21,15 @@
     "vscode-languageclient": "^8.1.0",
     "webpack": "^5.96.1",
     "webpack-cli": "^5.1.4"
+  },
+  "pnpm": {
+    "overrides": {
+      "webpack": "5.109.2"
+    },
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "webpack": "5.109.2"
+      }
+    }
   }
 }
