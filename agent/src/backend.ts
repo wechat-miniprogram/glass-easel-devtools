@@ -82,7 +82,12 @@ export const getBoxModel = (
     if ('getBoxModel' in elem) {
       // if there is `getBoxModel` call, use it
       elem.getBoxModel!((ret) => {
-        resolve(ret)
+        resolve(ret ?? {
+          margin: { left: 0, top: 0, width: 0, height: 0 },
+          border: { left: 0, top: 0, width: 0, height: 0 },
+          padding: { left: 0, top: 0, width: 0, height: 0 },
+          content: { left: 0, top: 0, width: 0, height: 0 },
+        })
       })
     } else {
       // otherwise, use `getAllComputedStyles` to emulate
@@ -422,10 +427,10 @@ class StyleEditContext {
     }
     if (!map[key]) {
       map[key] = StyleRuleEdit.fromMaybeInlineStyle(rule.properties, inlineStyle)
-      return map[key]
+      return map[key]!
     }
-    map[key].updateWithProps(rule.properties, inlineStyle)
-    return map[key]
+    map[key]!.updateWithProps(rule.properties, inlineStyle)
+    return map[key]!
   }
 
   updateInline(
@@ -534,7 +539,7 @@ export class ClassEditContext {
     if (!group[key]) {
       group[key] = new ClassListEdit()
     }
-    return group[key]
+    return group[key]!
   }
 }
 
