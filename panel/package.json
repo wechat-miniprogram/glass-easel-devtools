@@ -1,6 +1,10 @@
 {
   "name": "glass-easel-devtools-panel",
   "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wechat-miniprogram/glass-easel-devtools.git"
+  },
   "main": "dist/bootstrap.js",
   "scripts": {
     "build": "webpack --config webpack.config.js",
