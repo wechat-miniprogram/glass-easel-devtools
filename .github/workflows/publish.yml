@@ -70,11 +70,9 @@ jobs:
 
       - name: Publish npm packages
         run: |
-          for pkg in agent panel extension examples/miniprogram examples/standalone; do
+          for pkg in agent panel extension; do
             echo "Publishing $pkg to npm..."
             cd "$pkg"
             pnpm publish --provenance --no-git-checks
             cd ..
           done
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
